@@ -8,6 +8,9 @@ interface RouteContext {
   params: Promise<{ id: string; name: string[] }>
 }
 
+// Route handles two patterns:
+//   GET /repositories/{...repoName}/tags  → list tags (last segment is "tags")
+//   GET /repositories/{...repoName}       → repo detail (future)
 export async function GET(request: Request, context: RouteContext) {
   const { id, name } = await context.params
   const registry = getRegistry(id)
@@ -16,22 +19,38 @@ export async function GET(request: Request, context: RouteContext) {
     const response: ApiResponse<null> = {
       success: false,
       data: null,
-      error: {
-        code: "REGISTRY_NOT_FOUND",
-        message: `Registry ${id} was not found`,
-      },
+      error: { code: "REGISTRY_NOT_FOUND", message: `Registry ${id} was not found` },
     }
-
     return NextResponse.json(response, { status: 404 })
   }
 
-  const repositoryName = name.join("/")
+  // Detect /tags suffix
+  const lastSegment = name[name.length - 1]
+  if (lastSegment === "tags") {
+    return listTags(request, registry, id, name.slice(0, -1))
+  }
+
+  const response: ApiResponse<null> = {
+    success: false,
+    data: null,
+    error: { code: "NOT_FOUND", message: "Route not found" },
+  }
+  return NextResponse.json(response, { status: 404 })
+}
+
+async function listTags(
+  request: Request,
+  registry: Awaited<ReturnType<typeof getRegistry>>,
+  _id: string,
+  nameParts: string[],
+) {
+  const repositoryName = nameParts.join("/")
   const { searchParams } = new URL(request.url)
   const page = Number(searchParams.get("page") ?? "1")
   const perPage = Number(searchParams.get("perPage") ?? "50")
 
   try {
-    const provider = createProvider(registry)
+    const provider = createProvider(registry!)
     const result = await provider.listTags(repositoryName, { page, perPage })
 
     const meta: PaginationMeta = {
@@ -51,7 +70,6 @@ export async function GET(request: Request, context: RouteContext) {
       error: null,
       meta,
     }
-
     return NextResponse.json(response)
   } catch (error) {
     const response: ApiResponse<null> = {
@@ -63,7 +81,6 @@ export async function GET(request: Request, context: RouteContext) {
         details: error instanceof Error ? error.message : error,
       },
     }
-
     return NextResponse.json(response, { status: 502 })
   }
 }
