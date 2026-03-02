@@ -6,10 +6,25 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ConfigInspector } from "@/components/manifest/config-inspector"
-import { HistoryTimeline } from "@/components/manifest/history-timeline"
-import { LayerList } from "@/components/manifest/layer-list"
-import { ManifestViewer } from "@/components/manifest/manifest-viewer"
+import dynamic from "next/dynamic"
+import { ManifestSkeleton } from "@/components/skeletons"
+
+const ConfigInspector = dynamic(
+  () => import("@/components/manifest/config-inspector").then((m) => m.ConfigInspector),
+  { loading: () => <ManifestSkeleton /> },
+)
+const HistoryTimeline = dynamic(
+  () => import("@/components/manifest/history-timeline").then((m) => m.HistoryTimeline),
+  { loading: () => <ManifestSkeleton /> },
+)
+const LayerList = dynamic(
+  () => import("@/components/manifest/layer-list").then((m) => m.LayerList),
+  { loading: () => <ManifestSkeleton /> },
+)
+const ManifestViewer = dynamic(
+  () => import("@/components/manifest/manifest-viewer").then((m) => m.ManifestViewer),
+  { loading: () => <ManifestSkeleton /> },
+)
 import { formatBytes, formatDate, generatePullCommand, truncateDigest } from "@/lib/format"
 import { useManifest } from "@/hooks/use-manifest"
 

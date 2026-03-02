@@ -483,7 +483,7 @@
 
 ### 4.1 Docker & Deployment — P1
 
-- [ ] **T-061**: Create production Dockerfile
+- [x] **T-061**: Create production Dockerfile
   - Multi-stage build: deps → build → runner
   - Use `node:20-alpine` as base
   - Target: < 100MB final image
@@ -491,7 +491,7 @@
   - Health check: `CMD curl -f http://localhost:3000/api/health`
   - Files: `Dockerfile`
 
-- [ ] **T-062**: Finalize docker-compose.yml
+- [x] **T-062**: Finalize docker-compose.yml
   - Production-ready compose with both services
   - Environment variable passthrough
   - Volume for registry data persistence
@@ -499,7 +499,7 @@
   - Spec ref: §12
   - Files: `docker-compose.yml`
 
-- [ ] **T-063**: Configure Next.js for production
+- [x] **T-063**: Configure Next.js for production
   - `output: "standalone"` for Docker
   - CSP headers in `next.config.ts`
   - Image optimization settings
@@ -507,40 +507,40 @@
 
 ### 4.2 Testing — P1
 
-- [ ] **T-064**: Set up Vitest
+- [x] **T-064**: Set up Vitest
   - Configure `vitest.config.ts`
   - Add test scripts to `package.json`
   - Files: `vitest.config.ts`, `package.json`
 
-- [ ] **T-065**: Unit tests — utilities
+- [x] **T-065**: Unit tests — utilities
   - Test `formatBytes()`, `formatDate()`, `truncateDigest()`, `generatePullCommand()`
   - Test `cn()` utility
   - Files: `src/lib/__tests__/format.test.ts`, `src/lib/__tests__/utils.test.ts`
 
-- [ ] **T-066**: Unit tests — registry client
+- [x] **T-066**: Unit tests — registry client
   - Mock HTTP responses for Registry V2 API
   - Test: ping, catalog, tags, manifest, delete
   - Test auth flows: none, basic, bearer token exchange
   - Test error handling: 401, 404, 429, network error
   - Files: `src/lib/__tests__/registry-client.test.ts`
 
-- [ ] **T-067**: Unit tests — providers
+- [x] **T-067**: Unit tests — providers
   - Test GenericProvider with mocked registry
   - Test DockerHubProvider with mocked Hub API + Registry API
   - Test provider factory auto-detection
   - Files: `src/lib/providers/__tests__/generic-provider.test.ts`, `...dockerhub-provider.test.ts`
 
-- [ ] **T-068**: Unit tests — Zustand stores
+- [x] **T-068**: Unit tests — Zustand stores
   - Test registry store: add, update, remove, persist
   - Test UI store: theme toggle, view mode, sidebar
   - Files: `src/stores/__tests__/registry-store.test.ts`, `...ui-store.test.ts`
 
-- [ ] **T-069**: Set up Playwright
+- [x] **T-069**: Set up Playwright
   - Configure `playwright.config.ts`
   - Add E2E test scripts
   - Files: `playwright.config.ts`, `package.json`
 
-- [ ] **T-070**: E2E tests — critical flows
+- [x] **T-070**: E2E tests — critical flows
   - Test: Add local registry → browse repos → view tags → inspect image → delete tag
   - Test: Add Docker Hub → search repos → view tags → inspect image
   - Test: Command palette search
@@ -549,7 +549,7 @@
 
 ### 4.3 Documentation — P2
 
-- [ ] **T-071**: Write README.md
+- [x] **T-071**: Write README.md
   - Project description + screenshots
   - Quick start (docker-compose one-liner)
   - Manual setup instructions
@@ -557,7 +557,7 @@
   - Environment variables reference
   - Files: `README.md`
 
-- [ ] **T-072**: Write CONTRIBUTING.md
+- [x] **T-072**: Write CONTRIBUTING.md
   - Dev environment setup
   - Code style guide
   - PR process
@@ -566,19 +566,19 @@
 
 ### 4.4 Final Polish — P2
 
-- [ ] **T-073**: Add favicon and meta tags
+- [x] **T-073**: Add favicon and meta tags
   - Custom favicon (Docker/container themed)
   - SEO meta tags: title, description, og:image
   - Files: `public/favicon.ico`, `src/app/layout.tsx`
 
-- [ ] **T-074**: Add keyboard shortcuts
+- [x] **T-074**: Add keyboard shortcuts
   - `⌘K` → Command palette
   - `Escape` → Close dialogs/modals
   - `G then R` → Go to registries
   - `G then D` → Go to dashboard
   - Files: `src/hooks/use-keyboard-shortcuts.ts`
 
-- [ ] **T-075**: Performance optimization
+- [x] **T-075**: Performance optimization
   - Dynamic imports for heavy components (Recharts, manifest viewer)
   - Virtual scrolling for large repo/tag lists
   - Image/icon lazy loading

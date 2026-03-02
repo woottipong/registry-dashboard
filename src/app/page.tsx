@@ -3,9 +3,15 @@
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import dynamic from "next/dynamic"
 import { StatsCards } from "@/components/dashboard/stats-cards"
-import { TopReposChart } from "@/components/dashboard/top-repos-chart"
 import { RegistryOverview } from "@/components/dashboard/registry-overview"
+import { Skeleton } from "@/components/ui/skeleton"
+
+const TopReposChart = dynamic(
+  () => import("@/components/dashboard/top-repos-chart").then((m) => m.TopReposChart),
+  { loading: () => <Skeleton className="h-64 w-full rounded-lg" />, ssr: false },
+)
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories } from "@/hooks/use-repositories"
 

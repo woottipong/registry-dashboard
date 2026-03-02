@@ -36,6 +36,7 @@ bun run lint:fix     # Auto-fix lint issues
 bun run format       # Prettier
 bun run typecheck    # tsc --noEmit
 bun test             # Unit tests (Vitest)
+bun run test:watch   # Unit tests in watch mode
 bun run test:e2e     # E2E tests (Playwright)
 ```
 

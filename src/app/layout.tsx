@@ -22,8 +22,23 @@ export const metadata: Metadata = {
     template: "%s | Registry Dashboard",
   },
   description:
-    "A modern web dashboard for browsing and managing Docker container images across multiple registries.",
-  keywords: ["docker", "registry", "container", "images", "dashboard"],
+    "A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries.",
+  keywords: ["docker", "registry", "container", "images", "dashboard", "self-hosted", "devops"],
+  authors: [{ name: "Registry Dashboard" }],
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Registry Dashboard",
+    description: "Browse and manage Docker container images across multiple registries.",
+    type: "website",
+    locale: "en_US",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 }
 
 export default function RootLayout({

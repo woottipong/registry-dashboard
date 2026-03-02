@@ -3,6 +3,7 @@
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { useUiStore } from "@/stores/ui-store"
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 
 interface AppShellProps {
   children: React.ReactNode
@@ -11,6 +12,8 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
+
+  useKeyboardShortcuts()
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">

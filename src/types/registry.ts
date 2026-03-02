@@ -39,7 +39,7 @@ export interface RegistryConnection {
   capabilities?: ProviderCapabilities
   rateLimit?: RegistryRateLimit
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
 export interface Repository {

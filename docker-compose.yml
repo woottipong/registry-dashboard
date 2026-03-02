@@ -7,13 +7,17 @@ services:
       - "5000:5000"
     environment:
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
     volumes:
       - registry-data:/var/lib/registry
+    networks:
+      - registry-net
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
       interval: 15s
-      timeout: 3s
+      timeout: 5s
       retries: 5
+      start_period: 10s
 
   ui:
     build:
@@ -25,14 +29,27 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      DEFAULT_REGISTRY_URL: http://registry:5000
-      DEFAULT_REGISTRY_NAME: Local Registry
-      DEFAULT_REGISTRY_AUTH_TYPE: none
-      SESSION_SECRET: dev-secret-change-in-production
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      DEFAULT_REGISTRY_URL: ${DEFAULT_REGISTRY_URL:-http://registry:5000}
+      DEFAULT_REGISTRY_NAME: ${DEFAULT_REGISTRY_NAME:-Local Registry}
+      DEFAULT_REGISTRY_AUTH_TYPE: ${DEFAULT_REGISTRY_AUTH_TYPE:-none}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
     depends_on:
       registry:
         condition: service_healthy
+    networks:
+      - registry-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
 volumes:
   registry-data:
+    driver: local
+
+networks:
+  registry-net:
+    driver: bridge
