@@ -1,0 +1,38 @@
+services:
+  registry:
+    image: registry:2
+    container_name: registry-dashboard-registry
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+      - registry-data:/var/lib/registry
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: registry-dashboard-ui
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      DEFAULT_REGISTRY_URL: http://registry:5000
+      DEFAULT_REGISTRY_NAME: Local Registry
+      DEFAULT_REGISTRY_AUTH_TYPE: none
+      SESSION_SECRET: dev-secret-change-in-production
+    depends_on:
+      registry:
+        condition: service_healthy
+
+volumes:
+  registry-data:

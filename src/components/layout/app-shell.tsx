@@ -1,22 +1,23 @@
 "use client"
 
-import { useState } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
+import { useUiStore } from "@/stores/ui-store"
 
 interface AppShellProps {
   children: React.ReactNode
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const sidebarOpen = useUiStore((state) => state.sidebarOpen)
+  const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar mobileOpen={mobileSidebarOpen} onMobileOpenChange={setMobileSidebarOpen} />
+      <Sidebar mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar onOpenSidebar={() => setMobileSidebarOpen(true)} />
+        <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
     </div>

@@ -152,7 +152,7 @@
 
 ### 1.6 BFF API Routes — P0
 
-- [ ] **T-017**: Registry CRUD API routes
+- [x] **T-017**: Registry CRUD API routes
   - `GET /api/v1/registries` → list all saved registries (from encrypted cookie/session)
   - `POST /api/v1/registries` → add a registry (validate with Zod)
   - `PUT /api/v1/registries/:id` → update registry
@@ -161,21 +161,21 @@
   - Spec ref: §7 API Routes
   - Files: `src/app/api/v1/registries/route.ts`, `src/app/api/v1/registries/[id]/route.ts`
 
-- [ ] **T-018**: Registry ping API route
+- [x] **T-018**: Registry ping API route
   - `GET /api/v1/registries/:id/ping` → call provider.ping(), return status + latency
   - Files: `src/app/api/v1/registries/[id]/ping/route.ts`
 
-- [ ] **T-019**: Repositories API route
+- [x] **T-019**: Repositories API route
   - `GET /api/v1/registries/:id/repositories` → call provider.listRepositories()
   - Support `?page=&perPage=&search=` query params
   - Files: `src/app/api/v1/registries/[id]/repositories/route.ts`
 
-- [ ] **T-020**: Tags API route
+- [x] **T-020**: Tags API route
   - `GET /api/v1/registries/:id/repositories/:name/tags`
   - Handle nested repo names (e.g., `library/nginx` → catch-all route)
   - Files: `src/app/api/v1/registries/[id]/repositories/[...name]/tags/route.ts`
 
-- [ ] **T-021**: Manifest + Blob API routes
+- [x] **T-021**: Manifest + Blob API routes
   - `GET /api/v1/registries/:id/manifests/:name/:ref` → get manifest
   - `HEAD /api/v1/registries/:id/manifests/:name/:ref` → get digest only
   - `DELETE /api/v1/registries/:id/manifests/:name/:ref` → delete (check capabilities first)
@@ -184,13 +184,13 @@
 
 ### 1.7 State Management — P0
 
-- [ ] **T-022**: Create Zustand registry store
+- [x] **T-022**: Create Zustand registry store
   - `registries: RegistryConnection[]` — persisted to localStorage
   - Actions: `addRegistry`, `updateRegistry`, `removeRegistry`, `setDefault`
   - `persist` middleware with encrypted storage for credentials
   - Files: `src/stores/registry-store.ts`
 
-- [ ] **T-023**: Create Zustand UI store
+- [x] **T-023**: Create Zustand UI store
   - `sidebarOpen: boolean`, `sidebarCollapsed: boolean`
   - `theme: "dark" | "light" | "system"`
   - `repoViewMode: "grid" | "table"`
@@ -199,14 +199,14 @@
 
 ### 1.8 Development Environment — P1
 
-- [ ] **T-024**: Create `docker-compose.yml`
+- [x] **T-024**: Create `docker-compose.yml`
   - `registry` service: `registry:2` on `:5000` with `REGISTRY_STORAGE_DELETE_ENABLED=true`
   - `ui` service: build from Dockerfile on `:3000`
   - Shared volume for registry data
   - Spec ref: §12 Development Setup
   - Files: `docker-compose.yml`
 
-- [ ] **T-025**: Create seed script for test images
+- [x] **T-025**: Create seed script for test images
   - Script to push sample images to local registry (nginx, redis, alpine, etc.)
   - At least 5 repos with multiple tags each
   - Files: `scripts/seed-registry.sh`

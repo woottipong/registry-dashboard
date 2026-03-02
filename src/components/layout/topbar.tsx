@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
+import { useUiStore } from "@/stores/ui-store"
 
 interface TopbarProps {
   onOpenSidebar: () => void
@@ -18,6 +19,12 @@ interface TopbarProps {
 
 export function Topbar({ onOpenSidebar }: TopbarProps) {
   const { setTheme } = useTheme()
+  const setThemePreference = useUiStore((state) => state.setTheme)
+
+  const handleThemeChange = (theme: "light" | "dark" | "system") => {
+    setTheme(theme)
+    setThemePreference(theme)
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-sm">
@@ -64,9 +71,9 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleThemeChange("light")}>Light</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleThemeChange("dark")}>Dark</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleThemeChange("system")}>System</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
