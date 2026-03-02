@@ -98,7 +98,7 @@
 
 ### 1.4 Type Definitions — P0
 
-- [ ] **T-012**: Define TypeScript types
+- [x] **T-012**: Define TypeScript types
   - `RegistryConnection` — with provider, auth, namespace, rate limit fields
   - `Repository` — with Docker Hub-specific fields (pullCount, starCount, etc.)
   - `Tag` — name, digest, size, architecture, os
@@ -111,7 +111,7 @@
 
 ### 1.5 Registry Client Library — P0
 
-- [ ] **T-013**: Build base registry HTTP client
+- [x] **T-013**: Build base registry HTTP client
   - Generic fetch wrapper with retry, timeout, error handling
   - Auto-attach auth headers (none / basic / bearer)
   - Parse `Www-Authenticate` header for bearer token exchange
@@ -119,7 +119,7 @@
   - Spec ref: §3 API Reference
   - Files: `src/lib/registry-client.ts`
 
-- [ ] **T-014**: Implement `GenericProvider`
+- [x] **T-014**: Implement `GenericProvider`
   - `ping()` → `GET /v2/`
   - `listRepositories()` → `GET /v2/_catalog` with `?n=&last=` pagination
   - `listTags()` → `GET /v2/{name}/tags/list`
@@ -130,7 +130,7 @@
   - Spec ref: §3, Provider Abstraction
   - Files: `src/lib/providers/generic-provider.ts`
 
-- [ ] **T-015**: Implement `DockerHubProvider`
+- [x] **T-015**: Implement `DockerHubProvider`
   - `ping()` → `GET https://registry-1.docker.io/v2/` (with token exchange)
   - `listRepositories()` → Hub API: `GET https://hub.docker.com/v2/repositories/{namespace}/`
   - `searchRepositories()` → Hub API: `GET https://hub.docker.com/v2/search/repositories/`
@@ -144,7 +144,7 @@
   - Spec ref: §3 Docker Hub Specifics
   - Files: `src/lib/providers/dockerhub-provider.ts`
 
-- [ ] **T-016**: Create provider factory
+- [x] **T-016**: Create provider factory
   - `createProvider(connection: RegistryConnection): RegistryProvider`
   - Auto-detect provider from URL (e.g., `registry-1.docker.io` → DockerHub)
   - Spec ref: Provider Abstraction
