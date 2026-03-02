@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { useUiStore } from "@/stores/ui-store"
+import { useCommandPalette } from "@/hooks/use-command-palette"
 
 interface TopbarProps {
   onOpenSidebar: () => void
@@ -20,6 +21,7 @@ interface TopbarProps {
 export function Topbar({ onOpenSidebar }: TopbarProps) {
   const { setTheme } = useTheme()
   const setThemePreference = useUiStore((state) => state.setTheme)
+  const { setOpen: openPalette } = useCommandPalette()
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     setTheme(theme)
@@ -55,7 +57,12 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
           <Breadcrumbs />
         </div>
 
-        <Button variant="outline" className="hidden gap-2 md:inline-flex" type="button">
+        <Button
+          variant="outline"
+          className="hidden gap-2 md:inline-flex"
+          type="button"
+          onClick={() => openPalette(true)}
+        >
           <SearchIcon className="size-4" />
           Search
           <span className="rounded-sm border px-1.5 py-0.5 text-xs text-muted-foreground">

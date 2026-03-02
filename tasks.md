@@ -310,21 +310,21 @@
 
 ### 2.4 Tag Explorer (F3) — P0
 
-- [ ] **T-039**: Build tag table component
+- [x] **T-039**: Build tag table component
   - TanStack Table with columns: tag name, digest (truncated), size, created, arch/os, actions
   - Sortable by name, size, date
   - Multi-select checkboxes (for batch operations)
   - Digest click → copy to clipboard with toast
   - Files: `src/components/tag/tag-table.tsx`
 
-- [ ] **T-040**: Build tag actions component
+- [x] **T-040**: Build tag actions component
   - Copy digest button
   - Copy pull command button
   - Delete button (hidden if provider `canDelete: false`)
   - Inspect button → navigate to image inspector
   - Files: `src/components/tag/tag-actions.tsx`
 
-- [ ] **T-041**: Build tag explorer page
+- [x] **T-041**: Build tag explorer page
   - Route: `/repos/[registry]/[...name]`
   - Page header: repo name, registry badge, tag count
   - Search/filter tags
@@ -334,32 +334,32 @@
 
 ### 2.5 Image Inspector (F4) — P0
 
-- [ ] **T-042**: Build manifest viewer component
+- [x] **T-042**: Build manifest viewer component
   - Formatted JSON view with syntax highlighting
   - Toggle: formatted / raw JSON
   - Copy manifest button
   - Show media type, schema version, digest
   - Files: `src/components/manifest/manifest-viewer.tsx`
 
-- [ ] **T-043**: Build layer list component
+- [x] **T-043**: Build layer list component
   - Table: layer index, digest (truncated), size (formatted), media type
   - Visual size bar (relative width proportional to layer size)
   - Total size summary at bottom
   - Files: `src/components/manifest/layer-list.tsx`
 
-- [ ] **T-044**: Build config inspector component
+- [x] **T-044**: Build config inspector component
   - Sections: Environment Variables, Entrypoint/CMD, Labels, Exposed Ports, Volumes, Working Dir, User
   - Each section collapsible
   - Values displayed in monospace font, copy-on-click
   - Files: `src/components/manifest/config-inspector.tsx`
 
-- [ ] **T-045**: Build history timeline component
+- [x] **T-045**: Build history timeline component
   - Visual timeline of Dockerfile commands (from `history[]`)
   - Show: command, created date, layer size (if not empty_layer)
   - Highlight RUN, COPY, ADD commands differently
   - Files: `src/components/manifest/history-timeline.tsx`
 
-- [ ] **T-046**: Build image inspector page
+- [x] **T-046**: Build image inspector page
   - Route: `/repos/[registry]/[...name]/[tag]`
   - Tabbed layout: Overview | Layers | Config | History | Raw Manifest
   - Overview tab: architecture, OS, created date, total size, digest, pull command
@@ -375,21 +375,21 @@
 
 ### 3.1 Tag Management (F5) — P1
 
-- [ ] **T-047**: Build delete confirmation dialog
+- [x] **T-047**: Build delete confirmation dialog
   - Show tag name + digest
   - Warn: "This action cannot be undone"
   - Type tag name to confirm (for destructive safety)
   - Disable for providers where `canDelete: false`
   - Files: `src/components/tag/delete-dialog.tsx`
 
-- [ ] **T-048**: Implement tag deletion flow
+- [x] **T-048**: Implement tag deletion flow
   - Call `DELETE /api/v1/registries/:id/manifests/:name/:digest`
   - Optimistic update: remove tag from list immediately
   - Rollback on failure
   - Success/error toast
   - Files: update `src/hooks/use-tags.ts`, `src/components/tag/tag-actions.tsx`
 
-- [ ] **T-049**: Build pull command generator
+- [x] **T-049**: Build pull command generator
   - Auto-generate: `docker pull {registryUrl}/{repoName}:{tag}`
   - Handle Docker Hub special case: `docker pull {repoName}:{tag}` (no registry prefix for Hub)
   - Copy button with animation
@@ -398,7 +398,7 @@
 
 ### 3.2 Command Palette / Search (F7) — P1
 
-- [ ] **T-050**: Build command palette component
+- [x] **T-050**: Build command palette component
   - Trigger: ⌘K (Mac) / Ctrl+K (Windows/Linux)
   - Uses shadcn `command` component (cmdk)
   - Sections: Recent, Repositories, Tags, Actions
@@ -406,38 +406,38 @@
   - Keyboard navigation: arrow keys + enter
   - Files: `src/components/layout/command-palette.tsx`
 
-- [ ] **T-051**: Create command palette hook
+- [x] **T-051**: Create command palette hook
   - `useCommandPalette()` — open/close state, search query, results
   - Aggregate search across all registries
   - Debounced search (300ms)
   - Search history (last 10 searches, persisted)
   - Files: `src/hooks/use-command-palette.ts`
 
-- [ ] **T-052**: Create health check API route
+- [x] **T-052**: Create health check API route
   - `GET /api/health` → `{ status: "ok", version: "...", uptime: ... }`
   - Files: `src/app/api/health/route.ts`
 
 ### 3.3 Dashboard (F6) — P1
 
-- [ ] **T-053**: Build stats cards component
+- [x] **T-053**: Build stats cards component
   - Cards: Total Registries, Total Repositories, Total Tags, Total Size
   - Each card: icon, value, label, trend indicator (optional)
   - Skeleton loading state
   - Files: `src/components/dashboard/stats-cards.tsx`
 
-- [ ] **T-054**: Build top repos chart
+- [x] **T-054**: Build top repos chart
   - Bar chart (Recharts): top 10 repos by tag count
   - Hover tooltip with details
   - Clickable bars → navigate to repo
   - Files: `src/components/dashboard/top-repos-chart.tsx`
 
-- [ ] **T-055**: Build registry overview cards
+- [x] **T-055**: Build registry overview cards
   - Per-registry summary: name, status, repo count, tag count
   - Docker Hub: show rate limit usage bar
   - Quick actions: browse, test connection
   - Files: `src/components/dashboard/registry-overview.tsx`
 
-- [ ] **T-056**: Build dashboard page
+- [x] **T-056**: Build dashboard page
   - Route: `/` (homepage)
   - Layout: stats cards (top) → registry overviews → top repos chart
   - Aggregated data from all connected registries
@@ -447,7 +447,7 @@
 
 ### 3.4 Loading & Error States — P1
 
-- [ ] **T-057**: Create skeleton components
+- [x] **T-057**: Create skeleton components
   - `RegistryCardSkeleton` — card shape with pulsing lines
   - `RepoCardSkeleton` — repo card placeholder
   - `TagTableSkeleton` — table rows with pulsing cells
@@ -455,20 +455,20 @@
   - `StatsCardSkeleton` — for dashboard
   - Files: `src/components/skeletons/*`
 
-- [ ] **T-058**: Create error boundary components
+- [x] **T-058**: Create error boundary components
   - Global error boundary with retry button
   - Page-level error boundary with contextual message
   - Registry-specific errors: auth failed, not found, rate limited, unreachable
   - Files: `src/components/error-boundary.tsx`, `src/app/error.tsx`, `src/app/repos/error.tsx`
 
-- [ ] **T-059**: Create empty state components
+- [x] **T-059**: Create empty state components
   - Reusable empty state: icon, title, description, CTA button
   - Variants: no registries, no repos, no tags, no search results
   - Files: `src/components/empty-state.tsx`
 
 ### 3.5 Settings Page — P2
 
-- [ ] **T-060**: Build settings page
+- [x] **T-060**: Build settings page
   - Route: `/settings`
   - Sections: Appearance (theme, sidebar), Data (cache, stale time), About (version)
   - Theme selector: dark / light / system

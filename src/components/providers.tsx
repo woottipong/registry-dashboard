@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes"
 import { useState } from "react"
 import { makeQueryClient } from "@/lib/query-client"
 import { Toaster } from "@/components/ui/sonner"
+import { CommandPalette } from "@/components/layout/command-palette"
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -26,6 +27,7 @@ export function Providers({ children }: ProvidersProps) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
+        <CommandPalette />
         <Toaster richColors closeButton />
         {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       </QueryClientProvider>
