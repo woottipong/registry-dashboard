@@ -1,6 +1,7 @@
 "use client"
 
-import { MenuIcon, MoonIcon, SearchIcon, SunIcon } from "lucide-react"
+import { MenuIcon, MoonIcon, SearchIcon, SettingsIcon, SunIcon } from "lucide-react"
+import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import {
@@ -68,6 +69,12 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
           <span className="rounded-sm border px-1.5 py-0.5 text-xs text-muted-foreground">
             ⌘K
           </span>
+        </Button>
+
+        <Button asChild variant="ghost" size="icon" aria-label="Settings" className="lg:hidden">
+          <Link href="/settings">
+            <SettingsIcon className="size-4" />
+          </Link>
         </Button>
 
         <DropdownMenu>

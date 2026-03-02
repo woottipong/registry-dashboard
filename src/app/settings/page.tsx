@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useUiStore } from "@/stores/ui-store"
+import { useRegistryStore } from "@/stores/registry-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 const THEMES = [
@@ -19,11 +20,19 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const repoViewMode = useUiStore((s) => s.repoViewMode)
   const setRepoViewMode = useUiStore((s) => s.setRepoViewMode)
+  const clearAllRegistries = useRegistryStore((s) => s.clearAll)
   const queryClient = useQueryClient()
 
   function clearCache() {
     queryClient.clear()
     toast.success("Cache cleared")
+  }
+
+  function clearRegistries() {
+    clearAllRegistries()
+    queryClient.clear()
+    toast.success("All registries removed")
+    setTimeout(() => window.location.reload(), 500)
   }
 
   return (
@@ -85,7 +94,7 @@ export default function SettingsPage() {
           <CardTitle>Data</CardTitle>
           <CardDescription>Manage cached registry data.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Query cache</p>
@@ -96,6 +105,21 @@ export default function SettingsPage() {
             <Button variant="outline" size="sm" onClick={clearCache}>
               <Trash2Icon className="mr-2 size-3.5" />
               Clear cache
+            </Button>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Registry connections</p>
+              <p className="text-xs text-muted-foreground">
+                Remove all saved registries from local storage.
+              </p>
+            </div>
+            <Button variant="destructive" size="sm" onClick={clearRegistries}>
+              <Trash2Icon className="mr-2 size-3.5" />
+              Remove all
             </Button>
           </div>
         </CardContent>
