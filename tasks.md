@@ -219,34 +219,34 @@
 
 ### 2.1 Registry Connection Manager (F1) — P0
 
-- [ ] **T-026**: Build registry form component
+- [x] **T-026**: Build registry form component
   - Fields: name, URL, provider (auto-detect or manual), auth type, credentials
   - Docker Hub preset button (pre-fills URL, sets provider + auth type)
   - Zod validation (URL format, required fields)
   - Connection test button (calls ping API)
   - Files: `src/components/registry/registry-form.tsx`
 
-- [ ] **T-027**: Build registry card component
+- [x] **T-027**: Build registry card component
   - Display: name, URL, provider icon, status dot (green/red/yellow)
   - Show capabilities badges (can delete, has search, rate limited)
   - Actions: edit, delete, set as default, test connection
   - Rate limit indicator for Docker Hub (progress bar)
   - Files: `src/components/registry/registry-card.tsx`
 
-- [ ] **T-028**: Build connection status component
+- [x] **T-028**: Build connection status component
   - Animated status dot: green (connected), red (error), yellow (checking)
   - Latency display (e.g., "45ms")
   - Last checked timestamp
   - Files: `src/components/registry/connection-status.tsx`
 
-- [ ] **T-029**: Build registries list page
+- [x] **T-029**: Build registries list page
   - Route: `/registries`
   - List all registries as cards
   - "+ Add Registry" button → navigates to `/registries/new`
   - Empty state with CTA
   - Files: `src/app/registries/page.tsx`
 
-- [ ] **T-030**: Build add/edit registry pages
+- [x] **T-030**: Build add/edit registry pages
   - Route: `/registries/new` and `/registries/[id]/edit`
   - Uses registry form component
   - On success: redirect to `/registries` with success toast
@@ -254,7 +254,7 @@
 
 ### 2.2 TanStack Query Hooks — P0
 
-- [ ] **T-031**: Create registry query hooks
+- [x] **T-031**: Create registry query hooks
   - `useRegistries()` — list all registries
   - `useRegistry(id)` — single registry
   - `usePingRegistry(id)` — health check (manual trigger)
@@ -263,42 +263,42 @@
   - `useDeleteRegistry()` — mutation with confirmation
   - Files: `src/hooks/use-registries.ts`
 
-- [ ] **T-032**: Create repository query hooks
+- [x] **T-032**: Create repository query hooks
   - `useRepositories(registryId, options?)` — list repos with pagination
   - `useSearchRepositories(registryId, query)` — search (Docker Hub)
   - Stale time: 5 minutes
   - Files: `src/hooks/use-repositories.ts`
 
-- [ ] **T-033**: Create tag query hooks
+- [x] **T-033**: Create tag query hooks
   - `useTags(registryId, repoName)` — list tags
   - `useDeleteTag()` — mutation with optimistic update
   - Files: `src/hooks/use-tags.ts`
 
-- [ ] **T-034**: Create manifest query hooks
+- [x] **T-034**: Create manifest query hooks
   - `useManifest(registryId, repoName, ref)` — get manifest + config
   - Stale time: 10 minutes (manifests are immutable)
   - Files: `src/hooks/use-manifest.ts`
 
 ### 2.3 Repository Browser (F2) — P0
 
-- [ ] **T-035**: Build repo card component
+- [x] **T-035**: Build repo card component
   - Display: repo name, tag count, last updated, size estimate
   - Docker Hub extras: pull count, star count, official badge
   - Click → navigate to tag explorer
   - Files: `src/components/repository/repo-card.tsx`
 
-- [ ] **T-036**: Build repo grid view
+- [x] **T-036**: Build repo grid view
   - Responsive grid: 1 col (mobile), 2 col (tablet), 3-4 col (desktop)
   - Skeleton loading (card-shaped placeholders)
   - Files: `src/components/repository/repo-grid.tsx`
 
-- [ ] **T-037**: Build repo table view
+- [x] **T-037**: Build repo table view
   - TanStack Table: columns = name, tags, last updated, size, actions
   - Sortable columns
   - Row click → navigate to tag explorer
   - Files: `src/components/repository/repo-table.tsx`
 
-- [ ] **T-038**: Build repository browser page
+- [x] **T-038**: Build repository browser page
   - Route: `/repos`
   - Registry filter dropdown (all registries or specific one)
   - Search/filter input

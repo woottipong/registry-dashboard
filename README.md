@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Registry Dashboard
 
-## Getting Started
+A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries. Supports Docker Hub, GHCR, Harbor, ECR, and vanilla Docker Registry V2.
 
-First, run the development server:
+## Tech Stack
+
+- **Next.js 16** (App Router) + TypeScript 5
+- **Tailwind CSS 4** + shadcn/ui
+- **TanStack Query v5** (server state) + **Zustand v5** (client state)
+- **Zod v4** (validation) + **Lucide React** (icons)
+- **Bun** (package manager & runtime)
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Install dependencies
+bun install
+
+# Copy environment config
+cp .env.example .env.local
+
+# Start dev server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bun dev              # Dev server on :3000 (Turbopack)
+bun run build        # Production build
+bun run start        # Start production server
+bun run lint         # ESLint
+bun run lint:fix     # Auto-fix lint issues
+bun run format       # Prettier
+bun run typecheck    # tsc --noEmit
+bun test             # Unit tests (Vitest)
+bun run test:e2e     # E2E tests (Playwright)
+```
 
-## Learn More
+## Docker (Development)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Start local registry on :5000
+docker compose up -d registry
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Start both registry + UI
+docker compose up -d
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
+Copy `.env.example` to `.env.local` and configure:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description | Required |
+|---|---|---|
+| `SESSION_SECRET` | Encryption key for credentials (min 16 chars) | Yes |
+| `DEFAULT_REGISTRY_URL` | Pre-configured registry URL | No |
+| `DEFAULT_REGISTRY_NAME` | Display name for default registry | No |
+| `DEFAULT_REGISTRY_AUTH_TYPE` | `none` \| `basic` \| `bearer` | No |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Supported Registries
+
+| Registry | Browse | Search | Delete | Rate Limit |
+|---|---|---|---|---|
+| Docker Registry V2 | ✅ | — | ✅ | — |
+| Docker Hub | ✅ | ✅ | — | ✅ tracked |
+| GHCR | planned | — | planned | — |
+| ECR | planned | — | planned | — |
+
+## Project Structure
+
+```
+src/
+├── app/              # Next.js App Router (pages + API routes)
+│   └── api/v1/       # BFF proxy — never call registry from browser
+├── components/       # UI components (layout, registry, repository, tag, manifest)
+├── lib/              # Registry client + providers (GenericProvider, DockerHubProvider)
+├── hooks/            # TanStack Query hooks
+├── stores/           # Zustand stores (persisted)
+└── types/            # TypeScript type definitions
+```

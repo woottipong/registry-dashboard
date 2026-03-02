@@ -12,6 +12,32 @@ interface RouteContext {
   params: Promise<{ id: string }>
 }
 
+export async function GET(_request: Request, context: RouteContext) {
+  const { id } = await context.params
+  const registry = getRegistry(id)
+
+  if (!registry) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: {
+        code: "REGISTRY_NOT_FOUND",
+        message: `Registry ${id} was not found`,
+      },
+    }
+
+    return NextResponse.json(response, { status: 404 })
+  }
+
+  const response: ApiResponse<RegistryConnection> = {
+    success: true,
+    data: registry,
+    error: null,
+  }
+
+  return NextResponse.json(response)
+}
+
 export async function PUT(request: Request, context: RouteContext) {
   const { id } = await context.params
 

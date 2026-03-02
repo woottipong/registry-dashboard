@@ -18,7 +18,7 @@ Registry Dashboard is a modern, self-hosted web dashboard for browsing and manag
 - **Validation**: Zod v3
 - **Icons**: Lucide React
 - **Charts**: Recharts
-- **Package Manager**: pnpm
+- **Package Manager**: bun
 - **Testing**: Vitest (unit) + Playwright (E2E)
 - **Linting**: ESLint + Prettier
 
@@ -28,25 +28,25 @@ Registry Dashboard is a modern, self-hosted web dashboard for browsing and manag
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
 # Development
-pnpm dev                    # Start dev server on :3000
+bun dev                     # Start dev server on :3000
 
 # Build & Production
-pnpm build                  # Production build
-pnpm start                  # Start production server
+bun run build               # Production build
+bun run start               # Start production server
 
 # Testing
-pnpm test                   # Run unit tests (Vitest)
-pnpm test:watch             # Run tests in watch mode
-pnpm test:e2e               # Run E2E tests (Playwright)
+bun test                    # Run unit tests (Vitest)
+bun run test:watch          # Run tests in watch mode
+bun run test:e2e            # Run E2E tests (Playwright)
 
 # Code Quality
-pnpm lint                   # Run ESLint
-pnpm lint:fix               # Auto-fix lint issues
-pnpm format                 # Run Prettier
-pnpm typecheck              # Run tsc --noEmit
+bun run lint                # Run ESLint
+bun run lint:fix            # Auto-fix lint issues
+bun run format              # Run Prettier
+bun run typecheck           # Run tsc --noEmit
 
 # Docker (development)
 docker compose up -d registry   # Start local registry on :5000
