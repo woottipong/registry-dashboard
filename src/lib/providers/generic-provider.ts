@@ -49,10 +49,15 @@ export class GenericProvider implements RegistryProvider {
     // Fetch ALL repo names from catalog by following Link headers
     const allRepoNames = await this.fetchAllCatalogNames()
 
-    // Fetch tag counts in parallel for all repos
+    // We paginate first on the raw names to avoid fetching tag info for thousands of repos
+    const total = allRepoNames.length
+    const start = (page - 1) * perPage
+    const pageNames = allRepoNames.slice(start, start + perPage)
+
+    // Fetch tag counts in parallel ONLY for the current page
     const repositories = (
       await Promise.all(
-        allRepoNames.map(async (repoName) => {
+        pageNames.map(async (repoName) => {
           try {
             const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
             const tags = tagsResponse.tags ?? []
@@ -73,13 +78,8 @@ export class GenericProvider implements RegistryProvider {
       )
     ).filter((repo): repo is NonNullable<typeof repo> => repo !== null)
 
-    // Paginate in memory
-    const total = repositories.length
-    const start = (page - 1) * perPage
-    const pageItems = repositories.slice(start, start + perPage)
-
     return {
-      items: pageItems,
+      items: repositories,
       page,
       perPage,
       total,

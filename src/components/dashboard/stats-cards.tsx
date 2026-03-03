@@ -4,7 +4,6 @@ import React from "react"
 import { DatabaseIcon, HardDriveIcon, PackageIcon, TagIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatBytes } from "@/lib/format"
-import { cn } from "@/lib/utils"
 
 interface StatsCardsProps {
   totalRegistries?: number
@@ -16,15 +15,6 @@ interface StatsCardsProps {
 }
 
 import { motion } from "framer-motion"
-
-interface StatConfig {
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-  value: number | undefined
-  isLoading: boolean
-  format: (v: number) => string
-  color: string
-}
 
 export function StatsCards({
   totalRegistries,

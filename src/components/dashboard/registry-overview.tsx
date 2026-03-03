@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { FolderGit2Icon, RefreshCwIcon, ServerIcon } from "lucide-react"
+import { ServerIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"

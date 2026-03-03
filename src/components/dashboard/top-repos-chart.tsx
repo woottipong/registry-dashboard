@@ -16,7 +16,13 @@ interface TopReposChartProps {
 }
 
 // Custom tick to prevent completely broken names
-const CustomXAxisTick = ({ x, y, payload }: any) => {
+interface CustomTickProps {
+  x?: number
+  y?: number
+  payload?: { value: string }
+}
+
+const CustomXAxisTick = ({ x, y, payload }: CustomTickProps) => {
   if (!payload || !payload.value) return null;
   
   // Try to fit the name better, if it's still too long, show ellipsis
@@ -25,7 +31,7 @@ const CustomXAxisTick = ({ x, y, payload }: any) => {
     : payload.value;
 
   return (
-    <g transform={`translate(${x},${y})`}>
+    <g transform={`translate(${x ?? 0},${y ?? 0})`}>
       <text
         x={0}
         y={0}
@@ -118,9 +124,10 @@ export function TopReposChart({ data, isLoading }: TopReposChartProps) {
             radius={[12, 12, 12, 12]}
             barSize={36}
             className="cursor-pointer transition-all duration-500 hover:fill-[url(#barHoverGradient)] drop-shadow-sm"
-            onClick={(entry: any) => {
-              if (entry?.registryId && entry?.fullName) {
-                router.push(`/repos/${entry.registryId}/${encodeURIComponent(entry.fullName)}`)
+            onClick={(entry) => {
+              const data = entry as unknown as { registryId?: string; fullName?: string }
+              if (data?.registryId && data?.fullName) {
+                router.push(`/repos/${data.registryId}/${encodeURIComponent(data.fullName)}`)
               }
             }}
             animationBegin={0}
