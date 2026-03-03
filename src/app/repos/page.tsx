@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { LayoutGridIcon, ListIcon, SearchIcon } from "lucide-react"
+import { toast } from "sonner"
 import { RepoGrid } from "@/components/repository/repo-grid"
 import { RepoTable } from "@/components/repository/repo-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRegistries } from "@/hooks/use-registries"
-import { useRepositories, useSearchRepositories } from "@/hooks/use-repositories"
+import { useRepositories, useSearchRepositories, useDeleteRepository } from "@/hooks/use-repositories"
 import { useUiStore } from "@/stores/ui-store"
 
 export default function RepositoriesPage() {
@@ -20,6 +21,7 @@ export default function RepositoriesPage() {
   const setRepoViewMode = useUiStore((state) => state.setRepoViewMode)
 
   const registriesQuery = useRegistries()
+  const deleteRepositoryMutation = useDeleteRepository()
 
   useEffect(() => {
     if (selectedRegistry || !registriesQuery.data?.length) {
@@ -48,6 +50,23 @@ export default function RepositoriesPage() {
 
   const items = activeResult?.items ?? []
   const meta = activeResult?.meta
+
+  const handleDeleteRepository = async (repositoryName: string) => {
+    if (!selectedRegistry) return
+
+    try {
+      await deleteRepositoryMutation.mutateAsync({
+        registryId: selectedRegistry,
+        repositoryName,
+      })
+      
+      toast.success(`Repository ${repositoryName} deleted`)
+      // Refresh data
+      await repositoriesQuery.refetch()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete repository")
+    }
+  }
 
   return (
     <section className="space-y-4">
@@ -120,7 +139,11 @@ export default function RepositoriesPage() {
           <p className="text-sm text-muted-foreground">No repositories found.</p>
         </div>
       ) : repoViewMode === "grid" ? (
-        <RepoGrid registryId={selectedRegistry} repositories={items} />
+        <RepoGrid
+          registryId={selectedRegistry}
+          repositories={items}
+          onDelete={handleDeleteRepository}
+        />
       ) : (
         <RepoTable registryId={selectedRegistry} repositories={items} />
       )}

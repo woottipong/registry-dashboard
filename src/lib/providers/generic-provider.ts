@@ -36,11 +36,32 @@ export class GenericProvider implements RegistryProvider {
 
     const response = await this.client.request<CatalogResponse>(`/v2/_catalog?${searchParams.toString()}`)
 
-    const repositories = (response.repositories ?? []).map<Repository>((repoName) => ({
-      name: repoName.split("/").pop() ?? repoName,
-      fullName: repoName,
-      namespace: repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : undefined,
-    }))
+    const repositories = await Promise.all(
+      (response.repositories ?? []).map(async (repoName) => {
+        const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
+        const tags = tagsResponse.tags ?? []
+        
+        // Get latest tag config for last updated
+        let lastUpdated: string | null = null
+        if (tags.length > 0) {
+          try {
+            const manifest = await this.getManifest(repoName, tags[0])
+            const config = await this.getConfig(repoName, manifest.config.digest)
+            lastUpdated = config.created ?? null
+          } catch {
+            // Ignore errors for last updated
+          }
+        }
+
+        return {
+          name: repoName.split("/").pop() ?? repoName,
+          fullName: repoName,
+          namespace: repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : undefined,
+          tagCount: tags.length,
+          lastUpdated,
+        }
+      }),
+    )
 
     return {
       items: repositories,

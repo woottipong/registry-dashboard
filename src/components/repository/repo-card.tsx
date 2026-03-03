@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate } from "@/lib/format"
 import type { Repository } from "@/types/registry"
@@ -9,23 +10,14 @@ import type { Repository } from "@/types/registry"
 interface RepoCardProps {
   registryId: string
   repository: Repository
+  onDelete?: (repositoryName: string) => void
 }
 
-export function RepoCard({ registryId, repository }: RepoCardProps) {
+export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
   const router = useRouter()
 
   return (
-    <Card
-      role="button"
-      tabIndex={0}
-      onClick={() => router.push(`/repos/${registryId}/${repository.fullName}`)}
-      className="cursor-pointer gap-4 transition hover:border-primary/60"
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          router.push(`/repos/${registryId}/${repository.fullName}`)
-        }
-      }}
-    >
+    <Card className="gap-4">
       <CardHeader className="space-y-2">
         <CardTitle className="text-base">{repository.fullName}</CardTitle>
         <div className="flex flex-wrap gap-2">
@@ -44,6 +36,23 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
         <span className="col-span-2">
           Updated: {repository.lastUpdated ? formatDate(repository.lastUpdated) : "Unknown"}
         </span>
+      </CardContent>
+      <CardContent className="pt-0 flex gap-2">
+        <Button
+          size="sm"
+          onClick={() => router.push(`/repos/${registryId}/${repository.fullName}`)}
+        >
+          Explore Tags
+        </Button>
+        {onDelete ? (
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => onDelete(repository.fullName)}
+          >
+            Delete
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   )

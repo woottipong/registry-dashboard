@@ -12,8 +12,10 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { useRegistries } from "@/hooks/use-registries"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { RegistryConnection } from "@/types/registry"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -28,60 +30,84 @@ const NAV_LINKS = [
 
 function SidebarBody() {
   const pathname = usePathname()
+  const { data: registries, isLoading } = useRegistries()
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Main nav */}
-      <nav className="space-y-1 px-3 py-4">
-        {NAV_LINKS.map(({ href, label, icon: Icon, exact }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors",
-              isActive(href, exact)
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
-            )}
-          >
-            <Icon className="size-4 shrink-0" />
-            {label}
-          </Link>
-        ))}
-      </nav>
-
-      <Separator />
-
-      {/* Registry section */}
-      <div className="flex items-center gap-2 px-4 py-3">
-        <DatabaseIcon className="size-3.5 text-muted-foreground" />
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registries</p>
+    <div className="flex h-full flex-col bg-background">
+      <div className="p-4 py-5 flex items-center gap-2">
+        <ServerIcon className="size-5" />
+        <span className="font-medium text-sm">Registry UI</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
-          <DatabaseIcon className="size-7 text-muted-foreground/30" />
-          <p className="text-xs text-muted-foreground">No registries added yet</p>
+      <div className="px-3">
+        <p className="px-2 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-widest">Menu</p>
+        <nav className="space-y-0.5">
+          {NAV_LINKS.map(({ href, label, icon: Icon, exact }) => {
+            const active = isActive(href, exact)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "group flex items-center gap-3 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-accent text-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                )}
+              >
+                <Icon className={cn("size-4 shrink-0", active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                {label}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
+
+      <div className="flex flex-col flex-1 mt-8 mb-4 px-3 overflow-y-auto">
+        <div className="flex items-center justify-between px-2 mb-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Connections</p>
+          <Link href="/registries/new" className="text-muted-foreground hover:text-foreground transition-colors">
+            <PlusIcon className="size-3.5" />
+          </Link>
         </div>
+
+        {isLoading ? (
+          <div className="space-y-1.5 px-2">
+            <Skeleton className="h-7 w-full rounded-md" />
+            <Skeleton className="h-7 w-3/4 rounded-md" />
+          </div>
+        ) : registries && registries.length > 0 ? (
+          <nav className="space-y-0.5">
+            {registries.map((registry: RegistryConnection) => (
+              <Link
+                key={registry.id}
+                href={`/repos?registry=${registry.id}`}
+                className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors group"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <DatabaseIcon className="size-3.5 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  <span className="truncate">{registry.name}</span>
+                </div>
+              </Link>
+            ))}
+          </nav>
+        ) : (
+          <div className="px-2 py-3 text-xs text-muted-foreground">
+            No connected registries.
+          </div>
+        )}
       </div>
 
-      {/* Bottom actions */}
-      <div className="space-y-1 border-t p-3">
-        <Button asChild variant="default" className="w-full justify-start gap-2">
-          <Link href="/registries/new">
-            <PlusIcon className="size-4" />
-            Add Registry
-          </Link>
-        </Button>
+      <div className="p-3">
         <Button asChild variant="ghost" className={cn(
-          "w-full justify-start gap-2",
+          "w-full justify-start gap-3 h-9 rounded-md",
           isActive("/settings", true)
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:text-foreground",
+            ? "bg-accent text-foreground"
+            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
         )}>
           <Link href="/settings">
             <SettingsIcon className="size-4" />
@@ -96,12 +122,12 @@ function SidebarBody() {
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
-      <aside className="hidden h-screen w-64 shrink-0 border-r bg-card/40 lg:block">
+      <aside className="hidden h-screen w-60 shrink-0 border-r border-border lg:block z-40 bg-background">
         <SidebarBody />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent side="left" className="w-72 p-0 lg:hidden" showCloseButton>
+        <SheetContent side="left" className="w-64 p-0 border-r border-border" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SidebarBody />
         </SheetContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { STALE_TIME_REGISTRY } from "@/lib/query-client"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Repository } from "@/types/registry"
@@ -69,5 +69,29 @@ export function useSearchRepositories(registryId: string, query: string) {
     enabled: Boolean(registryId && query.trim().length > 0),
     staleTime: STALE_TIME_REGISTRY,
     queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 25 }),
+  })
+}
+
+export function useDeleteRepository() {
+  return useMutation({
+    mutationFn: async ({ registryId, repositoryName }: { registryId: string; repositoryName: string }) => {
+      const encodedRepoPath = repositoryName
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/")
+      
+      const response = await fetch(
+        `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}`,
+        { method: "DELETE" },
+      )
+
+      const payload = (await response.json()) as ApiResponse<null>
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error?.message ?? "Unable to delete repository")
+      }
+
+      return { registryId, repositoryName }
+    },
   })
 }

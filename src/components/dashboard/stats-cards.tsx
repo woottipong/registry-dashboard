@@ -1,7 +1,6 @@
 "use client"
 
 import { DatabaseIcon, HardDriveIcon, PackageIcon, TagIcon } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatBytes } from "@/lib/format"
 
@@ -38,7 +37,7 @@ const STATS = [
   },
   {
     key: "totalSizeBytes" as const,
-    label: "Total Size",
+    label: "Storage",
     icon: HardDriveIcon,
     format: (v: number) => formatBytes(v),
   },
@@ -46,25 +45,21 @@ const STATS = [
 
 export function StatsCards({ data, isLoading }: StatsCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {STATS.map(({ key, label, icon: Icon, format }) => (
-        <Card key={key}>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
-              <Icon className="size-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{label}</p>
-              {isLoading ? (
-                <Skeleton className="mt-1 h-6 w-16" />
-              ) : (
-                <p className="text-2xl font-semibold tabular-nums">
-                  {data ? format(data[key]) : "—"}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {STATS.map(({ key, label, format }) => (
+        <div
+          key={key}
+          className="flex flex-col border border-border rounded-md p-4 bg-card"
+        >
+          <span className="text-xs font-medium text-muted-foreground mb-1">{label}</span>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <span className="text-2xl font-bold tracking-tight">
+              {data ? format(data[key]) : "0"}
+            </span>
+          )}
+        </div>
       ))}
     </div>
   )
