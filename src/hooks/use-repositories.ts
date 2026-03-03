@@ -27,7 +27,7 @@ export function makeRepositoryQueryString(options: RepositoryQueryOptions): stri
   return query ? `?${query}` : ""
 }
 
-async function fetchRepositories(
+export async function fetchRepositories(
   registryId: string,
   options: RepositoryQueryOptions,
 ): Promise<RepositoryQueryResult> {

@@ -2,12 +2,9 @@
 
 import Link from "next/link"
 import { FolderGit2Icon, RefreshCwIcon, ServerIcon } from "lucide-react"
-import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ConnectionStatus } from "@/components/registry/connection-status"
-import { usePingRegistry } from "@/hooks/use-registries"
 import { cn } from "@/lib/utils"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -18,94 +15,68 @@ interface RegistryOverviewCardProps {
 }
 
 function RegistryListItem({ registry, repoCount, tagCount }: RegistryOverviewCardProps) {
-  const ping = usePingRegistry(registry.id)
-
   const rateLimitPct =
     registry.rateLimit?.limit && registry.rateLimit.remaining !== null
       ? Math.max(0, Math.min(100, (registry.rateLimit.remaining / registry.rateLimit.limit) * 100))
       : null
 
-  function runPing() {
-    ping.mutate(undefined, {
-      onError: (err) => toast.error(err.message),
-      onSuccess: () => toast.success(`Successfully pinged ${registry.name}`)
-    })
-  }
-
-  const pingStatus = ping.data?.status === "ok" ? "connected" : ping.isError ? "error" : "checking"
-
   return (
-    <div className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 transition-all duration-300 hover:bg-primary/[0.02] border-b border-border/50 last:border-0 relative overflow-hidden">
-      <div className="flex items-start gap-4 flex-1 min-w-0 z-10">
+    <div className="group flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap sm:items-center justify-between gap-4 p-6 transition-all duration-300 hover:bg-gradient-to-r hover:from-primary/[0.03] hover:to-transparent border-b border-border/50 last:border-0 relative overflow-hidden">
+      <div className="flex items-start gap-4 flex-1 min-w-[200px] z-10">
         <div className="relative shrink-0">
           <div className={cn(
-            "h-12 w-12 flex items-center justify-center rounded-2xl border border-border bg-background transition-all group-hover:border-primary/30 group-hover:shadow-lg group-hover:shadow-primary/5",
-            registry.isDefault && "border-primary/20 bg-primary/[0.02]"
+            "h-12 w-12 flex items-center justify-center rounded-2xl border border-border/60 bg-gradient-to-b from-card to-card/50 shadow-sm transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] group-hover:-translate-y-0.5",
+            registry.isDefault && "border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 shadow-primary/10"
           )}>
-            <ServerIcon className={cn("size-5", registry.isDefault ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+            <ServerIcon className={cn("size-5 transition-colors duration-300", registry.isDefault ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
           </div>
           {registry.isDefault && (
-            <div className="absolute -top-1 -right-1 size-3 bg-primary rounded-full border-2 border-background" />
+            <div className="absolute -top-1 -right-1 size-3.5 bg-primary rounded-full border-2 border-background shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
           )}
         </div>
 
-        <div className="flex flex-col min-w-0 gap-1.5 justify-center">
-          <div className="flex items-center gap-2.5">
-            <Link href={`/repos?registry=${registry.id}`} className="font-bold text-base hover:text-primary transition-colors truncate">
+        <div className="flex flex-col min-w-0 gap-1.5 justify-center pt-0.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link href={`/repos?registry=${registry.id}`} className="font-bold text-base hover:text-primary transition-colors line-clamp-1 break-all">
               {registry.name}
             </Link>
-            <Badge variant="secondary" className="bg-muted-foreground/5 text-muted-foreground border-none rounded-full px-2 py-0 text-[10px] uppercase font-bold tracking-tighter">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 rounded-full px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider shrink-0">
               {registry.provider}
             </Badge>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-medium">
-            <span className="truncate max-w-[200px] sm:max-w-xs">{registry.url}</span>
-            <div className="flex gap-4 ml-2 border-l border-border/50 pl-4 items-center">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-medium flex-wrap">
+            {registry.url && <span className="truncate max-w-[200px] sm:max-w-xs">{registry.url}</span>}
+            <div className={cn("flex gap-4 items-center", registry.url && "ml-2 border-l border-border/60 pl-4")}>
               <span className="flex items-center gap-1.5">
-                <strong className="text-foreground font-black">{repoCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider">Repos</span>
+                <strong className="text-foreground/90 font-bold">{repoCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Repos</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <strong className="text-foreground font-black">{tagCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider">Tags</span>
+                <strong className="text-foreground/90 font-bold">{tagCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Tags</span>
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-6 sm:ml-auto z-10">
+      <div className="flex items-center gap-4 sm:ml-auto z-10 flex-wrap sm:flex-nowrap mt-2 sm:mt-0">
         {typeof rateLimitPct === "number" && (
           <div className="hidden lg:block text-right min-w-[120px]">
-            <div className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-2">Rate Limit</div>
+            <div className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em] mb-2">Rate Limit</div>
             <div className="flex items-center gap-3 justify-end">
-              <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div className="w-24 h-1.5 rounded-full bg-secondary/50 overflow-hidden shadow-inner">
                 <div
-                  className={cn("h-full transition-all duration-1000", rateLimitPct < 20 ? "bg-destructive" : "bg-primary")}
+                  className={cn("h-full transition-all duration-1000 bg-gradient-to-r", rateLimitPct < 20 ? "from-destructive/80 to-destructive" : "from-primary/80 to-primary")}
                   style={{ width: `${rateLimitPct}%` }}
                 />
               </div>
-              <span className="text-[11px] font-black font-mono text-foreground/80">{registry.rateLimit?.remaining}</span>
+              <span className="text-xs font-bold font-mono text-foreground/80">{registry.rateLimit?.remaining}</span>
             </div>
           </div>
         )}
 
-        <div className="flex items-center gap-3">
-          <div className="bg-card px-3 py-1.5 rounded-xl border border-border/50 flex items-center gap-3 group/ping">
-            <ConnectionStatus
-              state={pingStatus}
-              latencyMs={ping.data?.latencyMs ?? null}
-              checkedAt={null}
-            />
-            <button
-              onClick={runPing}
-              className="p-1 rounded-md text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-              disabled={ping.isPending}
-            >
-              <RefreshCwIcon className={cn("size-3.5", ping.isPending && "animate-spin")} />
-            </button>
-          </div>
-
-          <Button size="sm" className="h-9 px-5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/10 hover:shadow-primary/20 active:scale-95 transition-all" asChild>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button size="sm" className="h-10 px-5 rounded-xl font-bold bg-gradient-to-br from-primary to-primary/90 text-white shadow-[0_4px_14px_rgba(99,102,241,0.2)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shrink-0" asChild>
             <Link href={`/repos?registry=${registry.id}`}>
               Browse
             </Link>
@@ -113,7 +84,7 @@ function RegistryListItem({ registry, repoCount, tagCount }: RegistryOverviewCar
         </div>
       </div>
 
-      <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-chart-2 to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     </div>
   )
 }
@@ -126,7 +97,7 @@ interface RegistryOverviewProps {
 export function RegistryOverview({ registries, isLoading }: RegistryOverviewProps) {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 p-2">
         <Skeleton className="h-20 w-full rounded-md" />
         <Skeleton className="h-20 w-full rounded-md" />
       </div>
@@ -136,7 +107,7 @@ export function RegistryOverview({ registries, isLoading }: RegistryOverviewProp
   if (!registries.length) return null
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 p-2">
       {registries.map((registry) => (
         <RegistryListItem key={registry.id} registry={registry} />
       ))}
