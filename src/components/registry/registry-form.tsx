@@ -2,10 +2,23 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { ApiResponse } from "@/types/api"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
@@ -31,62 +44,53 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
-  const [state, setState] = useState<FormState>({
-    name: initialValue?.name ?? "",
-    url: initialValue?.url ?? "",
-    provider: initialValue?.provider ?? "generic",
-    authType: initialValue?.authType ?? "none",
-    username: initialValue?.credentials?.username ?? "",
-    password: initialValue?.credentials?.password ?? "",
-    token: initialValue?.credentials?.token ?? "",
-    namespace: initialValue?.namespace ?? "",
+
+  const form = useForm<FormState>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: initialValue?.name ?? "",
+      url: initialValue?.url ?? "",
+      provider: initialValue?.provider ?? "generic",
+      authType: initialValue?.authType ?? "none",
+      username: initialValue?.credentials?.username ?? "",
+      password: initialValue?.credentials?.password ?? "",
+      token: initialValue?.credentials?.token ?? "",
+      namespace: initialValue?.namespace ?? "",
+    },
   })
 
   const canPing = useMemo(() => Boolean(initialValue?.id), [initialValue?.id])
+  const currentAuthType = form.watch("authType")
 
-  const onChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
-    setState((prev) => ({ ...prev, [key]: value }))
-  }
-
-  const applyDockerHubPreset = () => {
-    setState((prev) => ({
-      ...prev,
-      url: "https://registry-1.docker.io",
-      provider: "dockerhub",
-      authType: "basic",
-      namespace: prev.namespace || "library",
-    }))
-  }
-
-  const submit = async () => {
-    const parsed = schema.safeParse(state)
-    if (!parsed.success) {
-      const fieldErrors = parsed.error.flatten().fieldErrors
-      setErrors({
-        name: fieldErrors.name?.[0],
-        url: fieldErrors.url?.[0],
-      })
-      return
+  const handleProviderChange = (value: string) => {
+    form.setValue("provider", value as RegistryProviderType)
+    
+    if (value === "dockerhub") {
+      form.setValue("url", "https://registry-1.docker.io")
+      form.setValue("authType", "basic")
+      if (!form.getValues("namespace")) {
+        form.setValue("namespace", "library")
+      }
     }
+  }
 
-    setErrors({})
+  const onSubmit = async (data: FormState) => {
     setLoading(true)
 
     const payload = {
-      name: parsed.data.name,
-      url: parsed.data.url,
-      provider: parsed.data.provider as RegistryProviderType,
-      authType: parsed.data.authType as RegistryAuthType,
+      name: data.name,
+      url: data.url,
+      provider: data.provider as RegistryProviderType,
+      authType: data.authType as RegistryAuthType,
       credentials:
-        parsed.data.authType === "none"
+        data.authType === "none"
           ? undefined
           : {
-              username: parsed.data.username || undefined,
-              password: parsed.data.password || undefined,
-              token: parsed.data.token || undefined,
+              username: data.username || undefined,
+              password: data.password || undefined,
+              token: data.token || undefined,
             },
-      namespace: parsed.data.namespace || undefined,
+      namespace: data.namespace || undefined,
     }
 
     const endpoint = mode === "create" ? "/api/v1/registries" : `/api/v1/registries/${initialValue?.id}`
@@ -139,93 +143,206 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-card border bg-card p-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">
-          {mode === "create" ? "Add Registry" : "Edit Registry"}
-        </h1>
-        <Button type="button" variant="outline" onClick={applyDockerHubPreset}>
-          Docker Hub preset
-        </Button>
+    <div className="space-y-6 rounded-card border bg-card p-6 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">
+            {mode === "create" ? "Add Registry" : "Edit Registry"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Configure connection details for your container registry.
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-1">
-          <label className="text-sm">Name</label>
-          <Input value={state.name} onChange={(event) => onChange("name", event.target.value)} />
-          {errors.name ? <p className="text-xs text-rose-500">{errors.name}</p> : null}
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm">URL</label>
-          <Input value={state.url} onChange={(event) => onChange("url", event.target.value)} />
-          {errors.url ? <p className="text-xs text-rose-500">{errors.url}</p> : null}
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm">Provider</label>
-          <select
-            className="h-9 w-full rounded-input border bg-background px-3 text-sm"
-            value={state.provider}
-            onChange={(event) => onChange("provider", event.target.value as RegistryProviderType)}
-          >
-            <option value="generic">generic</option>
-            <option value="dockerhub">dockerhub</option>
-            <option value="ghcr">ghcr</option>
-            <option value="ecr">ecr</option>
-            <option value="gcr">gcr</option>
-            <option value="acr">acr</option>
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm">Auth type</label>
-          <select
-            className="h-9 w-full rounded-input border bg-background px-3 text-sm"
-            value={state.authType}
-            onChange={(event) => onChange("authType", event.target.value as RegistryAuthType)}
-          >
-            <option value="none">none</option>
-            <option value="basic">basic</option>
-            <option value="bearer">bearer</option>
-          </select>
-        </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* General Information Section */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-medium leading-none text-foreground">General Information</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Production Cluster" className="w-full" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {state.authType !== "none" ? (
-          <>
-            <div className="space-y-1">
-              <label className="text-sm">Username</label>
-              <Input
-                value={state.username}
-                onChange={(event) => onChange("username", event.target.value)}
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://registry.example.com" className="w-full" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="provider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provider</FormLabel>
+                    <Select
+                      onValueChange={handleProviderChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a provider" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
+                        <SelectItem value="dockerhub">Docker Hub</SelectItem>
+                        <SelectItem value="ghcr" disabled>GitHub Container Registry (Soon)</SelectItem>
+                        <SelectItem value="ecr" disabled>Amazon ECR (Soon)</SelectItem>
+                        <SelectItem value="gcr" disabled>Google Container Registry (Soon)</SelectItem>
+                        <SelectItem value="acr" disabled>Azure Container Registry (Soon)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-[11px]">
+                      Determines available features.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="namespace"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Namespace <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. library" className="w-full" {...field} />
+                    </FormControl>
+                    <FormDescription className="text-[11px]">
+                      Used when pushing/pulling images without a namespace.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm">Password</label>
-              <Input
-                type="password"
-                value={state.password}
-                onChange={(event) => onChange("password", event.target.value)}
+          </div>
+
+          <div className="h-px w-full bg-border" />
+
+          {/* Authentication Section */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-medium leading-none text-foreground">Authentication</h2>
+            <div className="rounded-card border bg-muted/20 p-5 space-y-5">
+              <FormField
+                control={form.control}
+                name="authType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col sm:flex-row gap-4 sm:gap-6"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="none" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">None (Anonymous)</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="basic" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">Basic Auth</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="bearer" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">Bearer Token</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-1 md:col-span-2">
-              <label className="text-sm">Bearer token (optional)</label>
-              <Input value={state.token} onChange={(event) => onChange("token", event.target.value)} />
-            </div>
-          </>
-        ) : null}
 
-        <div className="space-y-1 md:col-span-2">
-          <label className="text-sm">Namespace (optional)</label>
-          <Input value={state.namespace} onChange={(event) => onChange("namespace", event.target.value)} />
-        </div>
-      </div>
+              {currentAuthType === "basic" && (
+                <div className="grid gap-4 sm:grid-cols-2 pt-2 animate-in fade-in zoom-in-95 duration-200">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter username" className="w-full bg-background" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password / PAT</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" className="w-full bg-background" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={submit} disabled={loading}>
-          {loading ? "Saving..." : mode === "create" ? "Create registry" : "Save changes"}
-        </Button>
-        <Button type="button" variant="outline" onClick={testConnection} disabled={testing || !canPing}>
-          {testing ? "Testing..." : "Test connection"}
-        </Button>
-      </div>
+              {currentAuthType === "bearer" && (
+                <div className="pt-2 animate-in fade-in zoom-in-95 duration-200">
+                  <FormField
+                    control={form.control}
+                    name="token"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bearer Token</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." className="w-full bg-background font-mono text-sm" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
+            <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-auto">
+              {loading ? "Saving..." : mode === "create" ? "Add Registry" : "Save Changes"}
+            </Button>
+            <Button type="button" variant="outline" size="lg" onClick={testConnection} disabled={testing || !canPing} className="w-full sm:w-auto">
+              {testing ? "Testing..." : "Test Connection"}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }
