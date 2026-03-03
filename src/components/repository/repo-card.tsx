@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate } from "@/lib/format"
 import type { Repository } from "@/types/registry"
 
@@ -62,7 +62,7 @@ export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
         </div>
       </CardContent>
 
-      <CardContent className="flex items-center gap-2 pt-0">
+      <CardFooter className="flex items-center gap-2">
         <Button
           size="sm"
           className="w-full flex-1"
@@ -80,7 +80,7 @@ export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
             Delete
           </Button>
         ) : null}
-      </CardContent>
+      </CardFooter>
     </Card>
   )
 }

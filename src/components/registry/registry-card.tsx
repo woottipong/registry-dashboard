@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ConnectionStatus } from "@/components/registry/connection-status"
-import type { ApiResponse } from "@/types/api"
+import { usePingRegistry, useDeleteRegistry } from "@/hooks/use-registries"
 import type { RegistryConnection } from "@/types/registry"
 
 interface RegistryCardProps {
@@ -18,42 +18,31 @@ interface RegistryCardProps {
 }
 
 export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCardProps) {
-  const [status, setStatus] = useState<"connected" | "checking" | "error">("checking")
-  const [latencyMs, setLatencyMs] = useState<number | null>(null)
   const [checkedAt, setCheckedAt] = useState<string | null>(null)
+  const ping = usePingRegistry(registry.id)
+  const deleteRegistry = useDeleteRegistry()
 
-  const runPing = async () => {
-    setStatus("checking")
-    try {
-      const response = await fetch(`/api/v1/registries/${registry.id}/ping`)
-      const payload =
-        (await response.json()) as ApiResponse<{ status: "ok" | "error"; latencyMs: number }>
+  const status = ping.data?.status === "ok" ? "connected" : ping.isError ? "error" : "checking"
+  const latencyMs = ping.data?.latencyMs ?? null
 
-      if (!response.ok || !payload.success || !payload.data) {
-        throw new Error(payload.error?.message ?? "Ping failed")
-      }
-
-      setStatus(payload.data.status === "ok" ? "connected" : "error")
-      setLatencyMs(payload.data.latencyMs)
-      setCheckedAt(new Date().toISOString())
-    } catch (error) {
-      setStatus("error")
-      setCheckedAt(new Date().toISOString())
-      toast.error(error instanceof Error ? error.message : "Ping failed")
-    }
+  const runPing = () => {
+    ping.mutate(undefined, {
+      onSuccess: () => setCheckedAt(new Date().toISOString()),
+      onError: (error) => {
+        setCheckedAt(new Date().toISOString())
+        toast.error(error.message)
+      },
+    })
   }
 
-  const handleDelete = async () => {
-    const response = await fetch(`/api/v1/registries/${registry.id}`, { method: "DELETE" })
-    const payload = (await response.json()) as ApiResponse<null>
-
-    if (!response.ok || !payload.success) {
-      toast.error(payload.error?.message ?? "Delete failed")
-      return
-    }
-
-    onDeleted(registry.id)
-    toast.success("Registry removed")
+  const handleDelete = () => {
+    deleteRegistry.mutate(registry.id, {
+      onSuccess: () => {
+        onDeleted(registry.id)
+        toast.success("Registry removed")
+      },
+      onError: (error) => toast.error(error.message),
+    })
   }
 
   const rateLimitPercent =

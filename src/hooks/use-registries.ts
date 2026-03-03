@@ -107,6 +107,35 @@ export function useUpdateRegistry() {
   })
 }
 
+export function useSetDefaultRegistry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, registry }: { id: string; registry: RegistryConnection }) => {
+      const payload: RegistryPayload = {
+        name: registry.name,
+        url: registry.url,
+        provider: registry.provider,
+        authType: registry.authType,
+        credentials: registry.credentials,
+        namespace: registry.namespace,
+        isDefault: true,
+      }
+
+      const response = await fetch(`/api/v1/registries/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      return handleApiResponse<RegistryConnection>(response)
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: registryKeys.all })
+    },
+  })
+}
+
 export function useDeleteRegistry() {
   const queryClient = useQueryClient()
 

@@ -5,9 +5,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#3B82F6",
-        accent: "#06B6D4",
-        background: "#0F172A",
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -19,9 +49,9 @@ const config: Config = {
         ],
       },
       borderRadius: {
-        card: "8px",
-        input: "6px",
-        modal: "12px",
+        card: "var(--radius-card)",
+        input: "var(--radius-input)",
+        modal: "var(--radius-modal)",
       },
     },
   },
