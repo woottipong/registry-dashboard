@@ -20,31 +20,24 @@ export default function DashboardPage() {
   const registries = registriesQuery.data ?? []
 
   const primaryRegistry = registries[0]
+  // Repos query is independent — starts as soon as primaryRegistry.id is known
   const reposQuery = useRepositories(primaryRegistry?.id ?? "", { perPage: 50 })
   const repos = reposQuery.data?.items ?? []
 
-  const statsData = registries.length
-    ? {
-      totalRegistries: registries.length,
-      totalRepositories: repos.length,
-      totalTags: repos.reduce((sum, r) => sum + (r.tagCount ?? 0), 0),
-      totalSizeBytes: repos.reduce((sum, r) => sum + (r.sizeBytes ?? 0), 0),
-    }
-    : undefined
-
+  // Chart data derived from the already-fetched repos query — no extra fetch (T-091)
   const chartData = repos
     .filter((r) => (r.tagCount ?? 0) > 0)
     .sort((a, b) => (b.tagCount ?? 0) - (a.tagCount ?? 0))
-    .slice(0, 5)
+    .slice(0, 10)
     .map((r) => ({
       name: r.fullName,
       registryId: primaryRegistry?.id ?? "",
       tagCount: r.tagCount ?? 0,
     }))
 
-  const isLoading = registriesQuery.isLoading
+  const isLoadingRegistries = registriesQuery.isLoading
 
-  if (!isLoading && registries.length === 0) {
+  if (!isLoadingRegistries && registries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] px-4">
         <div className="max-w-md w-full text-center">
@@ -69,21 +62,29 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
         </div>
-        {!isLoading && registries.length > 0 && (
+        {!isLoadingRegistries && registries.length > 0 && (
           <Button variant="outline" size="sm" asChild className="h-8">
             <Link href="/registries/new">Add Registry</Link>
           </Button>
         )}
       </div>
 
-      <StatsCards data={statsData} isLoading={isLoading} />
+      {/* T-090: registries count renders immediately; repo stats load independently */}
+      <StatsCards
+        totalRegistries={isLoadingRegistries ? undefined : registries.length}
+        totalRepositories={repos.length || undefined}
+        totalTags={repos.length ? repos.reduce((sum, r) => sum + (r.tagCount ?? 0), 0) : undefined}
+        totalSizeBytes={repos.length ? repos.reduce((sum, r) => sum + (r.sizeBytes ?? 0), 0) : undefined}
+        isLoadingRegistries={isLoadingRegistries}
+        isLoadingRepos={reposQuery.isLoading}
+      />
 
       <section className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium border-b pb-2">
           <DatabaseIcon className="size-4" />
           <h2>Connections</h2>
         </div>
-        <RegistryOverview registries={registries} isLoading={isLoading} />
+        <RegistryOverview registries={registries} isLoading={isLoadingRegistries} />
       </section>
 
       {chartData.length > 0 && (

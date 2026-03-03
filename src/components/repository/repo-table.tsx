@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   type ColumnDef,
   flexRender,
@@ -22,6 +23,30 @@ interface RepoTableProps {
 
 export function RepoTable({ registryId, repositories }: RepoTableProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const handleMouseEnter = (repo: Repository) => {
+    // Prefetch tags data for instant navigation
+    queryClient.prefetchQuery({
+      queryKey: ["tags", registryId, repo.fullName],
+      staleTime: 30 * 1000, // 30 seconds
+      queryFn: async () => {
+        const encodedRepoPath = repo.fullName
+          .split("/")
+          .map((segment) => encodeURIComponent(segment))
+          .join("/")
+        const response = await fetch(
+          `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags`,
+          { cache: "no-store" },
+        )
+        const payload = await response.json()
+        if (!response.ok || !payload.success || payload.data === null) {
+          throw new Error(payload.error?.message ?? "Unable to fetch tags")
+        }
+        return { items: payload.data, meta: payload.meta }
+      },
+    })
+  }
 
   const columns = useMemo<ColumnDef<Repository>[]>(
     () => [
@@ -101,6 +126,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             key={row.id}
             className="cursor-pointer"
             onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
+            onMouseEnter={() => handleMouseEnter(row.original)}
           >
             {row.getVisibleCells().map((cell) => (
               <TableCell key={cell.id}>

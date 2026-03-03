@@ -1,8 +1,13 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
-import type { ImageConfig, ImageManifest } from "@/types/manifest"
+import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
 import { UnsupportedError } from "@/lib/providers/types"
+
+const INDEX_MEDIA_TYPES = new Set([
+  "application/vnd.oci.image.index.v1+json",
+  "application/vnd.docker.distribution.manifest.list.v2+json",
+])
 
 interface CatalogResponse {
   repositories?: string[]
@@ -16,113 +21,179 @@ interface TagListResponse {
 export class GenericProvider implements RegistryProvider {
   readonly type = "generic" as const
   private readonly client: RegistryHttpClient
+  private readonly digestCache = new Map<string, { digest: string; expiresAt: number }>()
+
+  private static readonly DIGEST_CACHE_TTL_MS = 5 * 60 * 1000
 
   constructor(private readonly connection: RegistryConnection) {
     this.client = new RegistryHttpClient(connection)
   }
 
   async ping(): Promise<boolean> {
-    await this.client.request<unknown>("/v2/", { method: "GET" })
-    return true
+    try {
+      await this.client.request<unknown>("/v2/", { method: "GET" })
+      return true
+    } catch (error) {
+      console.error("Generic provider ping failed:", {
+        registryUrl: this.connection.url,
+        error: error instanceof Error ? error.message : error,
+      })
+      throw error
+    }
   }
 
   async listRepositories(options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
-    const perPage = options.perPage ?? 50
-    const searchParams = new URLSearchParams()
-    searchParams.set("n", String(perPage))
-    if (options.last) {
-      searchParams.set("last", options.last)
-    }
+    const page = options.page ?? 1
+    const perPage = options.perPage ?? 25
 
-    const response = await this.client.request<CatalogResponse>(`/v2/_catalog?${searchParams.toString()}`)
+    // Fetch ALL repo names from catalog by following Link headers
+    const allRepoNames = await this.fetchAllCatalogNames()
 
-    const allRepoNames = response.repositories ?? []
-
+    // Fetch tag counts in parallel for all repos
     const repositories = (
       await Promise.all(
         allRepoNames.map(async (repoName) => {
-          const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
-          const tags = tagsResponse.tags ?? []
-
-          // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
-          if (tags.length === 0) return null
-
-          // Get latest tag config for last updated
-          let lastUpdated: string | null = null
           try {
-            const manifest = await this.getManifest(repoName, tags[0])
-            const config = await this.getConfig(repoName, manifest.config.digest)
-            lastUpdated = config.created ?? null
-          } catch {
-            // Ignore errors for last updated
-          }
+            const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
+            const tags = tagsResponse.tags ?? []
 
-          return {
-            name: repoName.split("/").pop() ?? repoName,
-            fullName: repoName,
-            namespace: repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : undefined,
-            tagCount: tags.length,
-            lastUpdated,
+            // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
+            if (tags.length === 0) return null
+
+            return {
+              name: repoName.split("/").pop() ?? repoName,
+              fullName: repoName,
+              namespace: repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : undefined,
+              tagCount: tags.length,
+            }
+          } catch {
+            return null
           }
         }),
       )
     ).filter((repo): repo is NonNullable<typeof repo> => repo !== null)
 
+    // Paginate in memory
+    const total = repositories.length
+    const start = (page - 1) * perPage
+    const pageItems = repositories.slice(start, start + perPage)
+
     return {
-      items: repositories,
-      page: options.page ?? 1,
+      items: pageItems,
+      page,
       perPage,
+      total,
       nextCursor: null,
     }
+  }
+
+  private async fetchAllCatalogNames(): Promise<string[]> {
+    const allNames: string[] = []
+    // Fetch in large batches to minimise round-trips
+    const batchSize = 1000
+    let url: string | null = `/v2/_catalog?n=${batchSize}`
+
+    while (url) {
+      const { body, linkHeader } = await this.client.requestWithHeaders<CatalogResponse>(url)
+      allNames.push(...(body.repositories ?? []))
+      url = parseLinkNext(linkHeader)
+    }
+
+    return allNames
   }
 
   async listTags(repo: string, options: ListOptions = {}): Promise<PaginatedResult<Tag>> {
     const response = await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`)
     const tagNames = response.tags ?? []
 
-    const tags = await Promise.all(
-      tagNames.map(async (tagName): Promise<Tag> => {
-        try {
-          const manifest = await this.getManifest(repo, tagName)
-          let createdAt: string | null = null
-          let architecture = "unknown"
-          let os = "unknown"
-
-          try {
-            const cfg = await this.getConfig(repo, manifest.config.digest)
-            createdAt = cfg.created ?? null
-            architecture = cfg.architecture ?? "unknown"
-            os = cfg.os ?? "unknown"
-          } catch {
-            // config fetch optional — size and digest still available
-          }
-
-          return {
-            name: tagName,
-            digest: manifest.digest,
-            size: manifest.totalSize,
-            createdAt,
-            architecture,
-            os,
-          }
-        } catch {
-          return {
-            name: tagName,
-            digest: "",
-            size: 0,
-            createdAt: null,
-            architecture: "unknown",
-            os: "unknown",
-          }
-        }
-      }),
+    const resolvedTags = await Promise.all(
+      tagNames.map((tagName) => this.resolveTag(repo, tagName)),
     )
 
     return {
-      items: tags,
+      items: resolvedTags,
       page: options.page ?? 1,
-      perPage: options.perPage ?? (tags.length || 50),
+      perPage: options.perPage ?? (resolvedTags.length || 50),
       nextCursor: null,
+    }
+  }
+
+  private async resolveTag(repo: string, tagName: string): Promise<Tag> {
+    const acceptHeader = [
+      "application/vnd.oci.image.index.v1+json",
+      "application/vnd.oci.image.manifest.v1+json",
+      "application/vnd.docker.distribution.manifest.list.v2+json",
+      "application/vnd.docker.distribution.manifest.v2+json",
+      "application/json",
+    ].join(", ")
+
+    try {
+      const { body: raw, contentDigest } = await this.client.requestWithHeaders<
+        (ImageManifest | ImageIndex) & { digest?: string }
+      >(`/v2/${repo}/manifests/${tagName}`, { headers: { Accept: acceptHeader } })
+
+      const digest = raw.digest?.startsWith("sha256:")
+        ? raw.digest
+        : (contentDigest?.startsWith("sha256:") ? contentDigest : null)
+          ?? await this.resolveDigest(repo, tagName)
+          ?? tagName
+
+      // Multi-arch index — aggregate size from all children, read platform from first entry
+      if (INDEX_MEDIA_TYPES.has(raw.mediaType)) {
+        const index = raw as ImageIndex & { digest?: string }
+        const totalSize = index.manifests.reduce((sum, m) => sum + m.size, 0)
+        const firstPlatform = index.manifests[0]?.platform
+
+        // Try to resolve created date from first child manifest's config
+        let createdAt: string | null = null
+        const firstEntry = index.manifests[0]
+        if (firstEntry) {
+          try {
+            const child = await this.client.request<
+              Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }
+            >(`/v2/${repo}/manifests/${firstEntry.digest}`, { headers: { Accept: acceptHeader } })
+            if (child.config?.digest) {
+              const cfg = await this.getConfig(repo, child.config.digest)
+              createdAt = cfg?.created ?? null
+            }
+          } catch {
+            // created date is optional
+          }
+        }
+
+        return {
+          name: tagName,
+          digest,
+          size: totalSize,
+          createdAt,
+          architecture: firstPlatform?.architecture ?? "multi-arch",
+          os: firstPlatform?.os ?? "linux",
+        }
+      }
+
+      // Single-arch manifest
+      const single = raw as ImageManifest & { digest?: string }
+      const totalSize = (single.config?.size ?? 0) +
+        (single.layers ?? []).reduce((sum, l) => sum + l.size, 0)
+
+      let createdAt: string | null = null
+      let architecture = "unknown"
+      let os = "unknown"
+
+      if (single.config?.digest) {
+        try {
+          const cfg = await this.getConfig(repo, single.config.digest)
+          createdAt = cfg?.created ?? null
+          architecture = cfg?.architecture ?? "unknown"
+          os = cfg?.os ?? "unknown"
+        } catch {
+          // config is optional
+        }
+      }
+
+      return { name: tagName, digest, size: totalSize, createdAt, architecture, os }
+    } catch {
+      return { name: tagName, digest: "", size: 0, createdAt: null, architecture: "unknown", os: "unknown" }
     }
   }
 
@@ -130,29 +201,36 @@ export class GenericProvider implements RegistryProvider {
     const acceptHeader =
       "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json"
 
-    const manifest = await this.client.request<
+    const { body: manifest, contentDigest } = await this.client.requestWithHeaders<
       Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }
     >(`/v2/${repo}/manifests/${ref}`, {
       headers: { Accept: acceptHeader },
-      // Include credentials so auth flow works
     })
 
-    // Resolve digest: prefer sha256 from body, then try tag ref as fallback
-    // The real sha256 digest is fetched separately via resolveDigest when needed for deletion
-    const bodyDigest = manifest.digest
     const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
 
-    // If body digest looks like a sha256, use it; otherwise resolve via HEAD
-    if (bodyDigest?.startsWith("sha256:")) {
-      return { ...manifest, digest: bodyDigest, totalSize }
+    // Prefer: 1) sha256 from body, 2) Docker-Content-Digest response header, 3) HEAD fallback
+    if (manifest.digest?.startsWith("sha256:")) {
+      return { ...manifest, digest: manifest.digest, totalSize }
     }
 
-    // Fall back: resolve digest via HEAD request to get Docker-Content-Digest header
+    if (contentDigest?.startsWith("sha256:")) {
+      return { ...manifest, digest: contentDigest, totalSize }
+    }
+
+    // Last resort: resolve via HEAD request
     const resolvedDigest = await this.resolveDigest(repo, ref)
     return { ...manifest, digest: resolvedDigest ?? ref, totalSize }
   }
 
   private async resolveDigest(repo: string, ref: string): Promise<string | null> {
+    const cacheKey = `${repo}:${ref}`
+    const now = Date.now()
+    const cached = this.digestCache.get(cacheKey)
+    if (cached && cached.expiresAt > now) {
+      return cached.digest
+    }
+
     try {
       const acceptHeader =
         "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json"
@@ -167,7 +245,15 @@ export class GenericProvider implements RegistryProvider {
       }
 
       const response = await fetch(url, { method: "HEAD", headers })
-      return response.headers.get("Docker-Content-Digest")
+      const digest = response.headers.get("Docker-Content-Digest")
+      if (digest?.startsWith("sha256:")) {
+        this.digestCache.set(cacheKey, {
+          digest,
+          expiresAt: now + GenericProvider.DIGEST_CACHE_TTL_MS,
+        })
+        return digest
+      }
+      return digest
     } catch {
       return null
     }
@@ -196,5 +282,20 @@ export class GenericProvider implements RegistryProvider {
       canSearch: false,
       hasRateLimit: false,
     }
+  }
+}
+
+// Parse the `next` URL from a Docker Registry `Link` response header
+// Format: </v2/_catalog?last=foo&n=100>; rel="next"
+function parseLinkNext(linkHeader: string | null): string | null {
+  if (!linkHeader) return null
+  const match = linkHeader.match(/<([^>]+)>;\s*rel="next"/)
+  if (!match) return null
+  // Return just the path portion so RegistryHttpClient prepends the base URL
+  try {
+    const url = new URL(match[1], "http://placeholder")
+    return `${url.pathname}${url.search}`
+  } catch {
+    return null
   }
 }

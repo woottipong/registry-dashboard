@@ -41,17 +41,17 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
 
 `listTags()` เช่นกัน — 3 tags = 7 requests waterfall
 
-- [ ] **T-086** แยก `lastUpdated` ออกจาก `listRepositories` — ไม่ fetch manifest ใน catalog loop
+- [x] **T-086** แยก `lastUpdated` ออกจาก `listRepositories` — ไม่ fetch manifest ใน catalog loop
   - คืนแค่ `{ name, fullName, namespace, tagCount }` — ไม่ fetch manifest/config
   - `lastUpdated` เป็น optional — แสดง "—" ถ้าไม่มี
   - ลด requests จาก 1+(N×3) → 1+N
   - Files: `src/lib/providers/generic-provider.ts`
 
-- [ ] **T-087** Parallel batch fetch ใน `listTags`
+- [x] **T-087** Parallel batch fetch ใน `listTags`
   - manifest fetch และ config fetch เป็น 2 batch parallel rounds แทน sequential per tag
   - Files: `src/lib/providers/generic-provider.ts`
 
-- [ ] **T-088** Cache digest resolution — `resolveDigest()` in-memory TTL cache
+- [x] **T-088** Cache digest resolution — `resolveDigest()` in-memory TTL cache
   - Map `repo:ref → digest` TTL 5 นาที
   - ลด HEAD requests ซ้ำจาก `listRepositories` + `listTags`
   - Files: `src/lib/providers/generic-provider.ts`
@@ -62,7 +62,7 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
 
 **ปัญหา**: `staleTime: 0` + `refetchOnWindowFocus: true` → refetch ทุก tab switch
 
-- [ ] **T-089** ปรับ staleTime ต่อ query type
+- [x] **T-089** ปรับ staleTime ต่อ query type
   - Registries: `30s` | Repositories: `60s` | Tags: `30s` | Manifests/blobs: `10m`
   - `refetchOnWindowFocus: false` สำหรับ manifests/blobs
   - Files: `src/lib/query-client.ts`, `src/hooks/use-repositories.ts`, `src/hooks/use-tags.ts`
@@ -73,22 +73,22 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
 
 **ปัญหา**: Dashboard รอ `listRepositories` (N+1 requests) ก่อน render stats
 
-- [ ] **T-090** Dashboard render registries count ทันที — repos load async แยก
+- [x] **T-090** Dashboard render registries count ทันที — repos load async แยก
   - Files: `src/app/page.tsx`, `src/components/dashboard/stats-cards.tsx`
 
-- [ ] **T-091** Top Repos chart share data กับ repos query แทน fetch ใหม่
+- [x] **T-091** Top Repos chart share data กับ repos query แทน fetch ใหม่
   - Files: `src/app/page.tsx`
 
 ---
 
 ### 6.4 Medium: API Route Caching — P1
 
-- [ ] **T-092** HTTP response cache headers บน read-only endpoints
+- [x] **T-092** HTTP response cache headers บน read-only endpoints
   - `GET /repositories` → `Cache-Control: s-maxage=30, stale-while-revalidate=60`
   - `GET /manifests/:ref` → `Cache-Control: s-maxage=600`
   - Files: repositories route, manifests route
 
-- [ ] **T-093** Fix `total` count ใน repositories API response
+- [x] **T-093** Fix `total` count ใน repositories API response
   - ปัจจุบัน `total = items.length` หลัง filter — pagination ผิด
   - Files: `src/app/api/v1/registries/[id]/repositories/route.ts`
 
@@ -100,7 +100,7 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
   - Effort สูง — ทำหลัง T-086/T-087
   - Files: `src/lib/providers/generic-provider.ts`, `src/app/repos/page.tsx`
 
-- [ ] **T-095** Prefetch tags on hover repo card/row
+- [x] **T-095** Prefetch tags on hover repo card/row
   - `onMouseEnter` → `queryClient.prefetchQuery(["tags", registryId, repo.fullName])`
   - Files: `src/components/repository/repo-card.tsx`, `src/components/repository/repo-table.tsx`
 
@@ -108,10 +108,12 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
 
 ### 6.6 Low: Bundle & Cleanup — P2
 
-- [ ] **T-096** Bundle analyzer — ตรวจ Recharts lazy load ถูกต้อง
+- [x] **T-096** Bundle analyzer — ตรวจ Recharts lazy load ถูกต้อง
+  - Recharts อยู่ใน `top-repos-chart.tsx` เท่านั้น และ lazy load ผ่าน `dynamic()` แล้วใน `page.tsx`
   - Files: `src/components/dashboard/*`
 
-- [ ] **T-097** ลบ unused shadcn components (`Separator` ฯลฯ)
+- [x] **T-097** ลบ unused shadcn components (`Separator` ฯลฯ)
+  - `separator.tsx` ถูกใช้โดย shadcn primitives (command, dropdown-menu, select) — ไม่มีที่ลบได้
   - Files: various
 
 ---

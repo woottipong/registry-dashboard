@@ -49,10 +49,30 @@ export class RegistryHttpClient {
 
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       try {
-        return await this.fetchOnce<T>(path, {
-          ...init,
-          timeoutMs,
-        })
+        return await this.fetchOnce<T>(path, { ...init, timeoutMs })
+      } catch (error) {
+        lastError = error
+        const shouldRetry = this.shouldRetry(error, attempt, retries)
+        if (!shouldRetry) {
+          throw error
+        }
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("Unknown request error")
+  }
+
+  async requestWithHeaders<T>(
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<{ body: T; linkHeader: string | null; contentDigest: string | null }> {
+    const { timeoutMs = DEFAULT_TIMEOUT_MS, retries = DEFAULT_RETRIES, ...init } = options
+
+    let lastError: unknown
+
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      try {
+        return await this.fetchOnceWithHeaders<T>(path, { ...init, timeoutMs })
       } catch (error) {
         lastError = error
         const shouldRetry = this.shouldRetry(error, attempt, retries)
@@ -69,11 +89,20 @@ export class RegistryHttpClient {
     path: string,
     options: RequestOptions & { timeoutMs: number },
   ): Promise<T> {
+    const { body } = await this.fetchOnceWithHeaders<T>(path, options)
+    return body
+  }
+
+  private async fetchOnceWithHeaders<T>(
+    path: string,
+    options: RequestOptions & { timeoutMs: number },
+  ): Promise<{ body: T; linkHeader: string | null; contentDigest: string | null }> {
     const controller = new AbortController()
     const timeoutHandle = setTimeout(() => controller.abort(), options.timeoutMs)
+    const fullUrl = this.toUrl(path)
 
     try {
-      const response = await fetch(this.toUrl(path), {
+      const response = await fetch(fullUrl, {
         ...options,
         headers: this.buildHeaders(options.headers),
         signal: controller.signal,
@@ -83,7 +112,7 @@ export class RegistryHttpClient {
 
       if (response.status === 401 && !options.skipAuthRetry) {
         await this.handleAuthenticationChallenge(response)
-        return this.fetchOnce<T>(path, { ...options, skipAuthRetry: true })
+        return this.fetchOnceWithHeaders<T>(path, { ...options, skipAuthRetry: true })
       }
 
       if (!response.ok) {
@@ -95,11 +124,21 @@ export class RegistryHttpClient {
         )
       }
 
+      const linkHeader = response.headers.get("link")
+      const contentDigest = response.headers.get("Docker-Content-Digest")
+
       if (response.status === 204) {
-        return undefined as T
+        return { body: undefined as T, linkHeader, contentDigest }
       }
 
-      return this.readJsonBody<T>(response)
+      const body = await this.readJsonBody<T>(response)
+      return { body, linkHeader, contentDigest }
+    } catch (error) {
+      console.error("Registry HTTP request failed:", {
+        url: fullUrl,
+        error: error instanceof Error ? error.message : error,
+      })
+      throw error
     } finally {
       clearTimeout(timeoutHandle)
     }

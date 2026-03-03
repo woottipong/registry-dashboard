@@ -13,6 +13,24 @@ export interface ImageManifest {
   totalSize: number
 }
 
+export interface ManifestIndexEntry {
+  mediaType: string
+  size: number
+  digest: string
+  platform?: {
+    architecture: string
+    os: string
+    variant?: string
+  }
+}
+
+export interface ImageIndex {
+  schemaVersion: number
+  mediaType: string
+  digest?: string
+  manifests: ManifestIndexEntry[]
+}
+
 export interface ImageConfigRuntime {
   Hostname?: string
   Env?: string[]

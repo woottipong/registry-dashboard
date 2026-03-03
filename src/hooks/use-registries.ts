@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { STALE_TIME_REGISTRY } from "@/lib/query-client"
+import { STALE_TIME_REGISTRIES } from "@/lib/query-client"
 import type { ApiResponse } from "@/types/api"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -37,7 +37,7 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 export function useRegistries() {
   return useQuery({
     queryKey: registryKeys.all,
-    staleTime: STALE_TIME_REGISTRY,
+    staleTime: STALE_TIME_REGISTRIES,
     queryFn: async () => {
       const response = await fetch("/api/v1/registries", { cache: "no-store" })
       return handleApiResponse<RegistryConnection[]>(response)
@@ -49,7 +49,7 @@ export function useRegistry(id: string) {
   return useQuery({
     queryKey: registryKeys.byId(id),
     enabled: Boolean(id),
-    staleTime: STALE_TIME_REGISTRY,
+    staleTime: STALE_TIME_REGISTRIES,
     queryFn: async () => {
       const response = await fetch(`/api/v1/registries/${id}`, { cache: "no-store" })
       return handleApiResponse<RegistryConnection>(response)

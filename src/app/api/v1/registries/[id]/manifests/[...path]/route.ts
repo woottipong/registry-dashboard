@@ -43,7 +43,11 @@ export async function GET(_request: Request, context: RouteContext) {
       success: true,
       data: manifest,
       error: null,
-    } satisfies ApiResponse<ImageManifest>)
+    } satisfies ApiResponse<ImageManifest>, {
+      headers: {
+        "Cache-Control": "s-maxage=600",
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       {

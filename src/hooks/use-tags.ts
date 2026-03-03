@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { STALE_TIME_REGISTRY } from "@/lib/query-client"
+import { STALE_TIME_TAGS } from "@/lib/query-client"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Tag } from "@/types/registry"
 
@@ -21,7 +21,7 @@ export function useTags(registryId: string, repoName: string) {
   return useQuery({
     queryKey: ["tags", registryId, repoName],
     enabled: Boolean(registryId && repoName),
-    staleTime: STALE_TIME_REGISTRY,
+    staleTime: STALE_TIME_TAGS,
     queryFn: async (): Promise<TagsResult> => {
       const encodedRepoPath = encodeRepoPath(repoName)
       const response = await fetch(

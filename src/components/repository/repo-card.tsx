@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { TagsIcon } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useRepositories } from "@/hooks/use-repositories"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,9 +17,36 @@ interface RepoCardProps {
 
 export function RepoCard({ registryId, repository }: RepoCardProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const handleMouseEnter = () => {
+    // Prefetch tags data for instant navigation
+    queryClient.prefetchQuery({
+      queryKey: ["tags", registryId, repository.fullName],
+      staleTime: 30 * 1000, // 30 seconds
+      queryFn: async () => {
+        const encodedRepoPath = repository.fullName
+          .split("/")
+          .map((segment) => encodeURIComponent(segment))
+          .join("/")
+        const response = await fetch(
+          `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags`,
+          { cache: "no-store" },
+        )
+        const payload = await response.json()
+        if (!response.ok || !payload.success || payload.data === null) {
+          throw new Error(payload.error?.message ?? "Unable to fetch tags")
+        }
+        return { items: payload.data, meta: payload.meta }
+      },
+    })
+  }
 
   return (
-    <Card className="group flex flex-col gap-4 transition-all hover:border-primary/50 hover:shadow-md">
+    <Card 
+      className="group flex flex-col gap-4 transition-all hover:border-primary/50 hover:shadow-md"
+      onMouseEnter={handleMouseEnter}
+    >
       <CardHeader className="space-y-2 pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base font-medium leading-tight tracking-tight">

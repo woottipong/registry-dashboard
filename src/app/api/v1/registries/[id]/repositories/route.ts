@@ -62,7 +62,11 @@ export async function GET(request: Request, context: RouteContext) {
       meta,
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
+      },
+    })
   } catch (error) {
     const response: ApiResponse<null> = {
       success: false,

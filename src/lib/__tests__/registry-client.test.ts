@@ -136,6 +136,54 @@ describe("RegistryHttpClient", () => {
     })
   })
 
+  describe("requestWithHeaders()", () => {
+    it("returns body and null headers when absent", async () => {
+      global.fetch = mockFetch([{ body: JSON.stringify({ repositories: ["nginx"] }) }]) as typeof fetch
+
+      const client = new RegistryHttpClient(BASE_CONNECTION)
+      const result = await client.requestWithHeaders<{ repositories: string[] }>("/v2/_catalog")
+
+      expect(result.body.repositories).toEqual(["nginx"])
+      expect(result.linkHeader).toBeNull()
+      expect(result.contentDigest).toBeNull()
+    })
+
+    it("returns linkHeader when Link header present", async () => {
+      global.fetch = mockFetch([{
+        body: JSON.stringify({ repositories: ["a"] }),
+        headers: { link: '</v2/_catalog?last=a&n=1>; rel="next"' },
+      }]) as typeof fetch
+
+      const client = new RegistryHttpClient(BASE_CONNECTION)
+      const result = await client.requestWithHeaders<{ repositories: string[] }>("/v2/_catalog?n=1")
+
+      expect(result.linkHeader).toBe('</v2/_catalog?last=a&n=1>; rel="next"')
+    })
+
+    it("returns contentDigest when Docker-Content-Digest header present", async () => {
+      const digest = "sha256:abc123"
+      global.fetch = mockFetch([{
+        body: JSON.stringify({ schemaVersion: 2 }),
+        headers: { "Docker-Content-Digest": digest },
+      }]) as typeof fetch
+
+      const client = new RegistryHttpClient(BASE_CONNECTION)
+      const result = await client.requestWithHeaders<{ schemaVersion: number }>("/v2/repo/manifests/latest")
+
+      expect(result.contentDigest).toBe(digest)
+    })
+
+    it("returns body undefined and headers for 204", async () => {
+      global.fetch = mockFetch([{ ok: true, status: 204, body: "" }]) as typeof fetch
+
+      const client = new RegistryHttpClient(BASE_CONNECTION)
+      const result = await client.requestWithHeaders("/v2/repo/manifests/sha256:abc", { method: "DELETE" })
+
+      expect(result.body).toBeUndefined()
+      expect(result.linkHeader).toBeNull()
+    })
+  })
+
   describe("bearer token exchange", () => {
     it("exchanges token on 401 with WWW-Authenticate: Bearer", async () => {
       const fetchSpy = vi.fn()

@@ -42,6 +42,13 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json(response)
   } catch (error) {
+    console.error("Registry ping failed:", {
+      registryId: id,
+      registryUrl: registry.url,
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+
     const response: ApiResponse<null> = {
       success: false,
       data: null,

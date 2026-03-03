@@ -1,22 +1,22 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { STALE_TIME_REGISTRY } from "@/lib/query-client"
+import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Repository } from "@/types/registry"
 
-interface RepositoryQueryOptions {
+export interface RepositoryQueryOptions {
   page?: number
   perPage?: number
   search?: string
 }
 
-interface RepositoryQueryResult {
+export interface RepositoryQueryResult {
   items: Repository[]
   meta?: PaginationMeta
 }
 
-function makeQueryString(options: RepositoryQueryOptions): string {
+export function makeRepositoryQueryString(options: RepositoryQueryOptions): string {
   const params = new URLSearchParams()
 
   if (options.page) params.set("page", String(options.page))
@@ -31,7 +31,7 @@ async function fetchRepositories(
   registryId: string,
   options: RepositoryQueryOptions,
 ): Promise<RepositoryQueryResult> {
-  const queryString = makeQueryString(options)
+  const queryString = makeRepositoryQueryString(options)
   const response = await fetch(
     `/api/v1/registries/${registryId}/repositories${queryString}`,
     {
@@ -58,7 +58,7 @@ export function useRepositories(
   return useQuery({
     queryKey: ["repositories", registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? ""],
     enabled: Boolean(registryId),
-    staleTime: STALE_TIME_REGISTRY,
+    staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchRepositories(registryId, options),
   })
 }
@@ -67,7 +67,7 @@ export function useSearchRepositories(registryId: string, query: string) {
   return useQuery({
     queryKey: ["repositories", "search", registryId, query],
     enabled: Boolean(registryId && query.trim().length > 0),
-    staleTime: STALE_TIME_REGISTRY,
+    staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 25 }),
   })
 }
