@@ -54,113 +54,113 @@
 }
 
 :root {
-  /* Minimal UI Radii */
-  --radius: 0.375rem;
-  --radius-card: 0.5rem;
-  --radius-input: 0.375rem;
-  --radius-modal: 0.5rem;
+  /* Premium UI Radii */
+  --radius: 0.75rem;
+  --radius-card: 1rem;
+  --radius-input: 0.5rem;
+  --radius-modal: 1rem;
 
-  /* Light Theme: Ultra Minimal (Vercel/Linear inspired) */
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Theme: Clean & Sharp (Modern SaaS) */
+  --background: #fbfbfe;
+  --foreground: #020205;
   --card: #ffffff;
-  --card-foreground: #171717;
+  --card-foreground: #020205;
   --popover: #ffffff;
-  --popover-foreground: #171717;
+  --popover-foreground: #020205;
 
-  /* Primary: Pure Black */
-  --primary: #000000;
+  /* Primary: Deep Violet */
+  --primary: #5c3cfb;
   --primary-foreground: #ffffff;
 
-  /* Secondary: Very light gray */
-  --secondary: #f5f5f5;
-  --secondary-foreground: #171717;
+  /* Secondary: Soft Gray */
+  --secondary: #f1f1f9;
+  --secondary-foreground: #020205;
 
   /* Muted */
-  --muted: #fafafa;
-  --muted-foreground: #737373;
+  --muted: #f1f1f9;
+  --muted-foreground: #605c74;
 
   /* Accent */
-  --accent: #fafafa;
-  --accent-foreground: #171717;
+  --accent: #eeeefc;
+  --accent-foreground: #5c3cfb;
 
   /* Destructive */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  /* Borders and Rings - Very subtle borders */
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #000000;
+  /* Borders and Rings */
+  --border: #e2e4f0;
+  --input: #e2e4f0;
+  --ring: #5c3cfb;
 
   /* Charts */
-  --chart-1: #000000;
-  --chart-2: #404040;
-  --chart-3: #737373;
-  --chart-4: #a3a3a3;
-  --chart-5: #d4d4d4;
+  --chart-1: #5c3cfb;
+  --chart-2: #34d399;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #6366f1;
 
   /* Sidebar */
   --sidebar: #ffffff;
-  --sidebar-foreground: #171717;
-  --sidebar-primary: #000000;
+  --sidebar-foreground: #020205;
+  --sidebar-primary: #5c3cfb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #171717;
-  --sidebar-border: #e5e5e5;
-  --sidebar-ring: #000000;
+  --sidebar-accent: #f1f1f9;
+  --sidebar-accent-foreground: #5c3cfb;
+  --sidebar-border: #e2e4f0;
+  --sidebar-ring: #5c3cfb;
 }
 
 .dark {
-  /* Dark Theme: Slate/Zinc inspired (softer than pure black) */
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #09090b;
-  --card-foreground: #fafafa;
-  --popover: #09090b;
-  --popover-foreground: #fafafa;
+  /* Dark Theme: Deep Space / Obsidian */
+  --background: #030308;
+  --foreground: #f2f2f8;
+  --card: #0a0a16;
+  --card-foreground: #f2f2f8;
+  --popover: #0a0a16;
+  --popover-foreground: #f2f2f8;
 
-  /* Primary: Pure White */
-  --primary: #ffffff;
-  --primary-foreground: #09090b;
+  /* Primary: Electric Indigo */
+  --primary: #7c3aff;
+  --primary-foreground: #ffffff;
 
-  /* Secondary: Very dark gray */
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
+  /* Secondary: Deep Navy */
+  --secondary: #14142b;
+  --secondary-foreground: #f2f2f8;
 
   /* Muted */
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+  --muted: #14142b;
+  --muted-foreground: #94a3b8;
 
-  /* Accent */
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
+  /* Accent: Deep Indigo */
+  --accent: #1e1e3f;
+  --accent-foreground: #a78bff;
 
   /* Destructive */
-  --destructive: #7f1d1d;
-  --destructive-foreground: #fca5a5;
+  --destructive: #991b1b;
+  --destructive-foreground: #fecaca;
 
-  /* Borders and Rings */
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #ffffff;
+  /* Borders and Rings: Subtle Slate */
+  --border: #1e1e3f;
+  --input: #1e1e3f;
+  --ring: #7c3aff;
 
   /* Charts */
-  --chart-1: #ffffff;
-  --chart-2: #d4d4d4;
-  --chart-3: #a3a3a3;
-  --chart-4: #737373;
-  --chart-5: #404040;
+  --chart-1: #7c3aff;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #6366f1;
 
-  /* Sidebar */
-  --sidebar: #09090b;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #09090b;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #27272a;
-  --sidebar-ring: #ffffff;
+  /* Sidebar: Obsidian Glass */
+  --sidebar: #050510;
+  --sidebar-foreground: #f2f2f8;
+  --sidebar-primary: #7c3aff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #14142b;
+  --sidebar-accent-foreground: #a78bff;
+  --sidebar-border: #1e1e3f;
+  --sidebar-ring: #7c3aff;
 }
 
 @layer base {

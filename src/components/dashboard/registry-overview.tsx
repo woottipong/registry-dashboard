@@ -35,71 +35,77 @@ function RegistryListItem({ registry, repoCount, tagCount }: RegistryOverviewCar
   const pingStatus = ping.data?.status === "ok" ? "connected" : ping.isError ? "error" : "checking"
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-border rounded-md bg-card transition-colors hover:bg-muted/30">
-
-      <div className="flex items-start gap-4 flex-1 min-w-0">
-        <div className="hidden sm:flex mt-0.5 h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted">
-          <ServerIcon className="size-4 text-muted-foreground" />
+    <div className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 transition-all duration-300 hover:bg-primary/[0.02] border-b border-border/50 last:border-0 relative overflow-hidden">
+      <div className="flex items-start gap-4 flex-1 min-w-0 z-10">
+        <div className="relative shrink-0">
+          <div className={cn(
+            "h-12 w-12 flex items-center justify-center rounded-2xl border border-border bg-background transition-all group-hover:border-primary/30 group-hover:shadow-lg group-hover:shadow-primary/5",
+            registry.isDefault && "border-primary/20 bg-primary/[0.02]"
+          )}>
+            <ServerIcon className={cn("size-5", registry.isDefault ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+          </div>
+          {registry.isDefault && (
+            <div className="absolute -top-1 -right-1 size-3 bg-primary rounded-full border-2 border-background" />
+          )}
         </div>
 
-        <div className="flex flex-col min-w-0 gap-1.5">
-          <div className="flex items-center gap-2">
-            <Link href={`/repos?registry=${registry.id}`} className="font-semibold text-sm hover:underline truncate">
+        <div className="flex flex-col min-w-0 gap-1.5 justify-center">
+          <div className="flex items-center gap-2.5">
+            <Link href={`/repos?registry=${registry.id}`} className="font-bold text-base hover:text-primary transition-colors truncate">
               {registry.name}
             </Link>
-            <Badge variant="secondary" className="rounded-sm font-mono text-[10px] px-1.5 py-0">
+            <Badge variant="secondary" className="bg-muted-foreground/5 text-muted-foreground border-none rounded-full px-2 py-0 text-[10px] uppercase font-bold tracking-tighter">
               {registry.provider}
             </Badge>
-            {registry.isDefault && (
-              <Badge variant="outline" className="rounded-sm text-[10px] px-1.5 py-0 border-primary text-primary">
-                Default
-              </Badge>
-            )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-medium">
             <span className="truncate max-w-[200px] sm:max-w-xs">{registry.url}</span>
-            <span className="hidden sm:inline text-border">•</span>
-            <div className="hidden sm:flex gap-3">
-              <span><strong className="text-foreground">{repoCount ?? "—"}</strong> repos</span>
-              <span><strong className="text-foreground">{tagCount ?? "—"}</strong> tags</span>
+            <div className="flex gap-4 ml-2 border-l border-border/50 pl-4 items-center">
+              <span className="flex items-center gap-1.5">
+                <strong className="text-foreground font-black">{repoCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider">Repos</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <strong className="text-foreground font-black">{tagCount ?? "0"}</strong> <span className="text-[10px] uppercase tracking-wider">Tags</span>
+              </span>
             </div>
-          </div>
-
-          <div className="flex sm:hidden gap-3 text-xs text-muted-foreground mt-1">
-            <span><strong className="text-foreground">{repoCount ?? "—"}</strong> repos</span>
-            <span><strong className="text-foreground">{tagCount ?? "—"}</strong> tags</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 sm:ml-auto">
+      <div className="flex items-center gap-6 sm:ml-auto z-10">
         {typeof rateLimitPct === "number" && (
-          <div className="hidden md:block text-right">
-            <div className="text-[10px] text-muted-foreground mb-1">Rate Limit</div>
-            <div className="flex items-center gap-2">
-              <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
+          <div className="hidden lg:block text-right min-w-[120px]">
+            <div className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-2">Rate Limit</div>
+            <div className="flex items-center gap-3 justify-end">
+              <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
                 <div
-                  className={cn("h-full", rateLimitPct < 20 ? "bg-destructive" : "bg-primary")}
+                  className={cn("h-full transition-all duration-1000", rateLimitPct < 20 ? "bg-destructive" : "bg-primary")}
                   style={{ width: `${rateLimitPct}%` }}
                 />
               </div>
-              <span className="text-[10px] font-mono">{registry.rateLimit?.remaining}</span>
+              <span className="text-[11px] font-black font-mono text-foreground/80">{registry.rateLimit?.remaining}</span>
             </div>
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <ConnectionStatus
-            state={pingStatus}
-            latencyMs={ping.data?.latencyMs ?? null}
-            checkedAt={null}
-          />
-          <span className="text-border mx-1">|</span>
-          <Button variant="ghost" size="icon" onClick={runPing} disabled={ping.isPending} className="h-8 w-8 text-muted-foreground hover:text-foreground">
-            <RefreshCwIcon className={cn("size-3.5", ping.isPending && "animate-spin")} />
-          </Button>
-          <Button size="sm" variant="secondary" className="h-8 px-3" asChild>
+        <div className="flex items-center gap-3">
+          <div className="bg-card px-3 py-1.5 rounded-xl border border-border/50 flex items-center gap-3 group/ping">
+            <ConnectionStatus
+              state={pingStatus}
+              latencyMs={ping.data?.latencyMs ?? null}
+              checkedAt={null}
+            />
+            <button
+              onClick={runPing}
+              className="p-1 rounded-md text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+              disabled={ping.isPending}
+            >
+              <RefreshCwIcon className={cn("size-3.5", ping.isPending && "animate-spin")} />
+            </button>
+          </div>
+
+          <Button size="sm" className="h-9 px-5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/10 hover:shadow-primary/20 active:scale-95 transition-all" asChild>
             <Link href={`/repos?registry=${registry.id}`}>
               Browse
             </Link>
@@ -107,6 +113,7 @@ function RegistryListItem({ registry, repoCount, tagCount }: RegistryOverviewCar
         </div>
       </div>
 
+      <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
   )
 }

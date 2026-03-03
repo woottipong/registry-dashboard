@@ -15,16 +15,16 @@ const TopReposChart = dynamic(
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories } from "@/hooks/use-repositories"
 
+import { motion } from "framer-motion"
+
 export default function DashboardPage() {
   const registriesQuery = useRegistries()
   const registries = registriesQuery.data ?? []
 
   const primaryRegistry = registries[0]
-  // Repos query is independent — starts as soon as primaryRegistry.id is known
   const reposQuery = useRepositories(primaryRegistry?.id ?? "", { perPage: 50 })
   const repos = reposQuery.data?.items ?? []
 
-  // Chart data derived from the already-fetched repos query — no extra fetch (T-091)
   const chartData = repos
     .filter((r) => (r.tagCount ?? 0) > 0)
     .sort((a, b) => (b.tagCount ?? 0) - (a.tagCount ?? 0))
@@ -39,37 +39,45 @@ export default function DashboardPage() {
 
   if (!isLoadingRegistries && registries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-muted mb-4">
-            <LayersIcon className="size-6 text-muted-foreground" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center min-h-[60vh] px-4"
+      >
+        <div className="max-w-md w-full text-center p-12 rounded-3xl border border-dashed border-border/50 bg-card/20 backdrop-blur-sm">
+          <div className="mx-auto h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 flex mb-6">
+            <LayersIcon className="size-8 text-primary" />
           </div>
-          <h2 className="text-xl font-semibold tracking-tight mb-2">No registries connected</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Get started by connecting your first Docker registry. Supported providers include Docker Hub, GitHub CR, and Private Registries.
+          <h2 className="text-2xl font-bold tracking-tight mb-3">Welcome to Registry Dashboard</h2>
+          <p className="text-muted-foreground mb-8">
+            Connect your first Docker registry to start monitoring and managing your container images effortlessly.
           </p>
-          <Button asChild>
-            <Link href="/registries/new">Connect Registry</Link>
+          <Button asChild size="lg" className="rounded-2xl px-8 shadow-xl shadow-primary/20">
+            <Link href="/registries/new">Connect First Registry</Link>
           </Button>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-10">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-10 max-w-[1200px] mx-auto pb-20"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">System Overview</h1>
+          <p className="text-muted-foreground">Aggregated statistics and connections for your registries.</p>
         </div>
         {!isLoadingRegistries && registries.length > 0 && (
-          <Button variant="outline" size="sm" asChild className="h-8">
-            <Link href="/registries/new">Add Registry</Link>
+          <Button variant="outline" size="sm" asChild className="h-10 rounded-xl px-4 font-semibold border-primary/20 hover:bg-primary/5 text-primary">
+            <Link href="/registries/new">Add Connection</Link>
           </Button>
         )}
       </div>
 
-      {/* T-090: registries count renders immediately; repo stats load independently */}
       <StatsCards
         totalRegistries={isLoadingRegistries ? undefined : registries.length}
         totalRepositories={repos.length || undefined}
@@ -79,24 +87,28 @@ export default function DashboardPage() {
         isLoadingRepos={reposQuery.isLoading}
       />
 
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium border-b pb-2">
-          <DatabaseIcon className="size-4" />
-          <h2>Connections</h2>
-        </div>
-        <RegistryOverview registries={registries} isLoading={isLoadingRegistries} />
-      </section>
-
-      {chartData.length > 0 && (
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <section className="space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium border-b pb-2">
-            <h2>Top Repositories</h2>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 px-2">
+            <DatabaseIcon className="size-3.5" />
+            <h2>Active Connections</h2>
           </div>
-          <div className="border border-border rounded-md p-4 pt-6 bg-card">
-            <TopReposChart data={chartData} isLoading={reposQuery.isLoading} />
+          <div className="rounded-3xl border border-border/50 bg-card/30 p-2 backdrop-blur-sm overflow-hidden min-h-[300px]">
+            <RegistryOverview registries={registries} isLoading={isLoadingRegistries} />
           </div>
         </section>
-      )}
-    </div>
+
+        {chartData.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 px-2">
+              <h2>Inventory Distribution</h2>
+            </div>
+            <div className="rounded-3xl border border-border/50 bg-card/30 p-8 backdrop-blur-sm min-h-[300px] flex items-center justify-center">
+              <TopReposChart data={chartData} isLoading={reposQuery.isLoading} />
+            </div>
+          </section>
+        )}
+      </div>
+    </motion.div>
   )
 }
