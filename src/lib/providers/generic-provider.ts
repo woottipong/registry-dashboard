@@ -266,7 +266,7 @@ export class GenericProvider implements RegistryProvider {
     await this.client.request<void>(`/v2/${repo}/manifests/${digest}`, { method: "DELETE" })
   }
 
-  async searchRepositories(_query: string): Promise<PaginatedResult<Repository>> {
+  async searchRepositories(): Promise<PaginatedResult<Repository>> {
     throw new UnsupportedError("Search is not supported for generic registry providers")
   }
 

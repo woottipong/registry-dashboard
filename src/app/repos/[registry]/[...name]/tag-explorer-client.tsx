@@ -32,14 +32,14 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
   const deleteTags = useDeleteTags()
 
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
-  const allTags = tagsQuery.data?.items ?? []
+  const memoizedAllTags = useMemo(() => tagsQuery.data?.items ?? [], [tagsQuery.data?.items])
 
   const filteredTags = useMemo(() => {
-    const tags = tagsQuery.data?.items ?? []
+    const tags = memoizedAllTags
     if (!search.trim()) return tags
     const lower = search.toLowerCase()
     return tags.filter((tag) => tag.name.toLowerCase().includes(lower))
-  }, [tagsQuery.data?.items, search])
+  }, [memoizedAllTags, search])
 
   const handleDeleteClick = useCallback((tag: Tag) => {
     setTagToDelete(tag)
@@ -70,10 +70,10 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
 
   const sharedWithTag = useMemo(() => {
     if (!tagToDelete?.digest) return []
-    return allTags
+    return memoizedAllTags
       .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
       .map((t) => t.name)
-  }, [allTags, tagToDelete])
+  }, [memoizedAllTags, tagToDelete])
 
   const bulkUniqueDigestCount = useMemo(() => {
     return new Set(tagsToDelete.map((t) => t.digest).filter((d) => d.startsWith("sha256:"))).size

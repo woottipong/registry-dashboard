@@ -4,13 +4,11 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  DatabaseIcon,
   FolderOpenIcon,
   LayoutDashboardIcon,
   PlusIcon,
   ServerIcon,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"

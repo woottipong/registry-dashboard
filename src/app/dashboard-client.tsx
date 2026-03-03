@@ -21,16 +21,16 @@ const TopReposChart = dynamic(
 
 export function DashboardClient() {
   const registriesQuery = useRegistries()
-  const registries = registriesQuery.data ?? []
+  const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
 
   // Memoize the query configurations so useQueries doesn't see a new array reference on every render
   const repoQueryConfigs = useMemo(() => {
-    return registries.map((registry) => ({
+    return memoizedRegistries.map((registry) => ({
       queryKey: ["repositories", registry.id, 1, 50, ""],
       queryFn: () => fetchRepositories(registry.id, { perPage: 50 }),
       staleTime: STALE_TIME_REPOSITORIES,
     }))
-  }, [registries])
+  }, [memoizedRegistries])
 
   // Fetch repositories for ALL registries in parallel
   const repoQueries = useQueries({
@@ -44,7 +44,7 @@ export function DashboardClient() {
   const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = useMemo(() => {
     const allRepos: { name: string; registryId: string; tagCount: number }[] = []
 
-    const regStats = registries.map((registry, index) => {
+    const regStats = memoizedRegistries.map((registry, index) => {
       const queryResult = repoQueries[index]
       const repos = queryResult?.data?.items ?? []
       
@@ -82,9 +82,9 @@ export function DashboardClient() {
       chartData: cData,
       registriesWithStats: regStats
     }
-  }, [registries, repoQueries])
+  }, [memoizedRegistries, repoQueries])
 
-  if (!isLoadingRegistries && registries.length === 0) {
+  if (!isLoadingRegistries && memoizedRegistries.length === 0) {
     return (
       <LazyMotion features={domAnimation}>
         <m.div
@@ -131,10 +131,10 @@ export function DashboardClient() {
         </div>
 
         <StatsCards
-          totalRegistries={isLoadingRegistries ? undefined : registries.length}
-          totalRepositories={registries.length ? totalRepositories : undefined}
-          totalTags={registries.length ? totalTags : undefined}
-          totalSizeBytes={registries.length ? totalSizeBytes : undefined}
+          totalRegistries={isLoadingRegistries ? undefined : memoizedRegistries.length}
+          totalRepositories={memoizedRegistries.length ? totalRepositories : undefined}
+          totalTags={memoizedRegistries.length ? totalTags : undefined}
+          totalSizeBytes={memoizedRegistries.length ? totalSizeBytes : undefined}
           isLoadingRegistries={isLoadingRegistries}
           isLoadingRepos={isLoadingRepos}
         />

@@ -41,6 +41,31 @@ export function TagActions({
       <div className="flex items-center gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8" onClick={copyPullCommand}>
+              <span className="sr-only">Copy pull command</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-3.5"
+              >
+                <path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1" />
+                <polyline points="16 11 12 15 8 11" />
+                <line x1="12" x2="12" y1="15" y2="3" />
+              </svg>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Copy pull command</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-8" onClick={copyDigest}>
               <ClipboardIcon className="size-3.5" />
               <span className="sr-only">Copy digest</span>
