@@ -43,6 +43,41 @@ export function useTags(registryId: string, repoName: string) {
   })
 }
 
+export function useDeleteTags() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      registryId,
+      repoName,
+      digests,
+    }: {
+      registryId: string
+      repoName: string
+      digests: string[]
+    }) => {
+      const encodedRepoPath = encodeRepoPath(repoName)
+
+      for (const digest of digests) {
+        const encodedDigest = encodeURIComponent(digest)
+        const response = await fetch(
+          `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedDigest}`,
+          { method: "DELETE" },
+        )
+        const payload = (await response.json()) as ApiResponse<null>
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error?.message ?? `Unable to delete ${digest}`)
+        }
+      }
+
+      return { registryId, repoName }
+    },
+    onSuccess: async ({ registryId, repoName }) => {
+      await queryClient.invalidateQueries({ queryKey: ["tags", registryId, repoName] })
+    },
+  })
+}
+
 export function useDeleteTag() {
   const queryClient = useQueryClient()
 

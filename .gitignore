@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# persistent data directory (contains registry credentials — never commit)
+/data/*.json
+
 # vercel
 .vercel
 

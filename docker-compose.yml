@@ -1,39 +1,19 @@
 services:
-  registry:
-    image: registry:2
-    container_name: registry-dashboard-registry
-    restart: unless-stopped
-    ports:
-      - "5001:5000"
-    environment:
-      REGISTRY_STORAGE_DELETE_ENABLED: "true"
-      REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
-    volumes:
-      - registry-data:/var/lib/registry
-    networks:
-      - registry-net
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   ui:
     build:
       context: .
       dockerfile: Dockerfile
+    image: registry-dashboard-ui:latest
     container_name: registry-dashboard-ui
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${UI_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      DEFAULT_REGISTRY_URL: ${DEFAULT_REGISTRY_URL:-http://registry:5000}
-      DEFAULT_REGISTRY_NAME: ${DEFAULT_REGISTRY_NAME:-Local Registry}
-      DEFAULT_REGISTRY_AUTH_TYPE: ${DEFAULT_REGISTRY_AUTH_TYPE:-none}
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      DATA_DIR: /app/data
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+    volumes:
+      - ui-data:/app/data
     depends_on:
       registry:
         condition: service_healthy
@@ -47,7 +27,7 @@ services:
       start_period: 15s
 
 volumes:
-  registry-data:
+  ui-data:
     driver: local
 
 networks:

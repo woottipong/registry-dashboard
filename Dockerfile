@@ -32,7 +32,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
 USER nextjs
+
+VOLUME ["/app/data"]
 
 LABEL org.opencontainers.image.title="Registry Dashboard" \
       org.opencontainers.image.description="Modern web dashboard for browsing and managing Docker container images"

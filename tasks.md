@@ -586,6 +586,83 @@
 
 ---
 
+## Milestone 5: Production Deployment
+
+> Goal: Data persists across restarts, anyone can run the stack with a single command.
+
+### 5.1 Persistent Storage — P0
+
+- [x] **T-076**: Migrate registry store from in-memory Map to file-based JSON
+  - Replace `const registries = new Map()` with `fs.readFileSync` / `fs.writeFileSync`
+  - Read/write `{DATA_DIR}/registries.json` on every operation
+  - Auto-create `DATA_DIR` if it does not exist (`fs.mkdirSync` recursive)
+  - Auto-set first created registry as default when store is empty
+  - Fix `isDefault` exclusivity: clear other registries' `isDefault` on create/update
+  - Files: `src/lib/registry-store.ts`
+
+- [x] **T-077**: Add `DATA_DIR` environment variable
+  - Add `DATA_DIR` to Zod env schema with default `./data`
+  - Document in `.env.example` with explanation
+  - Update `.env.local` for local dev
+  - Files: `src/lib/config.ts`, `.env.example`, `.env.local`
+
+- [x] **T-078**: Add `/data` to `.gitignore`
+  - Registry configs may contain credentials — must never be committed
+  - Files: `.gitignore`
+
+### 5.2 Docker — P0
+
+- [x] **T-079**: Update production Dockerfile for persistent data
+  - Create `/app/data` directory with `nextjs` user ownership before `USER nextjs`
+  - Declare `VOLUME ["/app/data"]` so Docker tracks the mount point
+  - Files: `Dockerfile`
+
+- [x] **T-080**: Update `docker-compose.yml` (production)
+  - Add `ui-data` named volume → mounted at `/app/data` in ui service
+  - Set `DATA_DIR=/app/data` env var in ui service
+  - Make `SESSION_SECRET` required (`:?` syntax — fails fast if not set)
+  - Parameterize ports via `UI_PORT` / `REGISTRY_PORT` env vars
+  - Add `image:` tag `registry-dashboard-ui:latest`
+  - Files: `docker-compose.yml`
+
+- [x] **T-081**: Create `docker-compose.dev.yml` for local development
+  - Use `oven/bun:1.3.9-alpine` image — no build step needed
+  - Mount source code as volume for hot-reload (`bun run dev`)
+  - Exclude `node_modules` and `.next` via anonymous volumes
+  - Separate named volumes: `registry-data-dev`, `ui-data-dev`
+  - Separate network: `registry-net-dev` (no conflict with prod)
+  - `CHOKIDAR_USEPOLLING=true` for file-watch inside Docker
+  - Usage: `docker compose -f docker-compose.dev.yml up`
+  - Files: `docker-compose.dev.yml`
+
+### 5.3 Configuration — P1
+
+- [x] **T-082**: Update `.env.example` with complete variable reference
+  - Add `DATA_DIR`, `UI_PORT`, `REGISTRY_PORT` with comments
+  - Files: `.env.example`
+
+- [ ] **T-083**: Create `data/.gitkeep` placeholder
+  - Ensures `./data` directory is present for local dev without Docker
+  - Files: `data/.gitkeep`
+
+### 5.4 Deployment Guide — P1
+
+- [ ] **T-084**: Write production deployment section in README
+  - Quick start: `cp .env.example .env && docker compose up -d`
+  - Explain `SESSION_SECRET` generation: `openssl rand -base64 32`
+  - Explain volume persistence and backup strategy
+  - Explain port customization via env vars
+  - Reverse proxy example (Nginx/Traefik)
+  - Files: `README.md`
+
+- [ ] **T-085**: Write dev setup section in README
+  - Quick start: `docker compose -f docker-compose.dev.yml up`
+  - Explain hot-reload behavior inside Docker
+  - Alternative: `bun install && bun run dev` (native)
+  - Files: `README.md`
+
+---
+
 ## Task Summary
 
 | Milestone | Tasks | P0 | P1 | P2 |
@@ -594,7 +671,8 @@
 | **M2: Core Browsing** | T-026 → T-046 | 21 | 0 | 0 |
 | **M3: Management & Polish** | T-047 → T-060 | 0 | 12 | 2 |
 | **M4: Production Ready** | T-061 → T-075 | 0 | 10 | 5 |
-| **Total** | **75 tasks** | **44** | **24** | **7** |
+| **M5: Production Deployment** | T-076 → T-085 | 5 | 4 | 0 |
+| **Total** | **85 tasks** | **49** | **28** | **7** |
 
 ## Dependency Graph (Critical Path)
 

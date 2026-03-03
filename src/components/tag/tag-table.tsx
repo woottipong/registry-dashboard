@@ -6,11 +6,15 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  type HeaderContext,
+  type CellContext,
+  type RowSelectionState,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon } from "lucide-react"
+import { ArrowUpDownIcon, Trash2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -31,6 +35,7 @@ interface TagTableProps {
   canDelete: boolean
   isLoading?: boolean
   onDeleteClick: (tag: Tag) => void
+  onBulkDeleteClick: (tags: Tag[]) => void
 }
 
 export function TagTable({
@@ -40,11 +45,41 @@ export function TagTable({
   canDelete,
   isLoading,
   onDeleteClick,
+  onBulkDeleteClick,
 }: TagTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }])
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const columns = useMemo<ColumnDef<Tag>[]>(
     () => [
+      ...(canDelete
+        ? [
+            {
+              id: "select",
+              header: ({ table }: HeaderContext<Tag, unknown>) => (
+                <Checkbox
+                  checked={
+                    table.getIsAllPageRowsSelected()
+                      ? true
+                      : table.getIsSomePageRowsSelected()
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                  aria-label="Select all"
+                />
+              ),
+              cell: ({ row }: CellContext<Tag, unknown>) => (
+                <Checkbox
+                  checked={row.getIsSelected()}
+                  onCheckedChange={(value) => row.toggleSelected(!!value)}
+                  aria-label="Select row"
+                />
+              ),
+              enableSorting: false,
+            } satisfies ColumnDef<Tag>,
+          ]
+        : []),
       {
         accessorKey: "name",
         header: ({ column }) => (
@@ -90,7 +125,11 @@ export function TagTable({
           </Button>
         ),
         cell: ({ row }) =>
-          row.original.size > 0 ? formatBytes(row.original.size) : <span className="text-muted-foreground">—</span>,
+          row.original.size > 0 ? (
+            formatBytes(row.original.size)
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
       },
       {
         accessorKey: "createdAt",
@@ -142,11 +181,16 @@ export function TagTable({
   const table = useReactTable({
     data: tags,
     columns,
-    state: { sorting },
+    state: { sorting, rowSelection },
     onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableRowSelection: canDelete,
   })
+
+  const selectedTags = table.getSelectedRowModel().rows.map((row) => row.original)
+  const hasSelection = selectedTags.length > 0
 
   if (isLoading) {
     return (
@@ -159,31 +203,52 @@ export function TagTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="space-y-2">
+      {canDelete && hasSelection && (
+        <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 px-4 py-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedTags.length} {selectedTags.length === 1 ? "tag" : "tags"} selected
+          </span>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              onBulkDeleteClick(selectedTags)
+              setRowSelection({})
+            }}
+          >
+            <Trash2Icon className="size-3.5" />
+            Delete selected
+          </Button>
+        </div>
+      )}
+
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

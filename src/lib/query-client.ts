@@ -8,13 +8,13 @@ export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: STALE_TIME_REGISTRY,
+        staleTime: 0,
         // Don't retry on 4xx errors (auth failed, not found, etc.)
         retry: (failureCount, error) => {
           if (error instanceof Error && error.message.startsWith("4")) return false
           return failureCount < 2
         },
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
       },
     },
   })

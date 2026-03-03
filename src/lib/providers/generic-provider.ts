@@ -73,15 +73,45 @@ export class GenericProvider implements RegistryProvider {
 
   async listTags(repo: string, options: ListOptions = {}): Promise<PaginatedResult<Tag>> {
     const response = await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`)
+    const tagNames = response.tags ?? []
 
-    const tags = (response.tags ?? []).map<Tag>((tagName) => ({
-      name: tagName,
-      digest: "",
-      size: 0,
-      createdAt: null,
-      architecture: "unknown",
-      os: "unknown",
-    }))
+    const tags = await Promise.all(
+      tagNames.map(async (tagName): Promise<Tag> => {
+        try {
+          const manifest = await this.getManifest(repo, tagName)
+          let createdAt: string | null = null
+          let architecture = "unknown"
+          let os = "unknown"
+
+          try {
+            const cfg = await this.getConfig(repo, manifest.config.digest)
+            createdAt = cfg.created ?? null
+            architecture = cfg.architecture ?? "unknown"
+            os = cfg.os ?? "unknown"
+          } catch {
+            // config fetch optional — size and digest still available
+          }
+
+          return {
+            name: tagName,
+            digest: manifest.digest,
+            size: manifest.totalSize,
+            createdAt,
+            architecture,
+            os,
+          }
+        } catch {
+          return {
+            name: tagName,
+            digest: "",
+            size: 0,
+            createdAt: null,
+            architecture: "unknown",
+            os: "unknown",
+          }
+        }
+      }),
+    )
 
     return {
       items: tags,

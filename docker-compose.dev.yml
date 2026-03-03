@@ -1,0 +1,59 @@
+# Development compose — hot-reload, no production build needed
+# Usage: docker compose -f docker-compose.dev.yml up
+
+services:
+  registry:
+    image: registry:2
+    container_name: registry-dashboard-registry-dev
+    restart: unless-stopped
+    ports:
+      - "${REGISTRY_PORT:-5001}:5000"
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+    volumes:
+      - registry-data-dev:/var/lib/registry
+    networks:
+      - registry-net-dev
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ui:
+    image: oven/bun:1.3.9-alpine
+    container_name: registry-dashboard-ui-dev
+    working_dir: /app
+    command: sh -c "bun install && bun run dev"
+    restart: unless-stopped
+    ports:
+      - "${UI_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      DATA_DIR: /app/data
+      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production-x1}
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      # Mount source code for hot-reload (node_modules excluded via anonymous volume)
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      # Persistent data directory for registry configs
+      - ui-data-dev:/app/data
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - registry-net-dev
+
+volumes:
+  registry-data-dev:
+    driver: local
+  ui-data-dev:
+    driver: local
+
+networks:
+  registry-net-dev:
+    driver: bridge

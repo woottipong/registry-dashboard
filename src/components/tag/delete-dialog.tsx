@@ -15,6 +15,45 @@ import { Input } from "@/components/ui/input"
 import { truncateDigest } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
+interface BulkDeleteDialogProps {
+  count: number
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: () => void
+  isPending?: boolean
+}
+
+export function BulkDeleteDialog({
+  count,
+  open,
+  onOpenChange,
+  onConfirm,
+  isPending = false,
+}: BulkDeleteDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangleIcon className="size-5 text-destructive" />
+            Delete {count} {count === 1 ? "tag" : "tags"}
+          </DialogTitle>
+          <DialogDescription>
+            This action <strong>cannot be undone</strong>. {count} image{" "}
+            {count === 1 ? "manifest" : "manifests"} will be permanently deleted from the registry.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter showCloseButton>
+          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
+            {isPending ? "Deleting…" : `Delete ${count} ${count === 1 ? "tag" : "tags"}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 interface DeleteDialogProps {
   tag: Tag | null
   open: boolean

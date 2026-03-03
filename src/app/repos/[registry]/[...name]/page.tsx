@@ -6,11 +6,11 @@ import { SearchIcon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { DeleteDialog } from "@/components/tag/delete-dialog"
+import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
 import { useRegistry } from "@/hooks/use-registries"
-import { useDeleteTag, useTags } from "@/hooks/use-tags"
+import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
 import type { Tag } from "@/types/registry"
 
 interface TagExplorerPageProps {
@@ -26,10 +26,12 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
 
   const [search, setSearch] = useState("")
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null)
+  const [tagsToDelete, setTagsToDelete] = useState<Tag[]>([])
 
   const registryQuery = useRegistry(registryId)
   const tagsQuery = useTags(registryId, repoName)
   const deleteTag = useDeleteTag()
+  const deleteTags = useDeleteTags()
 
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
 
@@ -42,6 +44,10 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
 
   const handleDeleteClick = useCallback((tag: Tag) => {
     setTagToDelete(tag)
+  }, [])
+
+  const handleBulkDeleteClick = useCallback((tags: Tag[]) => {
+    setTagsToDelete(tags)
   }, [])
 
   const handleDeleteConfirm = useCallback(
@@ -62,6 +68,23 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
     },
     [deleteTag, registryId, repoName],
   )
+
+  const handleBulkDeleteConfirm = useCallback(() => {
+    const digests = tagsToDelete.map((t) => t.digest).filter(Boolean)
+    deleteTags.mutate(
+      { registryId, repoName, digests },
+      {
+        onSuccess: () => {
+          toast.success(`${tagsToDelete.length} tags deleted`)
+          setTagsToDelete([])
+        },
+        onError: (error) => {
+          toast.error(error.message)
+          setTagsToDelete([])
+        },
+      },
+    )
+  }, [deleteTags, registryId, repoName, tagsToDelete])
 
   // Image inspector view when ?tag= is present
   if (selectedTag) {
@@ -124,6 +147,7 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
           canDelete={canDelete}
           isLoading={tagsQuery.isLoading}
           onDeleteClick={handleDeleteClick}
+          onBulkDeleteClick={handleBulkDeleteClick}
         />
       )}
 
@@ -134,6 +158,16 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
         onConfirm={handleDeleteConfirm}
         isPending={deleteTag.isPending}
       />
+
+      {tagsToDelete.length > 0 && (
+        <BulkDeleteDialog
+          count={tagsToDelete.length}
+          open
+          onOpenChange={(open: boolean) => { if (!open) setTagsToDelete([]) }}
+          onConfirm={handleBulkDeleteConfirm}
+          isPending={deleteTags.isPending}
+        />
+      )}
     </section>
   )
 }
