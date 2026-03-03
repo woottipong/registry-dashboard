@@ -58,7 +58,10 @@ export function useDeleteTags() {
     }) => {
       const encodedRepoPath = encodeRepoPath(repoName)
 
-      for (const digest of digests) {
+      // Deduplicate — multiple tags can share one sha256 digest
+      const uniqueDigests = [...new Set(digests.filter((d) => d.startsWith("sha256:")))]
+
+      for (const digest of uniqueDigests) {
         const encodedDigest = encodeURIComponent(digest)
         const response = await fetch(
           `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedDigest}`,

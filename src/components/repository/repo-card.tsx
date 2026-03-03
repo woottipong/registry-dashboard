@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { TagsIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,10 +11,9 @@ import type { Repository } from "@/types/registry"
 interface RepoCardProps {
   registryId: string
   repository: Repository
-  onDelete?: (repositoryName: string) => void
 }
 
-export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
+export function RepoCard({ registryId, repository }: RepoCardProps) {
   const router = useRouter()
 
   return (
@@ -50,10 +50,8 @@ export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
             <p className="font-mono">{repository.tagCount ?? "-"}</p>
           </div>
           <div className="space-y-1">
-            <span className="font-medium text-foreground">Size</span>
-            <p className="font-mono">
-              {repository.sizeBytes ? `${Math.round(repository.sizeBytes / 1024 / 1024)} MB` : "-"}
-            </p>
+            <span className="font-medium text-foreground">Namespace</span>
+            <p className="font-mono truncate">{repository.namespace ?? "—"}</p>
           </div>
           <div className="col-span-2 space-y-1 border-t border-border/50 pt-2">
             <span className="font-medium text-foreground">Last Updated</span>
@@ -62,24 +60,15 @@ export function RepoCard({ registryId, repository, onDelete }: RepoCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="flex items-center gap-2">
+      <CardFooter>
         <Button
           size="sm"
-          className="w-full flex-1"
+          className="w-full gap-2"
           onClick={() => router.push(`/repos/${registryId}/${repository.fullName}`)}
         >
-          Explore Tags
+          <TagsIcon className="size-4" />
+          Browse Tags
         </Button>
-        {onDelete ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => onDelete(repository.fullName)}
-          >
-            Delete
-          </Button>
-        ) : null}
       </CardFooter>
     </Card>
   )

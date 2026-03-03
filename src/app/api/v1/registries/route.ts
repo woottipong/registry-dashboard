@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createProvider } from "@/lib/providers"
 import {
   createRegistry,
   listRegistries,
@@ -8,9 +9,14 @@ import type { ApiResponse } from "@/types/api"
 import type { RegistryConnection } from "@/types/registry"
 
 export async function GET() {
+  const registries = listRegistries().map((registry) => ({
+    ...registry,
+    capabilities: createProvider(registry).capabilities(),
+  }))
+
   const response: ApiResponse<RegistryConnection[]> = {
     success: true,
-    data: listRegistries(),
+    data: registries,
     error: null,
   }
 

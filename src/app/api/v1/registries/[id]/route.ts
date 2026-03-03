@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createProvider } from "@/lib/providers"
 import {
   deleteRegistry,
   getRegistry,
@@ -29,9 +30,11 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json(response, { status: 404 })
   }
 
+  const capabilities = createProvider(registry).capabilities()
+
   const response: ApiResponse<RegistryConnection> = {
     success: true,
-    data: registry,
+    data: { ...registry, capabilities },
     error: null,
   }
 

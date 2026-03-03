@@ -34,6 +34,7 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
   const deleteTags = useDeleteTags()
 
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
+  const allTags = tagsQuery.data?.items ?? []
 
   const filteredTags = useMemo(() => {
     const tags = tagsQuery.data?.items ?? []
@@ -68,6 +69,17 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
     },
     [deleteTag, registryId, repoName],
   )
+
+  const sharedWithTag = useMemo(() => {
+    if (!tagToDelete?.digest) return []
+    return allTags
+      .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
+      .map((t) => t.name)
+  }, [allTags, tagToDelete])
+
+  const bulkUniqueDigestCount = useMemo(() => {
+    return new Set(tagsToDelete.map((t) => t.digest).filter((d) => d.startsWith("sha256:"))).size
+  }, [tagsToDelete])
 
   const handleBulkDeleteConfirm = useCallback(() => {
     const digests = tagsToDelete.map((t) => t.digest).filter(Boolean)
@@ -153,6 +165,7 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
 
       <DeleteDialog
         tag={tagToDelete}
+        sharedWith={sharedWithTag}
         open={tagToDelete !== null}
         onOpenChange={(open) => { if (!open) setTagToDelete(null) }}
         onConfirm={handleDeleteConfirm}
@@ -162,6 +175,7 @@ export default function TagExplorerPage({ params }: TagExplorerPageProps) {
       {tagsToDelete.length > 0 && (
         <BulkDeleteDialog
           count={tagsToDelete.length}
+          uniqueDigestCount={bulkUniqueDigestCount}
           open
           onOpenChange={(open: boolean) => { if (!open) setTagsToDelete([]) }}
           onConfirm={handleBulkDeleteConfirm}

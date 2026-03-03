@@ -10,7 +10,7 @@ export default function EditRegistryPage() {
   const { data: registry, isLoading, isError } = useRegistry(params.id)
 
   if (isLoading) {
-    return <Skeleton className="h-96 w-full max-w-3xl rounded-card" />
+    return <Skeleton className="mx-auto h-96 w-full max-w-2xl rounded-xl" />
   }
 
   if (isError || !registry) {
@@ -18,7 +18,7 @@ export default function EditRegistryPage() {
   }
 
   return (
-    <section className="max-w-3xl">
+    <section className="mx-auto max-w-2xl">
       <RegistryForm mode="edit" initialValue={registry} />
     </section>
   )

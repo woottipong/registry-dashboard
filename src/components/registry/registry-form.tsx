@@ -143,24 +143,24 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   }
 
   return (
-    <div className="space-y-6 rounded-card border bg-card p-6 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">
-            {mode === "create" ? "Add Registry" : "Edit Registry"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Configure connection details for your container registry.
-          </p>
-        </div>
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      {/* Header */}
+      <div className="border-b bg-muted/30 px-6 py-5">
+        <h1 className="text-lg font-semibold">
+          {mode === "create" ? "Add Registry" : "Edit Registry"}
+        </h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Configure connection details for your container registry.
+        </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           {/* General Information Section */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-medium leading-none text-foreground">General Information</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-5 px-6 py-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">General Information</p>
+
+            <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -168,7 +168,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Production Cluster" className="w-full" {...field} />
+                      <Input placeholder="e.g. Production Cluster" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -182,7 +182,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://registry.example.com" className="w-full" {...field} />
+                      <Input placeholder="https://registry.example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,10 +195,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Provider</FormLabel>
-                    <Select
-                      onValueChange={handleProviderChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a provider" />
@@ -213,9 +210,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <SelectItem value="acr" disabled>Azure Container Registry (Soon)</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription className="text-[11px]">
-                      Determines available features.
-                    </FormDescription>
+                    <FormDescription className="text-[11px]">Determines available features.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -226,9 +221,12 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                 name="namespace"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Default Namespace <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                    <FormLabel>
+                      Default Namespace{" "}
+                      <span className="font-normal text-muted-foreground">(Optional)</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. library" className="w-full" {...field} />
+                      <Input placeholder="e.g. library" {...field} />
                     </FormControl>
                     <FormDescription className="text-[11px]">
                       Used when pushing/pulling images without a namespace.
@@ -240,105 +238,113 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             </div>
           </div>
 
-          <div className="h-px w-full bg-border" />
+          <div className="h-px bg-border" />
 
           {/* Authentication Section */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-medium leading-none text-foreground">Authentication</h2>
-            <div className="rounded-card border bg-muted/20 p-5 space-y-5">
-              <FormField
-                control={form.control}
-                name="authType"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col sm:flex-row gap-4 sm:gap-6"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="none" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">None (Anonymous)</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="basic" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Basic Auth</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="bearer" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Bearer Token</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-5 px-6 py-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Authentication</p>
 
-              {currentAuthType === "basic" && (
-                <div className="grid gap-4 sm:grid-cols-2 pt-2 animate-in fade-in zoom-in-95 duration-200">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter username" className="w-full bg-background" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password / PAT</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" className="w-full bg-background" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            <FormField
+              control={form.control}
+              name="authType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="grid grid-cols-3 gap-3"
+                    >
+                      {(["none", "basic", "bearer"] as const).map((val) => (
+                        <label
+                          key={val}
+                          htmlFor={`auth-${val}`}
+                          className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
+                            field.value === val
+                              ? "border-primary bg-primary/5 text-foreground"
+                              : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          }`}
+                        >
+                          <RadioGroupItem value={val} id={`auth-${val}`} className="shrink-0" />
+                          <span className="font-medium">
+                            {val === "none" ? "Anonymous" : val === "basic" ? "Basic Auth" : "Bearer Token"}
+                          </span>
+                        </label>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
 
-              {currentAuthType === "bearer" && (
-                <div className="pt-2 animate-in fade-in zoom-in-95 duration-200">
-                  <FormField
-                    control={form.control}
-                    name="token"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bearer Token</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." className="w-full bg-background font-mono text-sm" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-            </div>
+            {currentAuthType === "basic" && (
+              <div className="grid gap-4 sm:grid-cols-2 animate-in fade-in zoom-in-95 duration-200">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password / PAT</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {currentAuthType === "bearer" && (
+              <div className="animate-in fade-in zoom-in-95 duration-200">
+                <FormField
+                  control={form.control}
+                  name="token"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bearer Token</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                          className="font-mono text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
-            <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-auto">
-              {loading ? "Saving..." : mode === "create" ? "Add Registry" : "Save Changes"}
+          {/* Footer actions */}
+          <div className="flex items-center justify-between gap-3 border-t bg-muted/20 px-6 py-4">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
             </Button>
-            <Button type="button" variant="outline" size="lg" onClick={testConnection} disabled={testing || !canPing} className="w-full sm:w-auto">
-              {testing ? "Testing..." : "Test Connection"}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={testConnection}
+              disabled={testing || !canPing}
+            >
+              {testing ? "Testing…" : "Test Connection"}
             </Button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { AlertTriangleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +17,7 @@ import type { Tag } from "@/types/registry"
 
 interface BulkDeleteDialogProps {
   count: number
+  uniqueDigestCount: number
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
@@ -25,11 +26,14 @@ interface BulkDeleteDialogProps {
 
 export function BulkDeleteDialog({
   count,
+  uniqueDigestCount,
   open,
   onOpenChange,
   onConfirm,
   isPending = false,
 }: BulkDeleteDialogProps) {
+  const sharedCount = count - uniqueDigestCount
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -39,10 +43,17 @@ export function BulkDeleteDialog({
             Delete {count} {count === 1 ? "tag" : "tags"}
           </DialogTitle>
           <DialogDescription>
-            This action <strong>cannot be undone</strong>. {count} image{" "}
-            {count === 1 ? "manifest" : "manifests"} will be permanently deleted from the registry.
+            This action <strong>cannot be undone</strong>. The selected tags will be permanently
+            deleted from the registry.
           </DialogDescription>
         </DialogHeader>
+
+        {sharedCount > 0 && (
+          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+            <strong>{sharedCount} of the selected tags share a digest</strong> with other tags not in
+            your selection. Deleting will remove those sibling tags too.
+          </div>
+        )}
 
         <DialogFooter showCloseButton>
           <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
@@ -56,6 +67,7 @@ export function BulkDeleteDialog({
 
 interface DeleteDialogProps {
   tag: Tag | null
+  sharedWith?: string[]
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (tag: Tag) => void
@@ -64,6 +76,7 @@ interface DeleteDialogProps {
 
 export function DeleteDialog({
   tag,
+  sharedWith = [],
   open,
   onOpenChange,
   onConfirm,
@@ -108,6 +121,20 @@ export function DeleteDialog({
                 </div>
               ) : null}
             </div>
+
+            {sharedWith.length > 0 && (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+                <strong>Shared digest warning</strong> — the following tags point to the same
+                manifest and will also be deleted:{" "}
+                {sharedWith.map((t) => (
+                  <span key={t} className="font-mono font-medium">{t}</span>
+                )).reduce<React.ReactNode[]>((acc, el, i) => [
+                  ...acc,
+                  i > 0 ? <span key={`sep-${i}`}>, </span> : null,
+                  el,
+                ], [])}
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">

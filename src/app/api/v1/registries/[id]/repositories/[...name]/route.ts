@@ -73,10 +73,17 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
     // Get all tags first
     const tagsResult = await provider.listTags(repositoryName, { page: 1, perPage: 1000 })
-    
-    // Delete each tag (manifest)
-    for (const tag of tagsResult.items) {
-      await provider.deleteManifest(repositoryName, tag.digest)
+
+    // Deduplicate digests — multiple tags can share one manifest (same sha256)
+    // Only delete each unique digest once; skip empty/unresolved digests
+    const uniqueDigests = [...new Set(
+      tagsResult.items
+        .map((t) => t.digest)
+        .filter((d) => d?.startsWith("sha256:"))
+    )]
+
+    for (const digest of uniqueDigests) {
+      await provider.deleteManifest(repositoryName, digest)
     }
 
     const response: ApiResponse<null> = {

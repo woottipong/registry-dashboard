@@ -1,6 +1,6 @@
 "use client"
 
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { STALE_TIME_REGISTRY } from "@/lib/query-client"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Repository } from "@/types/registry"
@@ -73,13 +73,15 @@ export function useSearchRepositories(registryId: string, query: string) {
 }
 
 export function useDeleteRepository() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async ({ registryId, repositoryName }: { registryId: string; repositoryName: string }) => {
       const encodedRepoPath = repositoryName
         .split("/")
         .map((segment) => encodeURIComponent(segment))
         .join("/")
-      
+
       const response = await fetch(
         `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}`,
         { method: "DELETE" },
@@ -92,6 +94,9 @@ export function useDeleteRepository() {
       }
 
       return { registryId, repositoryName }
+    },
+    onSuccess: async ({ registryId }) => {
+      await queryClient.invalidateQueries({ queryKey: ["repositories", registryId] })
     },
   })
 }

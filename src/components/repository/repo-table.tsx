@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon } from "lucide-react"
+import { ArrowUpDownIcon, TagsIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatDate } from "@/lib/format"
@@ -50,22 +50,23 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
           row.original.lastUpdated ? formatDate(row.original.lastUpdated) : "Unknown",
       },
       {
-        accessorKey: "sizeBytes",
-        header: "Size",
-        cell: ({ row }) =>
-          row.original.sizeBytes ? `${Math.round(row.original.sizeBytes / 1024)} KB` : "-",
-      },
-      {
         id: "actions",
-        header: "Actions",
+        header: "",
         cell: ({ row }) => (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
-          >
-            Open
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground hover:text-foreground"
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/repos/${registryId}/${row.original.fullName}`)
+              }}
+            >
+              <TagsIcon className="size-3.5" />
+              Browse Tags
+            </Button>
+          </div>
         ),
       },
     ],

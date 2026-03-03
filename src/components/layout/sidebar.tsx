@@ -8,7 +8,6 @@ import {
   LayoutDashboardIcon,
   PlusIcon,
   ServerIcon,
-  SettingsIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -102,19 +101,6 @@ function SidebarBody() {
         )}
       </div>
 
-      <div className="p-3">
-        <Button asChild variant="ghost" className={cn(
-          "w-full justify-start gap-3 h-9 rounded-md",
-          isActive("/settings", true)
-            ? "bg-accent text-foreground"
-            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-        )}>
-          <Link href="/settings">
-            <SettingsIcon className="size-4" />
-            Settings
-          </Link>
-        </Button>
-      </div>
     </div>
   )
 }

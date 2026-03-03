@@ -7,10 +7,9 @@ interface RepoGridProps {
   registryId: string
   repositories: Repository[]
   isLoading?: boolean
-  onDelete?: (repositoryName: string) => void
 }
 
-export function RepoGrid({ registryId, repositories, isLoading = false, onDelete }: RepoGridProps) {
+export function RepoGrid({ registryId, repositories, isLoading = false }: RepoGridProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -28,7 +27,6 @@ export function RepoGrid({ registryId, repositories, isLoading = false, onDelete
           key={repository.fullName}
           registryId={registryId}
           repository={repository}
-          onDelete={onDelete}
         />
       ))}
     </div>
