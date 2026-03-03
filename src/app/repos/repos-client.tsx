@@ -5,8 +5,8 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { m, LazyMotion, domAnimation, AnimatePresence } from "framer-motion"
 import { LayoutGridIcon, ListIcon, SearchIcon, PlusIcon } from "lucide-react"
+import { RepoGroupedView } from "@/components/repository/repo-grouped-view"
 import { RepoGrid } from "@/components/repository/repo-grid"
-import { RepoTable } from "@/components/repository/repo-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -21,7 +21,6 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
   const registryParam = searchParams.get("registry")
 
   const [search, setSearch] = useState("")
-  const [page, setPage] = useState(1)
 
   const repoViewMode = useUiStore((state) => state.repoViewMode)
   const setRepoViewMode = useUiStore((state) => state.setRepoViewMode)
@@ -43,14 +42,12 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
     } else {
       params.delete("registry")
     }
-    params.set("page", "1")
     router.push(`${pathname}?${params.toString()}`)
-    setPage(1)
   }
 
   const repositoriesQuery = useRepositories(selectedRegistry, {
-    page,
-    perPage: 25,
+    page: 1,
+    perPage: 10000,
     search: search || undefined,
   })
 
@@ -65,7 +62,6 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
   }, [repositoriesQuery.data, searchQuery.data, search])
 
   const items = activeResult?.items ?? []
-  const meta = activeResult?.meta
 
   return (
     <LazyMotion features={domAnimation}>
@@ -119,7 +115,6 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value)
-                setPage(1)
               }}
               className="h-12 pl-11 bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all"
               placeholder="Quick search by name or tag..."
@@ -213,48 +208,14 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              {repoViewMode === "grid" ? (
-                <RepoGrid
-                  registryId={selectedRegistry}
-                  repositories={items}
-                />
-              ) : (
-                <div className="rounded-2xl border border-border/50 bg-card/30 overflow-hidden backdrop-blur-sm">
-                  <RepoTable
-                    registryId={selectedRegistry}
-                    repositories={items}
-                  />
-                </div>
-              )}
+              <RepoGroupedView
+                registryId={selectedRegistry}
+                repositories={items}
+                viewMode={repoViewMode}
+              />
             </m.div>
           )}
         </AnimatePresence>
-
-        {meta && meta.totalPages > 1 ? (
-          <div className="flex items-center justify-end gap-2 mt-8">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((current: number) => Math.max(1, current - 1))}
-              className="rounded-xl"
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground font-medium">
-              Page {page} of {meta.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage((current: number) => current + 1)}
-              className="rounded-xl"
-            >
-              Next
-            </Button>
-          </div>
-        ) : null}
       </m.section>
     </LazyMotion>
   )

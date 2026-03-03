@@ -128,11 +128,6 @@ export function DashboardClient() {
             <h1 className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">System Overview</h1>
             <p className="text-muted-foreground/80 font-medium">Aggregated statistics and connections for your registries.</p>
           </div>
-          {!isLoadingRegistries && registries.length > 0 && (
-            <Button variant="outline" size="sm" asChild className="h-11 rounded-xl px-5 font-bold border-border/80 hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
-              <Link href="/registries/new">Add Connection</Link>
-            </Button>
-          )}
         </div>
 
         <StatsCards

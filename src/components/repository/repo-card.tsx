@@ -3,11 +3,9 @@
 import { useRouter } from "next/navigation"
 import { TagsIcon } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useRepositories } from "@/hooks/use-repositories"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatDate } from "@/lib/format"
 import type { Repository } from "@/types/registry"
 
 interface RepoCardProps {
@@ -72,14 +70,6 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
       </CardHeader>
 
       <CardContent className="flex-1 space-y-4">
-        <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/60">
-          <div className="flex items-center gap-1.5">
-            <div className="size-1.5 rounded-full bg-primary/40" />
-            <span>Last update</span>
-          </div>
-          <span className="text-foreground/70">{repository.lastUpdated ? formatDate(repository.lastUpdated) : "—"}</span>
-        </div>
-
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-border/50 bg-secondary/30 p-3 space-y-1">
             <p className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider text-center">Pulls</p>

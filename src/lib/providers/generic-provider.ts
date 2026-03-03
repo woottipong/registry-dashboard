@@ -44,12 +44,11 @@ export class GenericProvider implements RegistryProvider {
 
   async listRepositories(options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
     const page = options.page ?? 1
-    const perPage = options.perPage ?? 25
+    const perPage = options.perPage ?? 10000 // Default to a very large number to get all
 
     // Fetch ALL repo names from catalog by following Link headers
     const allRepoNames = await this.fetchAllCatalogNames()
 
-    // We paginate first on the raw names to avoid fetching tag info for thousands of repos
     const total = allRepoNames.length
     const start = (page - 1) * perPage
     const pageNames = allRepoNames.slice(start, start + perPage)

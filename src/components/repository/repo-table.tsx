@@ -13,7 +13,6 @@ import {
 import { ArrowUpDownIcon, TagsIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatDate } from "@/lib/format"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -57,22 +56,22 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             type="button"
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="-ml-4"
           >
             Name
             <ArrowUpDownIcon className="size-4" />
           </Button>
         ),
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "tagCount",
         header: "Tags",
-        cell: ({ row }) => row.original.tagCount ?? "-",
-      },
-      {
-        accessorKey: "lastUpdated",
-        header: "Last Updated",
-        cell: ({ row }) =>
-          row.original.lastUpdated ? formatDate(row.original.lastUpdated) : "Unknown",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            {row.original.tagCount ?? "-"} images
+          </div>
+        ),
       },
       {
         id: "actions",
@@ -106,17 +105,26 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   })
 
   return (
-    <Table>
+    <div className="w-full relative">
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableHead>
-            ))}
+            {headerGroup.headers.map((header) => {
+              const isName = header.id === "fullName"
+              const isTags = header.id === "tagCount"
+              
+              return (
+                <TableHead 
+                  key={header.id}
+                  className={isName ? "w-[60%]" : isTags ? "w-[20%]" : "w-[20%] text-right"}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              )
+            })}
           </TableRow>
         ))}
       </TableHeader>
@@ -128,14 +136,23 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
             onMouseEnter={() => handleMouseEnter(row.original)}
           >
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
+            {row.getVisibleCells().map((cell) => {
+              const isName = cell.column.id === "fullName"
+              const isTags = cell.column.id === "tagCount"
+              
+              return (
+                <TableCell 
+                  key={cell.id}
+                  className={isName ? "w-[60%]" : isTags ? "w-[20%]" : "w-[20%] text-right"}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              )
+            })}
           </TableRow>
         ))}
       </TableBody>
     </Table>
+    </div>
   )
 }
