@@ -107,22 +107,6 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           </div>
         )}
       </div>
-
-      {/* Summary */}
-      <div className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-lg">Registry Overview</h3>
-            <Badge variant="secondary" className="text-sm bg-primary/10 text-primary border-primary/20">
-              {filteredRegistries.length} of {registries.length} shown
-            </Badge>
-          </div>
-          
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span>Manage your container registry connections</span>
-          </div>
-        </div>
-      </div>
     </section>
   )
 }
