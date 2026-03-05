@@ -49,7 +49,28 @@ export class DockerHubProvider implements RegistryProvider {
   private readonly registryClient: RegistryHttpClient
   private readonly config: typeof DOCKER_HUB_CONFIG
   private hubJwtToken: string | null = null
+  private hubTokenExpiresAt = 0   // unix ms; 0 = no cached token
   private authenticatedUsername: string | null = null
+
+  /** Returns true when a cached token exists and has >30 s left before expiry */
+  private isHubTokenValid(): boolean {
+    return this.hubJwtToken !== null && Date.now() < this.hubTokenExpiresAt - 30_000
+  }
+
+  /**
+   * Decode the `exp` claim from a JWT's payload segment.
+   * Returns the expiry in milliseconds (unix), or null if not present.
+   */
+  private parseJwtExpiry(token: string): number | null {
+    try {
+      const payloadB64 = token.split(".")[1]
+      if (!payloadB64) return null
+      const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf-8")) as { exp?: unknown }
+      return typeof payload.exp === "number" ? payload.exp * 1000 : null
+    } catch {
+      return null
+    }
+  }
 
   constructor(private readonly connection: RegistryConnection) {
     this.registryClient = new RegistryHttpClient(connection)
@@ -272,13 +293,15 @@ export class DockerHubProvider implements RegistryProvider {
     }
 
     // If we already have a valid JWT token, no need to re-authenticate
-    if (this.hubJwtToken) {
+    if (this.isHubTokenValid()) {
       return
     }
 
     try {
       const authResponse = await this.performAuthentication()
       this.hubJwtToken = authResponse.token
+      // Cache the expiry with a 30 s safety buffer; fall back to 55 min if no exp claim
+      this.hubTokenExpiresAt = this.parseJwtExpiry(authResponse.token) ?? (Date.now() + 55 * 60 * 1000)
       this.authenticatedUsername = this.connection.credentials!.username ?? null
 
       // Verify the token works by making a test request

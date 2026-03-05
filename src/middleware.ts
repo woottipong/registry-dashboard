@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
 
+const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // CSRF protection: all state-mutating API calls must include the
+  // X-Requested-With: XMLHttpRequest header to prove same-origin intent.
+  if (pathname.startsWith("/api/") && !CSRF_SAFE_METHODS.has(request.method)) {
+    const xRequestedWith = request.headers.get("X-Requested-With")
+    if (xRequestedWith !== "XMLHttpRequest") {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: { code: "FORBIDDEN", message: "CSRF check failed: missing X-Requested-With header" },
+        },
+        { status: 403 },
+      )
+    }
+  }
 
   // Allow access to these paths without authentication
   const publicPaths = [

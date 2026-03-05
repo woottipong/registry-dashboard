@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
+import { listQuerySchema } from "@/lib/validators/query-schemas"
 import type { ApiResponse } from "@/types/api"
 import type { Tag } from "@/types/registry"
 
@@ -16,33 +17,50 @@ export async function GET(request: Request, context: RouteContext) {
   const { id, name } = await context.params
 
   if (!id) {
-    return NextResponse.json(
-      { errors: [{ code: "INVALID_REQUEST", message: "Registry ID is required" }] },
-      { status: 400 }
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "INVALID_REQUEST", message: "Registry ID is required" },
+    }
+    return NextResponse.json(response, { status: 400 })
   }
 
   const registry = getRegistry(id)
   if (!registry) {
-    return NextResponse.json(
-      { errors: [{ code: "NAME_UNKNOWN", message: `Registry ${id} not found` }] },
-      { status: 404 }
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "REGISTRY_NOT_FOUND", message: `Registry ${id} was not found` },
+    }
+    return NextResponse.json(response, { status: 404 })
   }
 
   // Check if this is a tags request
   const lastSegment = name[name.length - 1]
   if (lastSegment !== "tags") {
-    return NextResponse.json(
-      { errors: [{ code: "NOT_FOUND", message: "Route not found" }] },
-      { status: 404 }
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "NOT_FOUND", message: "Route not found" },
+    }
+    return NextResponse.json(response, { status: 404 })
   }
 
   const repositoryName = name.slice(0, -1).join("/")
   const { searchParams } = new URL(request.url)
-  const page = Number(searchParams.get("page") ?? "1")
-  const perPage = Number(searchParams.get("perPage") ?? "50")
+  const queryResult = listQuerySchema.pick({ page: true, perPage: true }).safeParse({
+    page: searchParams.get("page"),
+    perPage: searchParams.get("perPage"),
+  })
+  if (!queryResult.success) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "VALIDATION_ERROR", message: "Invalid query parameters" },
+    }
+    return NextResponse.json(response, { status: 422 })
+  }
+  const { page, perPage } = queryResult.data
 
   const provider = createProvider(registry)
 
@@ -61,16 +79,16 @@ export async function GET(request: Request, context: RouteContext) {
       },
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        errors: [{
-          code: "UNKNOWN",
-          message: `Unable to fetch tags for ${repositoryName}`,
-          detail: error instanceof Error ? error.message : String(error)
-        }]
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: {
+        code: "TAGS_FETCH_FAILED",
+        message: `Unable to fetch tags for ${repositoryName}`,
+        details: error instanceof Error ? error.message : String(error),
       },
-      { status: 502 }
-    )
+    }
+    return NextResponse.json(response, { status: 502 })
   }
 }
 

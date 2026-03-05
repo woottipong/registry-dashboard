@@ -3,6 +3,7 @@ import fs from "fs"
 import path from "path"
 import { z } from "zod"
 import { config } from "@/lib/config"
+import { decryptCredential, encryptCredential } from "@/lib/crypto"
 import type { RegistryConnection } from "@/types/registry"
 
 const registryInputSchema = z.object({
@@ -31,17 +32,69 @@ function ensureDataDir(): void {
   fs.mkdirSync(config.DATA_DIR, { recursive: true })
 }
 
+// ---------------------------------------------------------------------------
+// Atomic write: back up the current file then swap in via rename (POSIX atomic)
+// ---------------------------------------------------------------------------
+function atomicWrite(filePath: string, content: string): void {
+  if (fs.existsSync(filePath)) {
+    fs.copyFileSync(filePath, `${filePath}.bak`)
+  }
+  const tmpPath = `${filePath}.tmp`
+  fs.writeFileSync(tmpPath, content, "utf-8")
+  fs.renameSync(tmpPath, filePath)
+}
+
+// Safe read: falls back to the .bak file if the main file is corrupt/missing
+function safeReadFile(filePath: string): string | null {
+  try {
+    return fs.readFileSync(filePath, "utf-8")
+  } catch {
+    try {
+      return fs.readFileSync(`${filePath}.bak`, "utf-8")
+    } catch {
+      return null
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Credential encryption helpers
+// ---------------------------------------------------------------------------
+type Credentials = RegistryConnection["credentials"]
+
+function encryptCredentials(creds: Credentials): Credentials {
+  if (!creds) return creds
+  return {
+    username: creds.username,
+    password: creds.password ? encryptCredential(creds.password) : undefined,
+    token: creds.token ? encryptCredential(creds.token) : undefined,
+  }
+}
+
+function decryptCredentials(creds: Credentials): Credentials {
+  if (!creds) return creds
+  return {
+    username: creds.username,
+    password: creds.password ? decryptCredential(creds.password) : undefined,
+    token: creds.token ? decryptCredential(creds.token) : undefined,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Store read / write
+// ---------------------------------------------------------------------------
 function readStore(): Map<string, RegistryConnection> {
   const storePath = getStorePath()
+  const raw = safeReadFile(storePath)
+  if (!raw) return new Map()
+
   try {
-    if (!fs.existsSync(storePath)) {
-      return new Map()
-    }
-    const raw = fs.readFileSync(storePath, "utf-8")
     const parsed = JSON.parse(raw) as RegistryConnection[]
-    return new Map(parsed.map((r) => [r.id, r]))
+    return new Map(
+      parsed.map((r) => [r.id, { ...r, credentials: decryptCredentials(r.credentials) }]),
+    )
   } catch {
-    console.error("[registry-store] Failed to read store, starting fresh")
+    console.error("[registry-store] Failed to parse store, starting fresh")
     return new Map()
   }
 }
@@ -49,8 +102,11 @@ function readStore(): Map<string, RegistryConnection> {
 function writeStore(registries: Map<string, RegistryConnection>): void {
   ensureDataDir()
   const storePath = getStorePath()
-  const data = JSON.stringify(Array.from(registries.values()), null, 2)
-  fs.writeFileSync(storePath, data, "utf-8")
+  const encrypted = Array.from(registries.values()).map((r) => ({
+    ...r,
+    credentials: encryptCredentials(r.credentials),
+  }))
+  atomicWrite(storePath, JSON.stringify(encrypted, null, 2))
 }
 
 export function parseRegistryInput(payload: unknown): RegistryInput {

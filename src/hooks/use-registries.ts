@@ -57,7 +57,7 @@ export function useAddRegistry() {
     mutationFn: async (payload: RegistryPayload) => {
       const response = await fetch("/api/v1/registries", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(payload),
       })
 
@@ -76,7 +76,7 @@ export function useUpdateRegistry() {
     mutationFn: async ({ id, payload }: { id: string; payload: RegistryPayload }) => {
       const response = await fetch(`/api/v1/registries/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(payload),
       })
 
@@ -108,7 +108,7 @@ export function useSetDefaultRegistry() {
 
       const response = await fetch(`/api/v1/registries/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(payload),
       })
 
@@ -127,6 +127,7 @@ export function useDeleteRegistry() {
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/v1/registries/${id}`, {
         method: "DELETE",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
       })
 
       const payload = (await response.json()) as ApiResponse<null>

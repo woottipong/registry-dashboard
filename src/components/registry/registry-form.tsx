@@ -64,7 +64,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
 
   const handleProviderChange = (value: string) => {
     form.setValue("provider", value as RegistryProviderType)
-    
+
     if (value === "dockerhub") {
       form.setValue("url", "https://registry-1.docker.io")
       form.setValue("authType", "basic")
@@ -86,10 +86,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
         data.authType === "none"
           ? undefined
           : {
-              username: data.username || undefined,
-              password: data.password || undefined,
-              token: data.token || undefined,
-            },
+            username: data.username || undefined,
+            password: data.password || undefined,
+            token: data.token || undefined,
+          },
       namespace: data.namespace || undefined,
     }
 
@@ -99,7 +99,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
     try {
       const response = await fetch(endpoint, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(payload),
       })
 
@@ -259,11 +259,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <label
                           key={val}
                           htmlFor={`auth-${val}`}
-                          className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
-                            field.value === val
+                          className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${field.value === val
                               ? "border-primary bg-primary/5 text-foreground"
                               : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           <RadioGroupItem value={val} id={`auth-${val}`} className="shrink-0" />
                           <span className="font-medium">

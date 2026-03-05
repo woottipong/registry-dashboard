@@ -23,13 +23,35 @@ function ensureDataDir(): void {
   fs.mkdirSync(config.DATA_DIR, { recursive: true })
 }
 
+// Atomic write: back up the current file then swap in via rename (POSIX atomic)
+function atomicWrite(filePath: string, content: string): void {
+  if (fs.existsSync(filePath)) {
+    fs.copyFileSync(filePath, `${filePath}.bak`)
+  }
+  const tmpPath = `${filePath}.tmp`
+  fs.writeFileSync(tmpPath, content, "utf-8")
+  fs.renameSync(tmpPath, filePath)
+}
+
+// Safe read: falls back to the .bak file if the main file is corrupt/missing
+function safeReadFile(filePath: string): string | null {
+  try {
+    return fs.readFileSync(filePath, "utf-8")
+  } catch {
+    try {
+      return fs.readFileSync(`${filePath}.bak`, "utf-8")
+    } catch {
+      return null
+    }
+  }
+}
+
 function readStore(): ActivityItem[] {
   const storePath = getStorePath()
+  const raw = safeReadFile(storePath)
+  if (!raw) return []
+
   try {
-    if (!fs.existsSync(storePath)) {
-      return []
-    }
-    const raw = fs.readFileSync(storePath, "utf-8")
     const parsed = JSON.parse(raw) as ActivityItem[]
     // Convert timestamp strings back to Date objects
     return parsed.map(activity => ({
@@ -37,7 +59,7 @@ function readStore(): ActivityItem[] {
       timestamp: new Date(activity.timestamp)
     }))
   } catch {
-    console.error("[activity-store] Failed to read store, starting fresh")
+    console.error("[activity-store] Failed to parse store, starting fresh")
     return []
   }
 }
@@ -45,8 +67,7 @@ function readStore(): ActivityItem[] {
 function writeStore(activities: ActivityItem[]): void {
   ensureDataDir()
   const storePath = getStorePath()
-  const data = JSON.stringify(activities, null, 2)
-  fs.writeFileSync(storePath, data, "utf-8")
+  atomicWrite(storePath, JSON.stringify(activities, null, 2))
 }
 
 export function parseActivityInput(payload: unknown): ActivityInput {

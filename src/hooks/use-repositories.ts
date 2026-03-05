@@ -100,7 +100,7 @@ export function useDeleteRepository() {
 
       const response = await fetch(
         `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}`,
-        { method: "DELETE" },
+        { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
       )
 
       const payload = (await response.json()) as ApiResponse<null>

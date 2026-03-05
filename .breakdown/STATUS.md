@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.  
 > Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-06 (T-214 done)
+> Last updated: 2026-03-06 (T-200→T-205 security done)
 
 ---
 
@@ -39,12 +39,12 @@
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-200](./t-200-api-response-format.md) | API response format fix | 🟡 Todo | 30 min | 🔴 CRITICAL | ✅ | `repositories/[...name]/route.ts` |
-| [T-201](./t-201-zod-query-validation.md) | Zod validation on query params | 🟡 Todo | 2 hr | 🔴 CRITICAL | ✅ | All API routes |
-| [T-202](./t-202-atomic-file-io.md) | Atomic file I/O + corruption recovery | 🟡 Todo | 1 hr | 🔴 CRITICAL | | `registry-store.ts`, `activity-store.ts` |
-| [T-203](./t-203-csrf-protection.md) | CSRF protection | 🟡 Todo | 1.5 hr | 🔴 CRITICAL | | `middleware.ts`, all POST/DELETE routes |
-| [T-204](./t-204-credential-encryption.md) | AES-256-GCM credential encryption | 🟡 Todo | 2 hr | 🔴 CRITICAL | | `registry-store.ts`, `stores/registry-store.ts` |
-| [T-205](./t-205-jwt-expiration.md) | DockerHub JWT expiration check | 🟡 Todo | 30 min | 🟠 HIGH | ✅ | `dockerhub-provider.ts` |
+| [T-200](./t-200-api-response-format.md) | API response format fix | ✅ Done | 30 min | 🔴 CRITICAL | ✅ | `repositories/[...name]/route.ts` |
+| [T-201](./t-201-zod-query-validation.md) | Zod validation on query params | ✅ Done | 2 hr | 🔴 CRITICAL | ✅ | All API routes |
+| [T-202](./t-202-atomic-file-io.md) | Atomic file I/O + corruption recovery | ✅ Done | 1 hr | 🔴 CRITICAL | | `registry-store.ts`, `activity-store.ts` |
+| [T-203](./t-203-csrf-protection.md) | CSRF protection | ✅ Done | 1.5 hr | 🔴 CRITICAL | | `middleware.ts`, all POST/DELETE routes |
+| [T-204](./t-204-credential-encryption.md) | AES-256-GCM credential encryption | ✅ Done | 2 hr | 🔴 CRITICAL | | `registry-store.ts`, `stores/registry-store.ts` |
+| [T-205](./t-205-jwt-expiration.md) | DockerHub JWT expiration check | ✅ Done | 30 min | 🟠 HIGH | ✅ | `dockerhub-provider.ts` |
 
 ### 9.2 Code Quality & DRY — P0
 

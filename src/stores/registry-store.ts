@@ -13,66 +13,6 @@ interface RegistryStoreState {
 }
 
 const STORAGE_KEY = "registry-dashboard:registry-store"
-const ENCRYPTION_KEY = "registry-dashboard-local-key"
-
-function xorCipher(value: string, key: string): string {
-  const transformed = Array.from(value)
-    .map((char, index) =>
-      String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(index % key.length)),
-    )
-    .join("")
-
-  return transformed
-}
-
-function encode(value: string): string {
-  if (typeof window === "undefined") {
-    return value
-  }
-
-  return window.btoa(xorCipher(value, ENCRYPTION_KEY))
-}
-
-function decode(value: string): string {
-  if (typeof window === "undefined") {
-    return value
-  }
-
-  try {
-    return xorCipher(window.atob(value), ENCRYPTION_KEY)
-  } catch {
-    return value
-  }
-}
-
-const encryptedStorage = {
-  getItem: (name: string) => {
-    if (typeof window === "undefined") {
-      return null
-    }
-
-    const encrypted = window.localStorage.getItem(name)
-    if (!encrypted) {
-      return null
-    }
-
-    return decode(encrypted)
-  },
-  setItem: (name: string, value: string) => {
-    if (typeof window === "undefined") {
-      return
-    }
-
-    window.localStorage.setItem(name, encode(value))
-  },
-  removeItem: (name: string) => {
-    if (typeof window === "undefined") {
-      return
-    }
-
-    window.localStorage.removeItem(name)
-  },
-}
 
 export const useRegistryStore = create<RegistryStoreState>()(
   persist(
@@ -108,7 +48,11 @@ export const useRegistryStore = create<RegistryStoreState>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => encryptedStorage),
+      storage: createJSONStorage(() => localStorage),
+      // Credentials are managed server-side — never persist them in the browser
+      partialize: (state) => ({
+        registries: state.registries.map(({ credentials: _, ...rest }) => rest),
+      }),
     },
   ),
 )

@@ -73,7 +73,7 @@ export function useDeleteTags() {
         const encodedDigest = encodeURIComponent(digest)
         const response = await fetch(
           `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedDigest}`,
-          { method: "DELETE" },
+          { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
         )
         const payload = (await response.json()) as ApiResponse<null>
         if (!response.ok || !payload.success) {
@@ -106,7 +106,7 @@ export function useDeleteTag() {
       const encodedDigest = encodeURIComponent(digest)
       const response = await fetch(
         `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedDigest}`,
-        { method: "DELETE" },
+        { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
       )
 
       const payload = (await response.json()) as ApiResponse<null>

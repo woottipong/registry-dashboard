@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
+import { listQuerySchema } from "@/lib/validators/query-schemas"
 import type { ApiResponse } from "@/types/api"
 import type { Repository } from "@/types/registry"
 
@@ -22,10 +23,23 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const { searchParams } = new URL(request.url)
-  const page = Number(searchParams.get("page") ?? "1")
-  const perPage = Number(searchParams.get("perPage") ?? "25")
-  const search = searchParams.get("search")?.trim() ?? ""
-  const namespace = searchParams.get("namespace") ?? undefined
+  const queryResult = listQuerySchema.safeParse({
+    page: searchParams.get("page"),
+    perPage: searchParams.get("perPage"),
+    search: searchParams.get("search") ?? undefined,
+    namespace: searchParams.get("namespace") ?? undefined,
+  })
+
+  if (!queryResult.success) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "VALIDATION_ERROR", message: "Invalid query parameters", details: queryResult.error.flatten() },
+    }
+    return NextResponse.json(response, { status: 422 })
+  }
+
+  const { page, perPage, search, namespace } = queryResult.data
 
   const provider = createProvider(registry)
 
@@ -36,9 +50,9 @@ export async function GET(request: Request, context: RouteContext) {
 
     const items: Repository[] = search
       ? result.items.filter(repo =>
-          repo.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-          repo.name?.toLowerCase().includes(search.toLowerCase())
-        )
+        repo.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+        repo.name?.toLowerCase().includes(search.toLowerCase())
+      )
       : result.items
 
     const response: ApiResponse<Repository[]> = {
