@@ -1,6 +1,22 @@
 "use client"
 
-import { ClipboardIcon, CpuIcon, HardDriveIcon, LayersIcon, TagIcon } from "lucide-react"
+import React, { useCallback, useMemo } from "react"
+import {
+  AlertTriangleIcon,
+  ArrowLeftIcon,
+  CalendarIcon,
+  ClipboardIcon,
+  CodeIcon,
+  CpuIcon,
+  HardDriveIcon,
+  HistoryIcon,
+  LayersIcon,
+  RefreshCwIcon,
+  SettingsIcon,
+  TagIcon,
+  TerminalIcon
+} from "lucide-react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,134 +51,293 @@ interface ImageInspectorProps {
   registryName?: string
 }
 
-export function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspectorProps) {
+const defaultProps: Partial<ImageInspectorProps> = {
+  registryName: undefined,
+}
+
+// Extract MetricCard component
+interface MetricCardProps {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+  iconColor: string
+}
+
+const MetricCard = React.memo(({ icon: Icon, label, value, iconColor }: MetricCardProps) => (
+  <div className="bg-card rounded-lg p-3 border">
+    <div className="flex items-center gap-1.5 mb-1">
+      <Icon className={`size-3.5 ${iconColor}`} />
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+    </div>
+    <div className="font-semibold text-xs">{value}</div>
+  </div>
+))
+
+MetricCard.displayName = 'MetricCard'
+
+// Error boundary component
+class ImageInspectorErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ImageInspector error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="p-6 rounded-full bg-destructive/10 mb-6">
+            <AlertTriangleIcon className="size-12 text-destructive" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
+          <p className="text-muted-foreground text-center max-w-md mb-6">
+            An unexpected error occurred while loading the image inspector.
+          </p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            <RefreshCwIcon className="mr-2 size-4" />
+            Reload Page
+          </Button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspectorProps) {
+  const router = useRouter()
   const { data, isLoading, isError, error } = useManifest(registryId, repoName, tag)
 
-  function copyPullCommand() {
-    const cmd = generatePullCommand({ repository: repoName, tag })
-    void navigator.clipboard.writeText(cmd)
-    toast.success("Pull command copied")
-  }
+  // Memoize expensive computations
+  const pullCommand = useMemo(() =>
+    generatePullCommand({ repository: repoName, tag }),
+    [repoName, tag]
+  )
+
+  const truncatedDigest = useMemo(() =>
+    data ? truncateDigest(data.manifest.digest, 12) : '',
+    [data]
+  )
+
+  const platform = useMemo(() =>
+    data?.config?.os && data?.config?.architecture
+      ? `${data.config.os}/${data.config.architecture}`
+      : '—',
+    [data]
+  )
+
+  // Memoize event handlers
+  const copyPullCommand = useCallback(() => {
+    void navigator.clipboard.writeText(pullCommand)
+    toast.success("Pull command copied to clipboard")
+  }, [pullCommand])
+
+  const handleBack = useCallback(() => {
+    router.back()
+  }, [router])
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-4 w-48" />
-        <Skeleton className="h-72 w-full" />
+      <div className="space-y-8">
+        <div className="animate-pulse">
+          <div className="h-32 bg-muted/50 rounded-2xl mb-6"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 bg-muted/50 rounded-xl"></div>
+            ))}
+          </div>
+          <div className="h-96 bg-muted/50 rounded-xl"></div>
+        </div>
       </div>
     )
   }
 
   if (isError || !data) {
     return (
-      <div className="rounded-card border border-destructive/30 bg-destructive/10 p-6 text-center">
-        <p className="text-sm text-destructive">{error?.message ?? "Failed to load image"}</p>
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="p-6 rounded-full bg-destructive/10 mb-6">
+          <AlertTriangleIcon className="size-12 text-destructive" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">Failed to Load Image</h3>
+        <p className="text-muted-foreground text-center max-w-md mb-6">
+          {error?.message ?? "Unable to fetch image manifest. Please try again."}
+        </p>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            <RefreshCwIcon className="mr-2 size-4" />
+            Retry
+          </Button>
+          <Button variant="ghost" onClick={handleBack}>
+            Go Back
+          </Button>
+        </div>
       </div>
     )
   }
 
   const { manifest, config } = data
-  const pullCommand = generatePullCommand({ repository: repoName, tag })
 
   return (
     <section className="space-y-6">
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold">{repoName}</h1>
-          <Badge variant="outline">
-            <TagIcon className="mr-1 size-3" />
-            {tag}
-          </Badge>
-          {registryName ? <Badge variant="secondary">{registryName}</Badge> : null}
-        </div>
+      {/* Compact Hero Section */}
+      <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-primary/3 to-primary/10 border border-primary/20 p-4 md:p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TagIcon className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold">{repoName}</h1>
+                <p className="text-sm text-muted-foreground">Image Inspection</p>
+              </div>
+            </div>
 
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {config ? (
-            <>
-              <span className="flex items-center gap-1.5">
-                <CpuIcon className="size-3.5" />
-                {config.os}/{config.architecture}
-              </span>
-              {config.created ? <span>Created {formatDate(config.created)}</span> : null}
-            </>
-          ) : null}
-          <span className="flex items-center gap-1.5">
-            <HardDriveIcon className="size-3.5" />
-            {formatBytes(manifest.totalSize)}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <LayersIcon className="size-3.5" />
-            {manifest.layers.length} layers
-          </span>
-        </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default" className="px-2 py-0.5 text-xs">
+                <TagIcon className="mr-1 size-3" />
+                {tag}
+              </Badge>
+              {registryName && (
+                <Badge variant="outline" className="text-xs">{registryName}</Badge>
+              )}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CodeIcon className="size-3" />
+                <span className="font-mono">{truncatedDigest}</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2 rounded-card border bg-muted/40 px-4 py-2.5">
-          <code className="flex-1 overflow-x-auto font-mono text-sm">{pullCommand}</code>
-          <Button variant="ghost" size="sm" onClick={copyPullCommand}>
-            <ClipboardIcon className="size-3.5" />
-            Copy
+          <Button variant="outline" size="sm" onClick={handleBack} className="shrink-0">
+            <ArrowLeftIcon className="mr-1 size-3" />
+            Back
           </Button>
         </div>
-
-        <p className="font-mono text-xs text-muted-foreground">
-          Digest: {truncateDigest(manifest.digest, 16)}
-        </p>
       </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="layers">Layers ({manifest.layers.length})</TabsTrigger>
-          <TabsTrigger value="config">Config</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-          <TabsTrigger value="raw">Raw Manifest</TabsTrigger>
+      {/* Compact Metrics Dashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MetricCard
+          icon={CpuIcon}
+          label="PLATFORM"
+          value={platform}
+          iconColor="text-blue-500"
+        />
+        <MetricCard
+          icon={HardDriveIcon}
+          label="SIZE"
+          value={formatBytes(manifest.totalSize)}
+          iconColor="text-green-500"
+        />
+        <MetricCard
+          icon={LayersIcon}
+          label="LAYERS"
+          value={manifest.layers.length.toString()}
+          iconColor="text-purple-500"
+        />
+        <MetricCard
+          icon={CalendarIcon}
+          label="CREATED"
+          value={config?.created ? formatDate(config.created) : '—'}
+          iconColor="text-orange-500"
+        />
+      </div>
+
+      {/* Compact Pull Command */}
+      <div className="bg-muted/30 rounded-lg border p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <TerminalIcon className="size-3.5 text-muted-foreground" />
+            <span className="text-sm font-medium">Pull Command</span>
+          </div>
+          <Button size="sm" onClick={copyPullCommand} className="h-7 px-2">
+            <ClipboardIcon className="size-3" />
+          </Button>
+        </div>
+        <div className="bg-background rounded p-3 font-mono text-sm border overflow-x-auto">
+          {pullCommand}
+        </div>
+      </div>
+
+      {/* Compact Tabs */}
+      <Tabs defaultValue="layers" className="mt-6">
+        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-0.5 rounded-lg h-9">
+          <TabsTrigger value="layers" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
+            <LayersIcon className="size-3.5" />
+            <span className="hidden sm:inline">Layers</span>
+            <span className="sm:hidden ml-1">{manifest.layers.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="config" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
+            <SettingsIcon className="size-3.5" />
+            <span className="hidden sm:inline">Config</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
+            <HistoryIcon className="size-3.5" />
+            <span className="hidden sm:inline">History</span>
+          </TabsTrigger>
+          <TabsTrigger value="raw" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
+            <CodeIcon className="size-3.5" />
+            <span className="hidden sm:inline">Raw</span>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-4">
-          <dl className="grid gap-3 sm:grid-cols-2">
-            {[
-              { label: "Architecture", value: config?.architecture ?? "—" },
-              { label: "OS", value: config?.os ?? "—" },
-              { label: "Created", value: config?.created ? formatDate(config.created) : "—" },
-              { label: "Total Size", value: formatBytes(manifest.totalSize) },
-              { label: "Layers", value: String(manifest.layers.length) },
-              { label: "Schema Version", value: String(manifest.schemaVersion) },
-              { label: "Media Type", value: manifest.mediaType },
-              { label: "Digest", value: truncateDigest(manifest.digest, 16) },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-card border bg-card px-4 py-3">
-                <dt className="mb-1 text-xs text-muted-foreground">{label}</dt>
-                <dd className="font-mono text-sm">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </TabsContent>
-
-        <TabsContent value="layers" className="mt-4">
+        <TabsContent value="layers" className="mt-3">
           <LayerList layers={manifest.layers} />
         </TabsContent>
 
-        <TabsContent value="config" className="mt-4">
+        <TabsContent value="config" className="mt-3">
           {config ? (
             <ConfigInspector config={config} />
           ) : (
-            <p className="text-sm text-muted-foreground">Config blob not available.</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <SettingsIcon className="size-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Config not available</p>
+              </div>
+            </div>
           )}
         </TabsContent>
 
-        <TabsContent value="history" className="mt-4">
+        <TabsContent value="history" className="mt-3">
           {config?.history?.length ? (
             <HistoryTimeline history={config.history} />
           ) : (
-            <p className="text-sm text-muted-foreground">No history available.</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <HistoryIcon className="size-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No history</p>
+              </div>
+            </div>
           )}
         </TabsContent>
 
-        <TabsContent value="raw" className="mt-4">
+        <TabsContent value="raw" className="mt-3">
           <ManifestViewer manifest={manifest} />
         </TabsContent>
       </Tabs>
     </section>
   )
 }
+
+// Main component wrapped with error boundary
+const ImageInspectorWithBoundary = React.memo((props: ImageInspectorProps) => (
+  <ImageInspectorErrorBoundary>
+    <ImageInspector {...defaultProps} {...props} />
+  </ImageInspectorErrorBoundary>
+))
+
+ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'
+
+export { ImageInspectorWithBoundary as ImageInspector }
