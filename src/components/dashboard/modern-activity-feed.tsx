@@ -17,19 +17,19 @@ interface ModernActivityItemProps {
   delay?: number
 }
 
-function getActivityIcon(type: string) {
-  switch (type) {
-    case 'push':
-      return UploadIcon
-    case 'pull':
-      return DownloadIcon
-    case 'delete':
-      return TrashIcon
-    case 'create':
-      return PlusIcon
-    default:
-      return ActivityIcon
-  }
+interface ModernActivityFeedProps {
+  activities: ActivityItem[]
+  isLoading?: boolean
+  maxItems?: number
+}
+
+// Icon mapping object - defined outside render
+const ActivityIcons = {
+  push: UploadIcon,
+  pull: DownloadIcon,
+  delete: TrashIcon,
+  create: PlusIcon,
+  default: ActivityIcon,
 }
 
 function getActivityColor(type: string) {
@@ -48,8 +48,8 @@ function getActivityColor(type: string) {
 }
 
 export function ModernActivityItem({ activity, delay = 0 }: ModernActivityItemProps) {
-  const Icon = getActivityIcon(activity.type)
   const iconColor = getActivityColor(activity.type)
+  const IconComponent = ActivityIcons[activity.type as keyof typeof ActivityIcons] || ActivityIcons.default
   
   return (
     <motion.div
@@ -67,7 +67,7 @@ export function ModernActivityItem({ activity, delay = 0 }: ModernActivityItemPr
         "p-2 rounded-lg flex-shrink-0",
         iconColor
       )}>
-        <Icon className="w-4 h-4" />
+        <IconComponent className="w-4 h-4" />
       </div>
 
       {/* Activity content */}
@@ -98,12 +98,6 @@ export function ModernActivityItem({ activity, delay = 0 }: ModernActivityItemPr
       </div>
     </motion.div>
   )
-}
-
-interface ModernActivityFeedProps {
-  activities: ActivityItem[]
-  isLoading?: boolean
-  maxItems?: number
 }
 
 export function ModernActivityFeed({ 

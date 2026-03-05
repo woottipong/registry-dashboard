@@ -22,41 +22,65 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
     queryKey: ["manifest", registryId, repoName, ref],
     enabled: Boolean(registryId && repoName && ref),
     staleTime: STALE_TIME_MANIFEST,
+    retry: false, // Disable retries completely to prevent infinite loops
+    retryDelay: 1,
     queryFn: async (): Promise<ManifestResult> => {
       const encodedRepoPath = encodeRepoPath(repoName)
       const encodedRef = encodeURIComponent(ref)
 
-      const manifestResponse = await fetch(
-        `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedRef}`,
-        { cache: "no-store" },
-      )
+      try {
+        const manifestResponse = await fetch(
+          `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedRef}`,
+          { cache: "no-store" },
+        )
 
-      const manifestPayload = (await manifestResponse.json()) as ApiResponse<ImageManifest>
+        if (!manifestResponse.ok) {
+          // Create error with status code for retry logic
+          const error = new Error(`HTTP ${manifestResponse.status}: ${manifestResponse.statusText}`)
+          ;(error as any).status = manifestResponse.status
+          throw error
+        }
 
-      if (!manifestResponse.ok || !manifestPayload.success || !manifestPayload.data) {
-        throw new Error(manifestPayload.error?.message ?? "Unable to fetch manifest")
-      }
+        const manifestPayload = (await manifestResponse.json()) as ApiResponse<ImageManifest>
 
-      const digest = manifestPayload.data.config.digest
-      const encodedDigest = encodeURIComponent(digest)
+        if (!manifestPayload.success || !manifestPayload.data) {
+          throw new Error(manifestPayload.error?.message ?? "Unable to fetch manifest")
+        }
+
+        const digest = manifestPayload.data.config.digest
+        const encodedDigest = encodeURIComponent(digest)
 
       const configResponse = await fetch(
-        `/api/v1/registries/${registryId}/blobs/${encodedRepoPath}/${encodedDigest}`,
-        { cache: "no-store" },
-      )
+          `/api/v1/registries/${registryId}/blobs/${encodedRepoPath}/${encodedDigest}`,
+          { cache: "no-store" },
+        )
 
-      const configPayload = (await configResponse.json()) as ApiResponse<ImageConfig>
+        if (!configResponse.ok) {
+          // Create error with status code for retry logic
+          const error = new Error(`HTTP ${configResponse.status}: ${configResponse.statusText}`)
+          ;(error as any).status = configResponse.status
+          throw error
+        }
 
-      if (!configResponse.ok || !configPayload.success || !configPayload.data) {
+        const configPayload = (await configResponse.json()) as ApiResponse<ImageConfig>
+
+        if (!configPayload.success || !configPayload.data) {
+          return {
+            manifest: manifestPayload.data,
+            config: null,
+          }
+        }
+
         return {
           manifest: manifestPayload.data,
-          config: null,
+          config: configPayload.data,
         }
-      }
-
-      return {
-        manifest: manifestPayload.data,
-        config: configPayload.data,
+      } catch (error) {
+        // Ensure error has status for retry logic
+        if (!(error as any).status) {
+          ;(error as any).status = 500
+        }
+        throw error
       }
     },
   })

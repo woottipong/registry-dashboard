@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useCallback, useMemo } from "react"
+import React, { Suspense, useCallback, useMemo } from "react"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import {
   AlertTriangleIcon,
   ArrowLeftIcon,
@@ -333,9 +334,9 @@ function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspec
 
 // Main component wrapped with error boundary
 const ImageInspectorWithBoundary = React.memo((props: ImageInspectorProps) => (
-  <ImageInspectorErrorBoundary>
-    <ImageInspector {...defaultProps} {...props} />
-  </ImageInspectorErrorBoundary>
+  <ErrorBoundary>
+    <ImageInspector {...props} />
+  </ErrorBoundary>
 ))
 
 ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'

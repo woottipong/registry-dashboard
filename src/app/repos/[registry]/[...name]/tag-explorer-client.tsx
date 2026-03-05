@@ -45,33 +45,35 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const deleteTags = useDeleteTags()
 
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
-  const tags = tagsQuery.data?.items ?? []
   const { addActivity } = useActivity()
+
+  // Memoize tags to prevent dependency issues
+  const memoizedTags = useMemo(() => tagsQuery.data?.items ?? [], [tagsQuery.data?.items])
 
   // Memoize expensive computations
   const filteredTags = useMemo(() => {
-    if (!debouncedSearch.trim()) return tags
+    if (!debouncedSearch.trim()) return memoizedTags
     const lowerSearch = debouncedSearch.toLowerCase()
-    return tags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
-  }, [tags, debouncedSearch])
+    return memoizedTags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
+  }, [memoizedTags, debouncedSearch])
 
   // Memoize shared tags calculation
   const sharedWithTag = useMemo(() => {
     if (!tagToDelete?.digest) return []
-    return tags
+    return memoizedTags
       .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
       .map((t) => t.name)
-  }, [tags, tagToDelete])
+  }, [memoizedTags, tagToDelete])
 
   // Memoize bulk unique digest count
   const bulkUniqueDigestCount = useMemo(() => {
-    return new Set(tagsToDelete.map((t) => t.digest).filter((d) => d)).size
-  }, [tagsToDelete])
+    return new Set(memoizedTags.map((t) => t.digest).filter((d) => d)).size
+  }, [memoizedTags])
 
   // Memoize tag count display
   const tagCountDisplay = useMemo(() => {
-    return `${tags.length} ${tags.length === 1 ? "tag" : "tags"}`
-  }, [tags.length])
+    return `${memoizedTags.length} ${memoizedTags.length === 1 ? "tag" : "tags"}`
+  }, [memoizedTags.length])
 
   // Memoize event handlers
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

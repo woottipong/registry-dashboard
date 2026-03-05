@@ -1,12 +1,6 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { 
-  DatabaseIcon, 
-  ActivityIcon, 
-  ServerIcon, 
-  TrendingUpIcon 
-} from "lucide-react"
 import { DASHBOARD_DESIGN } from "@/lib/design/dashboard-design"
 import { cn } from "@/lib/utils"
 
