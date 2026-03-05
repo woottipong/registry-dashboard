@@ -26,19 +26,32 @@ export function useTags(registryId: string, repoName: string) {
       const encodedRepoPath = encodeRepoPath(repoName)
       const response = await fetch(
         `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags`,
-        { cache: "no-store" },
+        { cache: "default" }
       )
 
-      const payload = (await response.json()) as ApiResponse<Tag[]>
+      const data = await response.json()
 
-      if (!response.ok || !payload.success || payload.data === null) {
-        throw new Error(payload.error?.message ?? "Unable to fetch tags")
+      if (response.ok && data.success && Array.isArray(data.data)) {
+        const tags: Tag[] = data.data
+        return {
+          items: tags,
+          meta: {
+            page: 1,
+            perPage: tags.length,
+            total: tags.length,
+            totalPages: 1,
+          }
+        }
       }
 
-      return {
-        items: payload.data,
-        meta: payload.meta,
+      if (data.errors?.[0]) {
+        throw new Error(data.errors[0].message || "Unable to fetch tags")
       }
+      if (data.error?.message) {
+        throw new Error(data.error.message)
+      }
+
+      throw new Error("Unable to fetch tags")
     },
   })
 }

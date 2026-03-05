@@ -9,6 +9,7 @@ export interface RepositoryQueryOptions {
   page?: number
   perPage?: number
   search?: string
+  namespace?: string
 }
 
 export interface RepositoryQueryResult {
@@ -22,6 +23,7 @@ export function makeRepositoryQueryString(options: RepositoryQueryOptions): stri
   if (options.page) params.set("page", String(options.page))
   if (options.perPage) params.set("perPage", String(options.perPage))
   if (options.search) params.set("search", options.search)
+  if (options.namespace) params.set("namespace", options.namespace)
 
   const query = params.toString()
   return query ? `?${query}` : ""
@@ -34,22 +36,36 @@ export async function fetchRepositories(
   const queryString = makeRepositoryQueryString(options)
   const response = await fetch(
     `/api/v1/registries/${registryId}/repositories${queryString}`,
-    {
-      // Enable client-side caching for better performance
-      cache: "default", // Changed from "no-store" to enable caching
-    },
+    { cache: "default" }
   )
 
-  const payload = (await response.json()) as ApiResponse<Repository[]>
+  if (response.ok) {
+    const data = await response.json()
 
-  if (!response.ok || !payload.success || payload.data === null) {
-    throw new Error(payload.error?.message ?? "Unable to fetch repositories")
+    // Rich format: { items: Repository[] }
+    if (data.items && Array.isArray(data.items)) {
+      const items: Repository[] = data.items.filter(
+        (repo: Repository) => (repo.tagCount ?? 0) > 0
+      )
+      return {
+        items,
+        meta: {
+          page: options.page || 1,
+          perPage: options.perPage || items.length,
+          total: items.length,
+          totalPages: 1,
+        }
+      }
+    }
   }
 
-  return {
-    items: payload.data,
-    meta: payload.meta,
+  // Handle errors
+  const errorData = await response.json().catch(() => ({}))
+  if (errorData.errors?.[0]) {
+    throw new Error(errorData.errors[0].message || "Unable to fetch repositories")
   }
+
+  throw new Error("Unable to fetch repositories")
 }
 
 export function useRepositories(
@@ -57,8 +73,8 @@ export function useRepositories(
   options: RepositoryQueryOptions = {},
 ) {
   return useQuery({
-    queryKey: ["repositories", registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? ""],
-    enabled: Boolean(registryId),
+    queryKey: ["repositories", registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? "", options.namespace ?? ""],
+    enabled: Boolean(registryId) && options.namespace !== undefined,
     staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchRepositories(registryId, options),
   })

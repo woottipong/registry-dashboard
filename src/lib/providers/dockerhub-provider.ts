@@ -1,6 +1,6 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
 import type { ImageConfig, ImageManifest } from "@/types/manifest"
-import type { RegistryConnection, Repository, Tag } from "@/types/registry"
+import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
 import { UnsupportedError } from "@/lib/providers/types"
 
@@ -77,7 +77,14 @@ export class DockerHubProvider implements RegistryProvider {
     }
   }
 
-  async listRepositories(options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
+  async listNamespaces(): Promise<Namespace[]> {
+    // Docker Hub is single-namespace (the authenticated user/org)
+    const namespace = this.getEffectiveNamespace()
+    const result = await this.listRepositories({ page: 1, perPage: 1 })
+    return [{ name: namespace, repositoryCount: result.total ?? 0 }]
+  }
+
+  async listRepositories(options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
     await this.ensureAuthenticated()
 
     const page = options.page ?? 1

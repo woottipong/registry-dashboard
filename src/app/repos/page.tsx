@@ -32,28 +32,19 @@ export default async function RepositoriesPage({
   const defaultRegistry = registries.find((r) => r.isDefault)
   const selectedRegistry = registryParam ?? defaultRegistry?.id ?? registries[0]?.id ?? ""
 
-  // 3. Prefetch repositories for the selected registry if available
+  // 3. Prefetch namespaces (catalog names only — fast, no per-repo tag fetches)
   if (selectedRegistry) {
     const registry = registries.find(r => r.id === selectedRegistry)
     if (registry) {
       const provider = createProvider(registry)
       await queryClient.prefetchQuery({
-        queryKey: ["repositories", selectedRegistry, 1, 25, ""],
+        queryKey: ["namespaces", selectedRegistry],
         queryFn: async () => {
           try {
-            const result = await provider.listRepositories({ perPage: 25, page: 1 })
-            return {
-              items: result.items,
-              meta: {
-                page: result.page,
-                perPage: result.perPage,
-                total: result.total ?? 0,
-                totalPages: result.total ? Math.ceil(result.total / result.perPage) : 1
-              },
-            }
+            return await provider.listNamespaces()
           } catch (error) {
-            console.error(`Failed to prefetch repositories for ${selectedRegistry}:`, error)
-            return { items: [], meta: undefined }
+            console.error(`Failed to prefetch namespaces for ${selectedRegistry}:`, error)
+            return []
           }
         },
       })

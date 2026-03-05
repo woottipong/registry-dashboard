@@ -42,6 +42,11 @@ export interface RegistryConnection {
   updatedAt?: string
 }
 
+export interface Namespace {
+  name: string
+  repositoryCount: number
+}
+
 export interface Repository {
   name: string
   namespace?: string

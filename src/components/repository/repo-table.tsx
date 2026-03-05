@@ -1,19 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { ArrowUpDownIcon, TagsIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
+import { BoxIcon, ChevronRightIcon, TagsIcon } from "lucide-react"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -25,11 +14,10 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const handleMouseEnter = (repo: Repository) => {
-    // Prefetch tags data for instant navigation
+  const prefetchTags = (repo: Repository) => {
     queryClient.prefetchQuery({
       queryKey: ["tags", registryId, repo.fullName],
-      staleTime: 30 * 1000, // 30 seconds
+      staleTime: 30 * 1000,
       queryFn: async () => {
         const encodedRepoPath = repo.fullName
           .split("/")
@@ -48,115 +36,43 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
     })
   }
 
-  const columns = useMemo<ColumnDef<Repository>[]>(
-    () => [
-      {
-        accessorKey: "fullName",
-        header: ({ column }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Name
-            <ArrowUpDownIcon className="size-4" />
-          </Button>
-        ),
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        accessorKey: "tagCount",
-        header: "Tags",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            {row.original.tagCount ?? "-"} images
-          </div>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.stopPropagation()
-                router.push(`/repos/${registryId}/${row.original.fullName}`)
-              }}
-            >
-              <TagsIcon className="size-3.5" />
-              Browse Tags
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [registryId, router],
-  )
-
-  const table = useReactTable({
-    data: repositories,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
-
   return (
-    <div className="w-full relative">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const isName = header.id === "fullName"
-                const isTags = header.id === "tagCount"
+    <div className="divide-y divide-border/40">
+      {repositories.map((repo) => (
+        <button
+          key={repo.fullName}
+          type="button"
+          className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors text-left group"
+          onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
+          onMouseEnter={() => prefetchTags(repo)}
+        >
+          {/* Icon */}
+          <div className="flex-shrink-0 size-8 rounded-lg bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+            <BoxIcon className="size-4 text-primary/70" />
+          </div>
 
-                return (
-                  <TableHead
-                    key={header.id}
-                    className={cn(
-                      isName ? "w-[60%] pl-6" : isTags ? "w-[20%]" : "w-[20%] text-right pr-6"
-                    )}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              className="cursor-pointer"
-              onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
-              onMouseEnter={() => handleMouseEnter(row.original)}
-            >
-              {row.getVisibleCells().map((cell) => {
-                const isName = cell.column.id === "fullName"
-                const isTags = cell.column.id === "tagCount"
+          {/* Name */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+              {repo.name}
+            </p>
+            {repo.fullName !== repo.name && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{repo.fullName}</p>
+            )}
+          </div>
 
-                return (
-                  <TableCell
-                    key={cell.id}
-                    className={cn(
-                      isName ? "w-[60%] pl-6" : isTags ? "w-[20%]" : "w-[20%] text-right pr-6"
-                    )}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          {/* Tag count badge */}
+          {(repo.tagCount ?? 0) > 0 && (
+            <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+              <TagsIcon className="size-3" />
+              <span>{repo.tagCount} {repo.tagCount === 1 ? "tag" : "tags"}</span>
+            </div>
+          )}
+
+          {/* Arrow */}
+          <ChevronRightIcon className="flex-shrink-0 size-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+        </button>
+      ))}
     </div>
   )
 }

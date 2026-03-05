@@ -1,6 +1,6 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
-import type { RegistryConnection, Repository, Tag } from "@/types/registry"
+import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
 import { UnsupportedError } from "@/lib/providers/types"
 
@@ -42,18 +42,62 @@ export class GenericProvider implements RegistryProvider {
     }
   }
 
-  async listRepositories(options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
+  async listNamespaces(): Promise<Namespace[]> {
+    // Fetch catalog names only — no tag count fetches — very fast
+    const allRepoNames = await this.fetchAllCatalogNames()
+
+    // Fetch tag counts in parallel to get accurate per-namespace counts
+    const results = await Promise.all(
+      allRepoNames.map(async (repoName) => {
+        try {
+          const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
+          const tags = tagsResponse.tags ?? []
+          if (tags.length === 0) return null
+          return repoName
+        } catch {
+          return null
+        }
+      })
+    )
+
+    const activeRepoNames = results.filter((n): n is string => n !== null)
+
+    const namespaceCounts = new Map<string, number>()
+    for (const repoName of activeRepoNames) {
+      const namespace = repoName.includes("/")
+        ? repoName.split("/").slice(0, -1).join("/")
+        : ""
+      namespaceCounts.set(namespace, (namespaceCounts.get(namespace) ?? 0) + 1)
+    }
+
+    return Array.from(namespaceCounts.entries())
+      .map(([name, repositoryCount]) => ({ name, repositoryCount }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  async listRepositories(options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
     const page = options.page ?? 1
-    const perPage = options.perPage ?? 10000 // Default to a very large number to get all
+    const perPage = options.perPage ?? 10000
 
     // Fetch ALL repo names from catalog by following Link headers
     const allRepoNames = await this.fetchAllCatalogNames()
 
-    const total = allRepoNames.length
-    const start = (page - 1) * perPage
-    const pageNames = allRepoNames.slice(start, start + perPage)
+    // Filter by namespace before fetching tag counts
+    // Empty string namespace means repos with no path separator (root-level repos)
+    const filteredNames = options.namespace !== undefined
+      ? allRepoNames.filter(repoName => {
+          const repoNamespace = repoName.includes("/")
+            ? repoName.split("/").slice(0, -1).join("/")
+            : ""
+          return repoNamespace === options.namespace
+        })
+      : allRepoNames
 
-    // Fetch tag counts in parallel ONLY for the current page
+    const total = filteredNames.length
+    const start = (page - 1) * perPage
+    const pageNames = filteredNames.slice(start, start + perPage)
+
+    // Fetch tag counts in parallel ONLY for the current page's repos
     const repositories = (
       await Promise.all(
         pageNames.map(async (repoName) => {
@@ -64,10 +108,11 @@ export class GenericProvider implements RegistryProvider {
             // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
             if (tags.length === 0) return null
 
+            const ns = repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : ""
             return {
               name: repoName.split("/").pop() ?? repoName,
               fullName: repoName,
-              namespace: repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : undefined,
+              namespace: ns,
               tagCount: tags.length,
             }
           } catch {

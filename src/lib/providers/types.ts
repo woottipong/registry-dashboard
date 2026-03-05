@@ -1,5 +1,6 @@
 import type { ImageConfig, ImageManifest } from "@/types/manifest"
 import type {
+  Namespace,
   ProviderCapabilities,
   RegistryConnection,
   RegistryProviderType,
@@ -25,7 +26,8 @@ export interface PaginatedResult<T> {
 export interface RegistryProvider {
   type: RegistryProviderType
   ping(): Promise<boolean>
-  listRepositories(options?: ListOptions): Promise<PaginatedResult<Repository>>
+  listNamespaces(): Promise<Namespace[]>
+  listRepositories(options?: ListOptions & { namespace?: string }): Promise<PaginatedResult<Repository>>
   listTags(repo: string, options?: ListOptions): Promise<PaginatedResult<Tag>>
   getManifest(repo: string, ref: string): Promise<ImageManifest>
   getConfig(repo: string, digest: string): Promise<ImageConfig>
