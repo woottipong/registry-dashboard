@@ -49,8 +49,8 @@ export async function GET(request: Request, context: RouteContext) {
   const repositoryName = name.slice(0, -1).join("/")
   const { searchParams } = new URL(request.url)
   const queryResult = listQuerySchema.pick({ page: true, perPage: true }).safeParse({
-    page: searchParams.get("page"),
-    perPage: searchParams.get("perPage"),
+    page: searchParams.get("page") ?? undefined,
+    perPage: searchParams.get("perPage") ?? undefined,
   })
   if (!queryResult.success) {
     const response: ApiResponse<null> = {

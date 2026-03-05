@@ -134,10 +134,19 @@ export class RegistryHttpClient {
       const body = await this.readJsonBody<T>(response)
       return { body, linkHeader, contentDigest }
     } catch (error) {
-      console.error("Registry HTTP request failed:", {
+      const isAbort = error instanceof Error && error.name === "AbortError"
+      const detail = isAbort
+        ? `timed out after ${options.timeoutMs}ms`
+        : error instanceof Error
+          ? `${error.name}: ${error.message}${error.cause instanceof Error ? ` (cause: ${error.cause.message})` : ""}`
+          : String(error)
+      console.error(`Registry HTTP request failed [${isAbort ? "TIMEOUT" : "ERROR"}]:`, {
         url: fullUrl,
-        error: error instanceof Error ? error.message : error,
+        detail,
       })
+      if (isAbort) {
+        throw new Error(`Registry request timed out after ${options.timeoutMs}ms (${fullUrl})`)
+      }
       throw error
     } finally {
       clearTimeout(timeoutHandle)
@@ -281,7 +290,11 @@ export class RegistryHttpClient {
       return false
     }
 
+    // AbortError (original) and re-wrapped timeout errors are both retryable
     if (error instanceof Error && error.name === "AbortError") {
+      return true
+    }
+    if (error instanceof Error && error.message.includes("timed out after")) {
       return true
     }
 

@@ -24,8 +24,8 @@ export async function GET(request: Request, context: RouteContext) {
 
   const { searchParams } = new URL(request.url)
   const queryResult = listQuerySchema.safeParse({
-    page: searchParams.get("page"),
-    perPage: searchParams.get("perPage"),
+    page: searchParams.get("page") ?? undefined,
+    perPage: searchParams.get("perPage") ?? undefined,
     search: searchParams.get("search") ?? undefined,
     namespace: searchParams.get("namespace") ?? undefined,
   })
