@@ -4,7 +4,7 @@ import { useRegistries } from "@/hooks/use-registries"
 import { fetchRepositories } from "@/hooks/use-repositories"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { DASHBOARD_CONFIG, DASHBOARD_QUERY_KEYS } from "@/lib/constants/dashboard"
-import type { RegistryConnection, ProviderCapabilities, RegistryCredentials, RegistryProviderType, RegistryAuthType, Repository } from "@/types/registry"
+import type { ProviderCapabilities, RegistryAuthType, RegistryCredentials, RegistryProviderType, Repository } from "@/types/registry"
 
 interface DashboardData {
   totalRepositories: number

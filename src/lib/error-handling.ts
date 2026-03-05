@@ -2,6 +2,8 @@
  * Centralized error handling and user feedback utilities
  */
 
+import type { ApiResponse } from "@/types/api"
+
 // Error codes and their user-friendly messages
 export const ERROR_CODES = {
   // Registry errors
@@ -138,4 +140,18 @@ export function handleApiError(error: unknown, context?: string): AppError {
   const appError = normalizeError(error)
   logError(appError, context)
   return appError
+}
+
+/**
+ * Assert that an ApiResponse is successful and extract its data.
+ * Throws if the response is not ok or `success` is false.
+ */
+export async function assertApiSuccess<T>(response: Response): Promise<T> {
+  const payload = (await response.json()) as ApiResponse<T>
+
+  if (!response.ok || !payload.success || payload.data === null) {
+    throw new Error(payload.error?.message ?? "Request failed")
+  }
+
+  return payload.data as T
 }

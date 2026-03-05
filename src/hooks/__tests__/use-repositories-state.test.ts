@@ -55,21 +55,21 @@ describe('useRepositoriesState', () => {
       data: initialRegistries,
       isLoading: false,
       isError: false,
-    } as any)
+    } as unknown as ReturnType<typeof useRegistries>)
 
     mockUseRepositories.mockReturnValue({
       data: { items: [] },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     mockUseSearchRepositories.mockReturnValue({
       data: { items: [] },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useSearchRepositories>)
   })
 
   it('should initialize with correct default values', () => {
@@ -146,7 +146,7 @@ describe('useRepositoriesState', () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useSearchRepositories>)
 
     const { result } = renderHook(() => 
       useRepositoriesState({ initialRegistry, initialRegistries })
@@ -173,7 +173,7 @@ describe('useRepositoriesState', () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     const { result } = renderHook(() => 
       useRepositoriesState({ initialRegistry, initialRegistries })
@@ -188,7 +188,7 @@ describe('useRepositoriesState', () => {
       isLoading: true,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     const { result } = renderHook(() => 
       useRepositoriesState({ initialRegistry, initialRegistries })
@@ -203,7 +203,7 @@ describe('useRepositoriesState', () => {
       isLoading: false,
       isError: true,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     const { result } = renderHook(() => 
       useRepositoriesState({ initialRegistry, initialRegistries })
@@ -222,14 +222,14 @@ describe('useRepositoriesState', () => {
       isLoading: false,
       isError: false,
       refetch: mockRefetch,
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     mockUseSearchRepositories.mockReturnValue({
       data: { items: [] },
       isLoading: false,
       isError: false,
       refetch: mockSearchRefetch,
-    } as any)
+    } as unknown as ReturnType<typeof useSearchRepositories>)
 
     const { result } = renderHook(() => 
       useRepositoriesState({ initialRegistry, initialRegistries })
@@ -266,7 +266,7 @@ describe('useRepositoriesState', () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useRepositories>)
 
     // Re-render to get updated state
     const { result: result2 } = renderHook(() => 

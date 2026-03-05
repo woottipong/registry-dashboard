@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
+import { encodeRepoPath } from "@/lib/utils"
+import { queryKeys } from "@/lib/constants/query-keys"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Tag } from "@/types/registry"
 
@@ -10,16 +12,9 @@ interface TagsResult {
   meta?: PaginationMeta
 }
 
-function encodeRepoPath(repoName: string): string {
-  return repoName
-    .split("/")
-    .map((segment) => encodeURIComponent(segment))
-    .join("/")
-}
-
 export function useTags(registryId: string, repoName: string) {
   return useQuery({
-    queryKey: ["tags", registryId, repoName],
+    queryKey: queryKeys.tags.byRepo(registryId, repoName),
     enabled: Boolean(registryId && repoName),
     staleTime: STALE_TIME_TAGS,
     queryFn: async (): Promise<TagsResult> => {
@@ -89,7 +84,7 @@ export function useDeleteTags() {
       return { registryId, repoName }
     },
     onSuccess: async ({ registryId, repoName }) => {
-      await queryClient.invalidateQueries({ queryKey: ["tags", registryId, repoName] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.byRepo(registryId, repoName) })
     },
   })
 }
@@ -123,7 +118,7 @@ export function useDeleteTag() {
       return { registryId, repoName }
     },
     onMutate: async ({ registryId, repoName, digest }) => {
-      const queryKey = ["tags", registryId, repoName] as const
+      const queryKey = queryKeys.tags.byRepo(registryId, repoName)
 
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<TagsResult>(queryKey)
@@ -144,7 +139,7 @@ export function useDeleteTag() {
     },
     onSettled: async (_data, _error, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["tags", variables.registryId, variables.repoName],
+        queryKey: queryKeys.tags.byRepo(variables.registryId, variables.repoName),
       })
     },
   })

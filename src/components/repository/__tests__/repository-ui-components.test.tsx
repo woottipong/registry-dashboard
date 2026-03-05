@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { RepositorySearch, RegistrySelector, RepositoryLoading, RepositoryError, RepositoryEmpty } from '@/components/repository/repository-ui-components'
 import type { RegistryConnection } from '@/types/registry'
 
@@ -24,7 +24,7 @@ describe('RepositorySearch', () => {
 
   it('should render search input with placeholder', () => {
     render(<RepositorySearch {...defaultProps} />)
-    
+
     expect(screen.getByPlaceholderText('Quick search by name or tag...')).toBeInTheDocument()
     expect(screen.getByTestId('search-icon')).toBeInTheDocument()
   })
@@ -32,10 +32,10 @@ describe('RepositorySearch', () => {
   it('should call onChange when input value changes', () => {
     const mockOnChange = vi.fn()
     render(<RepositorySearch {...defaultProps} onChange={mockOnChange} />)
-    
+
     const input = screen.getByPlaceholderText('Quick search by name or tag...')
     fireEvent.change(input, { target: { value: 'test' } })
-    
+
     expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({
       target: { value: 'test' }
     }))
@@ -43,22 +43,22 @@ describe('RepositorySearch', () => {
 
   it('should show clear button when value is present', () => {
     render(<RepositorySearch {...defaultProps} value="test" />)
-    
+
     expect(screen.getByText('Clear')).toBeInTheDocument()
   })
 
   it('should call onClear when clear button is clicked', () => {
     const mockOnClear = vi.fn()
     render(<RepositorySearch {...defaultProps} value="test" onClear={mockOnClear} />)
-    
+
     fireEvent.click(screen.getByText('Clear'))
-    
+
     expect(mockOnClear).toHaveBeenCalled()
   })
 
   it('should be disabled when disabled prop is true', () => {
     render(<RepositorySearch {...defaultProps} disabled />)
-    
+
     expect(screen.getByPlaceholderText('Quick search by name or tag...')).toBeDisabled()
   })
 })
@@ -95,14 +95,14 @@ describe('RegistrySelector', () => {
 
   it('should render all registries', () => {
     render(<RegistrySelector {...defaultProps} />)
-    
+
     expect(screen.getByText('Test Registry')).toBeInTheDocument()
     expect(screen.getByText('Another Registry')).toBeInTheDocument()
   })
 
   it('should highlight selected registry', () => {
     render(<RegistrySelector {...defaultProps} />)
-    
+
     const selectedButton = screen.getByText('Test Registry')
     expect(selectedButton).toHaveClass('bg-primary')
   })
@@ -110,22 +110,22 @@ describe('RegistrySelector', () => {
   it('should call onRegistryChange when registry is clicked', () => {
     const mockOnChange = vi.fn()
     render(<RegistrySelector {...defaultProps} onRegistryChange={mockOnChange} />)
-    
+
     fireEvent.click(screen.getByText('Another Registry'))
-    
+
     expect(mockOnChange).toHaveBeenCalledWith('registry-2')
   })
 
   it('should show Connect button', () => {
     render(<RegistrySelector {...defaultProps} />)
-    
+
     expect(screen.getByText('Connect')).toBeInTheDocument()
     expect(screen.getByTestId('plus-icon')).toBeInTheDocument()
   })
 
   it('should be disabled when disabled prop is true', () => {
     render(<RegistrySelector {...defaultProps} disabled />)
-    
+
     const buttons = screen.getAllByRole('button')
     buttons.forEach(button => {
       expect(button).toBeDisabled()
@@ -136,14 +136,14 @@ describe('RegistrySelector', () => {
 describe('RepositoryLoading', () => {
   it('should render skeleton items', () => {
     render(<RepositoryLoading count={3} />)
-    
+
     const skeletons = screen.getAllByRole('button') // The skeleton divs are not semantic, so we count them differently
     expect(skeletons.length).toBeGreaterThan(0)
   })
 
   it('should render default count when not specified', () => {
     const { container } = render(<RepositoryLoading />)
-    
+
     // Should render 8 skeleton items by default
     const skeletonElements = container.querySelectorAll('.animate-pulse')
     expect(skeletonElements.length).toBe(16) // 8 items * 2 skeleton elements each
@@ -161,7 +161,7 @@ describe('RepositoryError', () => {
 
   it('should render error message', () => {
     render(<RepositoryError {...defaultProps} />)
-    
+
     expect(screen.getByText('Failed to Load Repositories')).toBeInTheDocument()
     expect(screen.getByTestId('alert-icon')).toBeInTheDocument()
   })
@@ -169,16 +169,16 @@ describe('RepositoryError', () => {
   it('should call onRetry when Try Again button is clicked', () => {
     const mockOnRetry = vi.fn()
     render(<RepositoryError {...defaultProps} onRetry={mockOnRetry} />)
-    
+
     fireEvent.click(screen.getByText('Try Again'))
-    
+
     expect(mockOnRetry).toHaveBeenCalled()
   })
 
   it('should display custom message when provided', () => {
     const customMessage = 'Custom error message'
     render(<RepositoryError {...defaultProps} message={customMessage} />)
-    
+
     expect(screen.getByText(customMessage)).toBeInTheDocument()
   })
 })
@@ -186,13 +186,13 @@ describe('RepositoryError', () => {
 describe('RepositoryEmpty', () => {
   it('should render search empty state when hasSearch is true', () => {
     render(<RepositoryEmpty hasSearch={true} />)
-    
+
     expect(screen.getByText('No repositories found matching your search.')).toBeInTheDocument()
   })
 
   it('should render no registry empty state when hasSearch is false', () => {
     render(<RepositoryEmpty hasSearch={false} />)
-    
+
     expect(screen.getByText('No Registry Connected')).toBeInTheDocument()
     expect(screen.getByText('Connect a Docker registry to start browsing your container images.')).toBeInTheDocument()
   })
@@ -200,9 +200,9 @@ describe('RepositoryEmpty', () => {
   it('should call onConnectRegistry when Add First Registry button is clicked', () => {
     const mockOnConnect = vi.fn()
     render(<RepositoryEmpty hasSearch={false} onConnectRegistry={mockOnConnect} />)
-    
+
     fireEvent.click(screen.getByText('Add First Registry'))
-    
+
     expect(mockOnConnect).toHaveBeenCalled()
   })
 })

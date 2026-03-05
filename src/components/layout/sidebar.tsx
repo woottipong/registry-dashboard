@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
 import {
   FolderOpenIcon,
   LayoutDashboardIcon,
@@ -129,12 +128,11 @@ function SidebarBody() {
                   </Link>
                 )
               })
-            ) : (
-              <div className="space-y-2 px-2">
-                <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
-                <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
+            ) : isMounted ? (
+              <div className="px-3 py-2 text-xs text-muted-foreground/60 italic">
+                No registries yet
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

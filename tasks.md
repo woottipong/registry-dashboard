@@ -15,124 +15,7 @@
 
 ---
 
-## Milestones 1–5: ✅ Complete — see `CHANGELOG.md`
-
----
-
-## Milestone 6: Performance & Quality
-
-> Goal: ลด latency จริงของ UI, ลด waterfall requests, ปรับ UX ให้ responsive ทันที
-> วิเคราะห์จาก codebase จริง — เรียงตาม impact สูงสุดก่อน
-
----
-
-### 6.1 Critical: ลด N+1 API Waterfall — P0
-
-**ปัญหา (root cause)**
-
-`listRepositories()` ทำ waterfall requests แบบนี้ต่อทุก repo:
-```
-GET /v2/_catalog               → ได้ 5 repo names
-GET /v2/apps/frontend/tags/list  → N request
-GET /v2/apps/frontend/manifests/tag0  → N×M request
-GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
-```
-10 repos × 1 tag = **31 HTTP requests** ก่อนหน้าจะ render
-
-`listTags()` เช่นกัน — 3 tags = 7 requests waterfall
-
-- [x] **T-086** แยก `lastUpdated` ออกจาก `listRepositories` — ไม่ fetch manifest ใน catalog loop
-  - คืนแค่ `{ name, fullName, namespace, tagCount }` — ไม่ fetch manifest/config
-  - `lastUpdated` เป็น optional — แสดง "—" ถ้าไม่มี
-  - ลด requests จาก 1+(N×3) → 1+N
-  - Files: `src/lib/providers/generic-provider.ts`
-
-- [x] **T-087** Parallel batch fetch ใน `listTags`
-  - manifest fetch และ config fetch เป็น 2 batch parallel rounds แทน sequential per tag
-  - Files: `src/lib/providers/generic-provider.ts`
-
-- [x] **T-088** Cache digest resolution — `resolveDigest()` in-memory TTL cache
-  - Map `repo:ref → digest` TTL 5 นาที
-  - ลด HEAD requests ซ้ำจาก `listRepositories` + `listTags`
-  - Files: `src/lib/providers/generic-provider.ts`
-
----
-
-### 6.2 High: React Query Stale Time — P0
-
-**ปัญหา**: `staleTime: 0` + `refetchOnWindowFocus: true` → refetch ทุก tab switch
-
-- [x] **T-089** ปรับ staleTime ต่อ query type
-  - Registries: `30s` | Repositories: `60s` | Tags: `30s` | Manifests/blobs: `10m`
-  - `refetchOnWindowFocus: false` สำหรับ manifests/blobs
-  - Files: `src/lib/query-client.ts`, `src/hooks/use-repositories.ts`, `src/hooks/use-tags.ts`
-
----
-
-### 6.3 High: Dashboard N+1 — P1
-
-**ปัญหา**: Dashboard รอ `listRepositories` (N+1 requests) ก่อน render stats
-
-- [x] **T-090** Dashboard render registries count ทันที — repos load async แยก
-  - Files: `src/app/page.tsx`, `src/components/dashboard/stats-cards.tsx`
-
-- [x] **T-091** Top Repos chart share data กับ repos query แทน fetch ใหม่
-  - Files: `src/app/page.tsx`
-
----
-
-### 6.4 Medium: API Route Caching — P1
-
-- [x] **T-092** HTTP response cache headers บน read-only endpoints
-  - `GET /repositories` → `Cache-Control: s-maxage=30, stale-while-revalidate=60`
-  - `GET /manifests/:ref` → `Cache-Control: s-maxage=600`
-  - Files: repositories route, manifests route
-
-- [x] **T-093** Fix `total` count ใน repositories API response
-  - ปัจจุบัน `total = items.length` หลัง filter — pagination ผิด
-  - Files: `src/app/api/v1/registries/[id]/repositories/route.ts`
-
----
-
-### 6.5 Medium: UX Perceived Performance — P1
-
-- [ ] **T-094** Streaming repositories — แสดง repo names ก่อน metadata load ทีหลัง
-  - Effort สูง — ทำหลัง T-086/T-087
-  - Files: `src/lib/providers/generic-provider.ts`, `src/app/repos/page.tsx`
-
-- [x] **T-095** Prefetch tags on hover repo card/row
-  - `onMouseEnter` → `queryClient.prefetchQuery(["tags", registryId, repo.fullName])`
-  - Files: `src/components/repository/repo-card.tsx`, `src/components/repository/repo-table.tsx`
-
----
-
-### 6.6 Low: Bundle & Cleanup — P2
-
-- [x] **T-096** Bundle analyzer — ตรวจ Recharts lazy load ถูกต้อง
-  - Recharts อยู่ใน `top-repos-chart.tsx` เท่านั้น และ lazy load ผ่าน `dynamic()` แล้วใน `page.tsx`
-  - Files: `src/components/dashboard/*`
-
-- [x] **T-097** ลบ unused shadcn components (`Separator` ฯลฯ)
-  - `separator.tsx` ถูกใช้โดย shadcn primitives (command, dropdown-menu, select) — ไม่มีที่ลบได้
-  - Files: various
-
----
-
-### สรุป Impact vs Effort
-
-| Task | Impact | Effort | ทำก่อน? |
-|------|--------|--------|---------|
-| T-086 ลด catalog waterfall | 🔴 สูงมาก | 🟡 กลาง | ✅ |
-| T-087 parallel tag fetch | 🔴 สูงมาก | 🟢 ต่ำ | ✅ |
-| T-088 cache digest | 🟠 สูง | 🟢 ต่ำ | ✅ |
-| T-089 staleTime | 🟠 สูง | 🟢 ต่ำ | ✅ |
-| T-092 HTTP cache headers | 🟡 กลาง | 🟢 ต่ำ | ✅ |
-| T-095 prefetch on hover | 🟡 กลาง | 🟢 ต่ำ | ✅ |
-| T-090 dashboard async | 🟡 กลาง | 🟡 กลาง | 🔜 |
-| T-094 streaming repos | 🟠 สูง | 🔴 สูง | 🔜 |
-| T-096 bundle size | 🟢 ต่ำ | 🟡 กลาง | ⏳ |
-
----
+## Milestones 1–6: ✅ Complete — see `CHANGELOG.md`
 
 ## Milestone 7: Login — Env-based Authentication
 
@@ -291,3 +174,311 @@ GET /v2/apps/frontend/blobs/{digest} → N×M request (config)
 | T-113 registry form | DockerHub | 🔴 สูงมาก | 🟡 กลาง | P0 |
 | T-114 rate limit display | DockerHub | 🟢 ต่ำ | 🟡 กลาง | P1 |
 | T-115 private repo manifests | DockerHub | 🟠 สูง | 🔴 สูง | P1 |
+
+---
+
+## Milestone 9: Open-Source Hardening — Performance, Security & DX
+
+> **Goal**: ปรับ codebase ให้พร้อมเปิด open-source — แก้ security issues, ปรับ performance,  
+> ลด code duplication, เพิ่ม accessibility, และทำให้ contributor experience ดี  
+> จัดเรียงตาม severity — CRITICAL → HIGH → MEDIUM → LOW  
+> แต่ละ task เป็นอิสระ สามารถทำขนานกันได้โดย contributor หลายคน
+
+---
+
+### 9.1 Security Hardening — P0 (CRITICAL)
+
+- [ ] **T-200** แก้ API response format inconsistency — ใช้ `ApiResponse<T>` เท่านั้น
+  - `src/app/api/v1/registries/[id]/repositories/[...name]/route.ts` lines 19-22, 39-42, 88-92
+    ใช้ `{ errors: [...] }` format (Docker Registry raw format) แทนที่จะเป็น `ApiResponse<T>`
+  - Scan ทุก API route ให้แน่ใจว่า return `{ success, data, error }` เสมอ
+  - Files: `src/app/api/v1/registries/[id]/repositories/[...name]/route.ts`
+
+- [ ] **T-201** เพิ่ม Zod validation บน query params ทุก API route
+  - 11 จาก 13 API routes ไม่มี validation เลย — `page`, `perPage`, `search`, `namespace`
+    สามารถเป็น NaN, ค่าลบ, ค่ามหาศาล ได้
+  - สร้าง shared schema: `lib/validators/query-schemas.ts`
+    ```
+    listQuerySchema = z.object({
+      page: z.coerce.number().int().min(1).default(1),
+      perPage: z.coerce.number().int().min(1).max(100).default(20),
+      search: z.string().max(200).optional(),
+      namespace: z.string().max(200).optional(),
+    })
+    ```
+  - Apply ให้ทุก GET route ที่รับ query params
+  - Files: `src/lib/validators/query-schemas.ts` (new), ทุก route ใน `src/app/api/v1/`
+
+- [ ] **T-202** แก้ unsafe file I/O — atomic write + corruption recovery
+  - `registry-store.ts` lines 20-27: `readStore()` silently ทิ้ง data เมื่อ corruption — ไม่ backup
+  - `activity-store.ts` lines 29-45: race condition เมื่อ concurrent read/write — ไม่มี file lock
+  - Fix: เขียน temp file → rename (atomic), สร้าง `.bak` ก่อน write, validate JSON on read
+  - Files: `src/lib/registry-store.ts`, `src/lib/activity-store.ts`
+
+- [ ] **T-203** เพิ่ม CSRF protection บน state-changing endpoints
+  - POST/PUT/DELETE routes (`/api/auth/login`, `/api/auth/logout`, `/api/v1/registries`,
+    `/api/v1/.../manifests/...` DELETE) ไม่มี CSRF token
+  - Options: Double-submit cookie pattern หรือ custom header check (`X-Requested-With`)
+  - Files: `src/middleware.ts`, all POST/PUT/DELETE API routes
+
+- [ ] **T-204** เข้ารหัส registry credentials ด้วย AES-256-GCM แทน plain text/XOR
+  - `registry-store.ts` เก็บ credentials เป็น plain text ใน JSON file
+  - `stores/registry-store.ts` line 18-26 ใช้ XOR cipher ที่ไม่ปลอดภัย (frequency analysis)
+  - ใช้ Node.js `crypto.createCipheriv('aes-256-gcm', ...)` กับ `SESSION_SECRET` derived key
+  - Files: `src/lib/registry-store.ts`, `src/stores/registry-store.ts`
+
+- [ ] **T-205** ตรวจสอบ DockerHub JWT token expiration ก่อนใช้
+  - `authenticateHubApi()` lines 279-310 ไม่เคย check ว่า JWT expire แล้วหรือยัง
+  - Decode JWT payload, check `exp` claim, auto-refresh เมื่อใกล้หมดอายุ
+  - Files: `src/lib/providers/dockerhub-provider.ts`
+
+---
+
+### 9.2 Code Quality & DRY — P0
+
+- [ ] **T-210** Extract `encodeRepoPath()` เป็น shared utility
+  - Duplicate ใน `use-tags.ts` lines 7-11 และ `use-manifest.ts` lines 7-11
+  - ย้ายไป `src/lib/utils.ts` export เป็น `encodeRepoPath(namespace: string, name: string)`
+  - Files: `src/lib/utils.ts`, `src/hooks/use-tags.ts`, `src/hooks/use-manifest.ts`
+
+- [ ] **T-211** สร้าง centralized query key factory
+  - Query keys สร้าง inline ไม่สม่ำเสมอ — ยากต่อ invalidation
+  - สร้าง `src/lib/constants/query-keys.ts`:
+    ```
+    export const QUERY_KEYS = {
+      registries: () => ["registries"],
+      repositories: (registryId, params?) => ["repositories", registryId, params],
+      tags: (registryId, repo) => ["tags", registryId, repo],
+      manifest: (registryId, repo, ref) => ["manifest", registryId, repo, ref],
+      namespaces: (registryId) => ["namespaces", registryId],
+    }
+    ```
+  - Update ทุก hook ให้ใช้ QUERY_KEYS
+  - Files: `src/lib/constants/query-keys.ts` (new), ทุกไฟล์ใน `src/hooks/`
+
+- [ ] **T-212** สร้าง `assertApiSuccess<T>()` helper แทน manual check
+  - การ check `response.success` ไม่สม่ำเสมอ — บางที่ check, บางที่ไม่
+  - สร้าง helper ใน `src/lib/error-handling.ts`:
+    ```
+    export function assertApiSuccess<T>(response: ApiResponse<T>): T {
+      if (!response.success) throw new Error(response.error?.message ?? "API request failed")
+      return response.data
+    }
+    ```
+  - ใช้ใน hooks และ components ที่ fetch data
+  - Files: `src/lib/error-handling.ts`, hooks + components ที่ relevant
+
+- [ ] **T-213** ตัดสินใจ modern-* vs original components — ลบ duplicate
+  - มี 6 "modern-*" files ที่ duplicate logic จาก originals (dashboard, stats, activity, chart, registry-list)
+  - Decision: migrate สู่ modern version + ลบ originals OR ลบ modern + เพิ่ม animation ใน originals
+  - ลด maintenance burden จาก 12 files เหลือ 6
+  - Files: `src/app/modern-dashboard-client.tsx`, `src/app/dashboard-client.tsx`,
+    `src/components/dashboard/modern-*.tsx`, `src/components/dashboard/*.tsx`
+
+- [ ] **T-214** สร้าง shared `useDebounceFilter` hook
+  - Debounce + filter pattern ซ้ำกัน 3 ที่:
+    `use-repositories-state.ts` line 26-33, `use-registries-state.ts` line 43-50, `repos-client.tsx` line 26-32
+  - Extract เป็น: `useDebounceFilter<T>(items, searchFn, term, delay)`
+  - Files: `src/hooks/use-debounce-filter.ts` (new), files ข้างต้น
+
+---
+
+### 9.3 Performance Optimization — P1
+
+- [ ] **T-220** แก้ N+1 query ใน `listNamespaces()` — Generic Provider
+  - `generic-provider.ts` lines 46-71: fetch catalog → 1 request ต่อ repo สำหรับ tag count
+  - Fix: Group repos by namespace จาก catalog data โดยไม่ต้อง fetch tag count ทีละ repo
+  - ใช้ namespace prefix จาก repo name แทน (e.g., `myapp/frontend` → namespace `myapp`)
+  - Files: `src/lib/providers/generic-provider.ts`
+
+- [ ] **T-221** Debounce tag prefetch on repo table hover
+  - `repo-table.tsx` line 15-27: `onMouseEnter` fire prefetch ทุก hover event
+  - Fast mouse movement ข้าม 10 repos = 10 API calls
+  - Fix: เพิ่ม 200ms debounce ก่อน prefetch + cleanup on unmount
+  - Files: `src/components/repository/repo-table.tsx`
+
+- [ ] **T-222** ปิด parallel query ที่ไม่ใช้ — search vs list
+  - `use-repositories-state.ts` lines 49-61: ทั้ง `repositoriesQuery` กับ `searchQuery`
+    active พร้อมกัน แต่ใช้แค่อันเดียว
+  - Fix: ใช้ `enabled` option — disable list query เมื่อ search active (และกลับกัน)
+  - Files: `src/hooks/use-repositories-state.ts`
+
+- [ ] **T-223** Lazy-load dashboard registry stats
+  - `use-dashboard-data.ts` lines 39-48: `useQueries` fetch ทุก registry พร้อมกัน
+  - 10 registries = 10 concurrent API calls on page load
+  - Fix: Fetch stats สำหรับ 3-5 registries แรก, lazy-load ที่เหลือ
+  - Files: `src/hooks/use-dashboard-data.ts`
+
+- [ ] **T-224** Memoize layer-list `maxSize` calculation
+  - `layer-list.tsx` line 20: `Math.max(...layers.map(...))` recalculate ทุก render
+  - Fix: wrap ใน `useMemo` depend on `[layers]`
+  - Files: `src/components/manifest/layer-list.tsx`
+
+---
+
+### 9.4 Accessibility (a11y) — P1
+
+- [ ] **T-230** แก้ repo-table ให้ใช้ semantic table markup
+  - ปัจจุบันใช้ `<button>` rows แทน `<table>` — WCAG 4.1.3 fail
+  - ต้องใช้ `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<td>` + `<caption>`
+  - Files: `src/components/repository/repo-table.tsx`
+
+- [ ] **T-231** เพิ่ม aria-labels ให้ interactive elements ทั่ว dashboard
+  - Stats cards: trend % visual only ไม่มี aria-label
+  - Activity badges: ไม่มี label บอก activity type
+  - Copy buttons: ไม่มี aria-pressed / live region feedback
+  - Files: `src/components/dashboard/stats-cards.tsx`, `src/components/dashboard/activity-feed.tsx`,
+    `src/components/manifest/image-inspector.tsx`
+
+- [ ] **T-232** รองรับ `prefers-reduced-motion`
+  - Framer Motion animations ทุกตัว ignore prefers-reduced-motion
+  - Fix: check `window.matchMedia("(prefers-reduced-motion: reduce)")` → disable/reduce animations
+  - Files: ทุก `modern-*.tsx` components
+
+- [ ] **T-233** เพิ่ม `<label>` ให้ form inputs ที่หายไป
+  - Search inputs ใน `repos-client.tsx` ไม่มี associated label (ใช้ `sr-only` class)
+  - Registry form inputs need explicit `htmlFor` association
+  - Files: `src/app/repos/repos-client.tsx`, `src/components/registry/`
+
+---
+
+### 9.5 Lint & Type Safety — P1
+
+- [ ] **T-240** แก้ 26 ESLint errors ที่ค้างอยู่
+  - `activity-context.tsx`: 2 × `no-explicit-any` → ใช้ proper types
+  - `use-registries-state.test.ts`: 9 × `no-explicit-any` → ใช้ test-specific types
+  - `use-repositories-state.test.ts`: 10 × `no-explicit-any` → ใช้ test-specific types
+  - `registry-ui-components.tsx`: 1 × unescaped `'` → use `&apos;`
+  - `use-mounted.ts`: 1 × `set-state-in-effect` → refactor to `useSyncExternalStore`
+  - Files: ดูรายละเอียดจาก `bun run lint`
+
+- [ ] **T-241** แก้ 14 ESLint warnings ที่ค้างอยู่
+  - Unused imports: `useState`/`useEffect` ใน `sidebar.tsx`, `useCallback` ใน `tag-table.tsx`,
+    `RegistryConnection` ใน `use-dashboard-data.ts`, `waitFor` ใน test file
+  - Unused types: `DockerHubError`, `DockerRegistryTokenResponse` ใน `dockerhub-provider.ts`
+  - Files: ดูรายละเอียดจาก `bun run lint`
+
+---
+
+### 9.6 Architecture & Provider Refactoring — P2
+
+- [ ] **T-250** Extract provider factory เป็น `ProviderRegistry` class กับ DI pattern
+  - ปัจจุบัน provider selection กระจายตาม API routes
+  - Centralize เป็น: `ProviderRegistry.get(connection) → RegistryProvider`
+  - Cache provider instances per registry id, invalidate on config change
+  - Files: `src/lib/providers/` (new file), ทุก API route ที่สร้าง provider
+
+- [ ] **T-251** ย้าย repository deletion logic จาก API route เข้า provider
+  - `repositories/[...name]/route.ts` lines 88-105 มี partial delete ไม่มี rollback
+  - ย้าย logic ไป `provider.deleteRepository(name)` — encapsulate retry + rollback
+  - Files: `src/app/api/v1/registries/[id]/repositories/[...name]/route.ts`,
+    `src/lib/providers/generic-provider.ts`
+
+- [ ] **T-252** สร้าง API route middleware สำหรับ common tasks
+  - ทุก route ทำซ้ำ: get registry from store → null check → create provider → error format
+  - Extract เป็น `withRegistry(handler)` wrapper ที่ inject `registry` + `provider`
+  - Files: `src/lib/api-middleware.ts` (new), ทุก route ใน `src/app/api/v1/`
+
+---
+
+### 9.7 Open-Source DX — P2
+
+- [ ] **T-260** เพิ่ม JSDoc ให้ public functions ของ providers
+  - `GenericProvider` (312 LOC), `DockerHubProvider` (220 LOC), `RegistryHttpClient` (280 LOC)
+    ไม่มี JSDoc เลย
+  - เพิ่ม `@param`, `@returns`, `@throws`, `@example` ให้ทุก public method
+  - Files: `src/lib/providers/generic-provider.ts`, `src/lib/providers/dockerhub-provider.ts`,
+    `src/lib/registry-client.ts`
+
+- [ ] **T-261** เพิ่ม JSDoc ให้ exported components
+  - Components ที่ไม่มี documentation: `RepoCard`, `RepoTable`, `ImageInspector`, `TagTable`
+  - เพิ่ม props description + `@example` usage
+  - Files: `src/components/repository/`, `src/components/tag/`, `src/components/manifest/`
+
+- [ ] **T-262** สร้าง `components/README.md` — component library guide
+  - อธิบาย folder structure + purpose ของแต่ละ category
+  - ขั้นตอนการเพิ่ม component ใหม่
+  - Naming conventions + pattern guide
+  - Files: `src/components/README.md` (new)
+
+- [ ] **T-263** สร้าง `doc/API.md` — API contract documentation
+  - Document ทุก endpoint: method, path, params, response shape, error codes
+  - Common error codes: 401, 403, 422, 429 + retry strategy
+  - Rate limit documentation for Docker Hub
+  - Files: `doc/API.md` (new)
+
+- [ ] **T-264** สร้าง `SECURITY.md`
+  - Document credential storage model + encryption
+  - Responsible disclosure policy
+  - Known limitations + security considerations
+  - Session management + CSRF protection details
+  - Files: `SECURITY.md` (new)
+
+- [ ] **T-265** ลบ dead code — stub functions + unused exports
+  - `use-registries-state.ts` line 91-96: `handlePing` stub ไม่เคย implement
+  - `stores/registry-store.ts` line 60-64: `clearAll()` ไม่เคยถูกเรียกใช้
+  - Unused type exports ใน `dockerhub-provider.ts`
+  - Files: files ข้างต้น
+
+- [ ] **T-266** แก้ hardcoded values ใน production code
+  - `topbar.tsx` line 77: `username = "Admin User"` → ดึงจาก auth context/session
+  - `modern-dashboard-client.tsx` lines 18-21: hardcoded trend data → calculate จาก actual data
+  - Files: `src/components/layout/topbar.tsx`, `src/app/modern-dashboard-client.tsx`
+
+---
+
+### 9.8 Testing Coverage — P2
+
+- [ ] **T-270** เพิ่ม unit tests สำหรับ provider factory selection
+  - ทดสอบว่า generic vs dockerhub provider ถูกเลือกตาม connection type
+  - Files: `src/lib/__tests__/provider-factory.test.ts` (new)
+
+- [ ] **T-271** เพิ่ม tests สำหรับ file I/O edge cases
+  - Corrupt JSON recovery, concurrent write race, backup file creation
+  - Files: `src/lib/__tests__/registry-store.test.ts`, `src/lib/__tests__/activity-store.test.ts`
+
+- [ ] **T-272** เพิ่ม tests สำหรับ security functions
+  - Timing-safe comparison, rate limiter edge cases, bearer token parsing
+  - Files: `src/lib/__tests__/security.test.ts` (new)
+
+---
+
+### สรุป Milestone 9 — Overview Table
+
+| ID | Task | Category | Severity | Effort | Good First Issue? |
+|----|------|----------|----------|--------|-------------------|
+| T-200 | API response format fix | Security | 🔴 CRITICAL | 🟢 30min | ✅ Yes |
+| T-201 | Zod validation on query params | Security | 🔴 CRITICAL | 🟡 2hr | ✅ Yes |
+| T-202 | Atomic file I/O + recovery | Security | 🔴 CRITICAL | 🟡 1hr | |
+| T-203 | CSRF protection | Security | 🔴 CRITICAL | 🟡 1.5hr | |
+| T-204 | AES-256-GCM credential encryption | Security | 🔴 CRITICAL | 🟡 2hr | |
+| T-205 | DockerHub JWT expiration check | Security | 🟠 HIGH | 🟢 30min | ✅ Yes |
+| T-210 | Extract encodeRepoPath | DRY | 🟡 MEDIUM | 🟢 15min | ✅ Yes |
+| T-211 | Centralized query key factory | DRY | 🟡 MEDIUM | 🟢 45min | ✅ Yes |
+| T-212 | assertApiSuccess helper | DRY | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-213 | Remove modern-* duplicates | DRY | 🟡 MEDIUM | 🟡 1hr | |
+| T-214 | Shared useDebounceFilter hook | DRY | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-220 | Fix N+1 in listNamespaces | Perf | 🟠 HIGH | 🟡 1hr | |
+| T-221 | Debounce tag prefetch | Perf | 🟡 MEDIUM | 🟢 20min | ✅ Yes |
+| T-222 | Disable unused parallel query | Perf | 🟡 MEDIUM | 🟢 15min | ✅ Yes |
+| T-223 | Lazy-load dashboard stats | Perf | 🟡 MEDIUM | 🟡 1hr | |
+| T-224 | Memoize layer maxSize | Perf | 🟢 LOW | 🟢 5min | ✅ Yes |
+| T-230 | Semantic table markup | a11y | 🟠 HIGH | 🟡 1hr | ✅ Yes |
+| T-231 | Aria-labels for dashboard | a11y | 🟡 MEDIUM | 🟡 45min | ✅ Yes |
+| T-232 | prefers-reduced-motion | a11y | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-233 | Form label associations | a11y | 🟡 MEDIUM | 🟢 20min | ✅ Yes |
+| T-240 | Fix 26 ESLint errors | Types | 🟠 HIGH | 🟡 1hr | ✅ Yes |
+| T-241 | Fix 14 ESLint warnings | Types | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-250 | ProviderRegistry DI | Arch | 🟡 MEDIUM | 🟡 2hr | |
+| T-251 | Move deletion to provider | Arch | 🟡 MEDIUM | 🟡 1hr | |
+| T-252 | API route middleware | Arch | 🟡 MEDIUM | 🟡 1.5hr | |
+| T-260 | JSDoc for providers | DX | 🟡 MEDIUM | 🟡 2hr | ✅ Yes |
+| T-261 | JSDoc for components | DX | 🟡 MEDIUM | 🟡 1.5hr | ✅ Yes |
+| T-262 | Components README | DX | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-263 | API contract doc | DX | 🟡 MEDIUM | 🟡 1hr | ✅ Yes |
+| T-264 | SECURITY.md | DX | 🟠 HIGH | 🟢 45min | ✅ Yes |
+| T-265 | Remove dead code | DX | 🟢 LOW | 🟢 15min | ✅ Yes |
+| T-266 | Fix hardcoded values | DX | 🟡 MEDIUM | 🟢 30min | ✅ Yes |
+| T-270 | Provider factory tests | Test | 🟡 MEDIUM | 🟢 45min | ✅ Yes |
+| T-271 | File I/O edge case tests | Test | 🟡 MEDIUM | 🟡 1hr | |
+| T-272 | Security function tests | Test | 🟡 MEDIUM | 🟡 1hr | |

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
+import { queryKeys } from "@/lib/constants/query-keys"
 import type { Namespace } from "@/types/registry"
 
 async function fetchNamespaces(registryId: string): Promise<Namespace[]> {
@@ -20,7 +21,7 @@ async function fetchNamespaces(registryId: string): Promise<Namespace[]> {
 
 export function useNamespaces(registryId: string) {
   return useQuery({
-    queryKey: ["namespaces", registryId],
+    queryKey: queryKeys.namespaces.byRegistry(registryId),
     enabled: Boolean(registryId),
     staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchNamespaces(registryId),

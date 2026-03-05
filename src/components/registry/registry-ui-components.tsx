@@ -17,12 +17,12 @@ interface RegistrySearchProps {
   disabled?: boolean
 }
 
-export function RegistrySearch({ 
-  value, 
-  onChange, 
-  onClear, 
+export function RegistrySearch({
+  value,
+  onChange,
+  onClear,
   placeholder = "Search registries...",
-  disabled = false 
+  disabled = false
 }: RegistrySearchProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -58,7 +58,7 @@ export function RegistrySearch({
           </button>
         )}
       </div>
-      
+
       {/* Search suggestions hint */}
       {!value && !disabled && (
         <div className="absolute top-full mt-2 left-0 right-0 bg-popover border rounded-lg p-3 shadow-lg opacity-0 invisible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 pointer-events-none">
@@ -85,8 +85,8 @@ interface RegistryCardProps {
   isLoading?: boolean
 }
 
-export function ModernRegistryCard({ 
-  registry, 
+export function ModernRegistryCard({
+  registry,
   status = 'checking',
   latencyMs,
   onEdit,
@@ -129,7 +129,7 @@ export function ModernRegistryCard({
             )}
           </div>
           <p className="text-sm text-muted-foreground mb-2 group-hover:text-foreground/80 transition-colors duration-200">{registry.url}</p>
-          
+
           {/* Status indicator */}
           <div className={cn(
             "inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium border transition-all duration-200 group-hover:scale-105",
@@ -144,7 +144,7 @@ export function ModernRegistryCard({
             )}
           </div>
         </div>
-        
+
         <ServerIcon className="size-8 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all duration-200" />
       </div>
 
@@ -171,20 +171,20 @@ export function ModernRegistryCard({
             <span className="text-muted-foreground">Rate Limit Usage</span>
             <span className={cn(
               "font-medium",
-              rateLimitPercent > 80 ? "text-destructive" : 
-              rateLimitPercent > 60 ? "text-chart-3" : "text-chart-2"
+              rateLimitPercent > 80 ? "text-destructive" :
+                rateLimitPercent > 60 ? "text-chart-3" : "text-chart-2"
             )}>
               {rateLimitPercent.toFixed(1)}%
             </span>
           </div>
           <div className="h-2 rounded-full bg-secondary overflow-hidden">
-            <div 
+            <div
               className={cn(
                 "h-full transition-all duration-300 rounded-full",
-                rateLimitPercent > 80 ? "bg-destructive" : 
-                rateLimitPercent > 60 ? "bg-chart-3" : "bg-chart-2"
-              )} 
-              style={{ width: `${rateLimitPercent}%` }} 
+                rateLimitPercent > 80 ? "bg-destructive" :
+                  rateLimitPercent > 60 ? "bg-chart-3" : "bg-chart-2"
+              )}
+              style={{ width: `${rateLimitPercent}%` }}
             />
           </div>
         </div>
@@ -192,9 +192,9 @@ export function ModernRegistryCard({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onPing}
           disabled={isLoading}
           className="rounded-lg hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
@@ -203,27 +203,27 @@ export function ModernRegistryCard({
           <RefreshCwIcon className={cn("size-4", isLoading && "animate-spin")} />
           Test
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onEdit}
           className="rounded-lg hover:bg-blue-500/5 hover:border-blue-500/30 hover:text-blue-600 transition-all duration-200"
           title="Edit registry configuration"
         >
           Edit
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onSetDefault}
           className="rounded-lg hover:bg-chart-2/5 hover:border-chart-2/30 hover:text-chart-2 transition-all duration-200"
           title="Set as default registry"
         >
           Set Default
         </Button>
-        <Button 
-          variant="destructive" 
-          size="sm" 
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={onDelete}
           className="rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
           title="Remove this registry"
@@ -255,13 +255,13 @@ export function RegistryLoading({ count = 4 }: RegistryLoadingProps) {
             </div>
             <Skeleton className="size-8 rounded-lg" />
           </div>
-          
+
           <div className="flex gap-2">
             <Skeleton className="h-5 w-16 rounded" />
             <Skeleton className="h-5 w-20 rounded" />
             <Skeleton className="h-5 w-24 rounded" />
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between">
               <Skeleton className="h-4 w-24" />
@@ -269,7 +269,7 @@ export function RegistryLoading({ count = 4 }: RegistryLoadingProps) {
             </div>
             <Skeleton className="h-2 w-full rounded-full" />
           </div>
-          
+
           <div className="flex gap-2 pt-2">
             <Skeleton className="h-9 w-16 rounded-lg" />
             <Skeleton className="h-9 w-14 rounded-lg" />
@@ -296,8 +296,8 @@ export function RegistryEmpty({ onAddRegistry, searchQuery }: RegistryEmptyProps
         </div>
         <h3 className="text-xl font-semibold mb-3 text-muted-foreground">No registries found</h3>
         <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
-          We couldn't find any registries matching <span className="font-medium text-foreground bg-muted px-2 py-1 rounded-md">&quot;{searchQuery}&quot;</span>.
-          Try adjusting your search terms or <button 
+          We couldn&apos;t find any registries matching <span className="font-medium text-foreground bg-muted px-2 py-1 rounded-md">&quot;{searchQuery}&quot;</span>.
+          Try adjusting your search terms or <button
             onClick={onAddRegistry}
             className="text-primary hover:underline font-medium transition-colors"
           >add a new registry</button>.
@@ -317,7 +317,7 @@ export function RegistryEmpty({ onAddRegistry, searchQuery }: RegistryEmptyProps
           Welcome to Registry Management
         </h3>
         <p className="text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed text-lg">
-          Connect your first container registry to start managing Docker images, monitoring performance, 
+          Connect your first container registry to start managing Docker images, monitoring performance,
           and ensuring reliable deployments across your infrastructure.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

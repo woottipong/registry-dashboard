@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
-import { handleApiError, createAppError } from "@/lib/error-handling"
+import { createAppError } from "@/lib/error-handling"
 import type { ApiResponse } from "@/types/api"
 import type { ImageManifest } from "@/types/manifest"
 

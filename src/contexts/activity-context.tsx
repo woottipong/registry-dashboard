@@ -19,6 +19,8 @@ interface ActivityContextType {
   isLoading: boolean
 }
 
+type StoredActivity = Omit<ActivityItem, 'timestamp'> & { timestamp: string }
+
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined)
 
 export function ActivityProvider({ children }: { children: React.ReactNode }) {
@@ -39,7 +41,7 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
           // Fall back to localStorage if server fails
           const stored = localStorage.getItem('registry-activities')
           if (stored) {
-            const parsedActivities = JSON.parse(stored).map((activity: any) => ({
+            const parsedActivities = (JSON.parse(stored) as StoredActivity[]).map((activity) => ({
               ...activity,
               timestamp: new Date(activity.timestamp)
             }))
@@ -51,7 +53,7 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
         // Fall back to localStorage
         const stored = localStorage.getItem('registry-activities')
         if (stored) {
-          const parsedActivities = JSON.parse(stored).map((activity: any) => ({
+          const parsedActivities = (JSON.parse(stored) as StoredActivity[]).map((activity) => ({
             ...activity,
             timestamp: new Date(activity.timestamp)
           }))

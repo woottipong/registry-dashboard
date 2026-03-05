@@ -1,9 +1,9 @@
 "use client"
 
+import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { RegistrySearch, ModernRegistryCard, RegistryLoading, RegistryEmpty } from "@/components/registry/registry-ui-components"
 import { useRegistriesState } from "@/hooks/use-registries-state"
 import type { RegistryConnection } from "@/types/registry"
@@ -14,7 +14,6 @@ interface ModernRegistriesPageProps {
 
 export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPageProps = {}) {
   const {
-    registries,
     isLoading,
     searchQuery,
     setSearchQuery,
@@ -32,7 +31,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
     <section className="space-y-8 max-w-6xl mx-auto">
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <a href="/" className="hover:text-foreground transition-colors">Home</a>
+        <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
         <span>/</span>
         <span className="text-foreground font-medium">Registries</span>
       </nav>
@@ -48,7 +47,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             Connect to Docker Hub, ECR, GCR, and more to streamline your container workflow.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4 animate-in slide-in-from-right-4 duration-500 delay-200">
           <RegistrySearch
             value={searchQuery}
@@ -56,9 +55,9 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             onClear={() => setSearchQuery('')}
             disabled={isLoading}
           />
-          
-          <Button 
-            onClick={handleAddRegistry} 
+
+          <Button
+            onClick={handleAddRegistry}
             size="lg"
             className="rounded-xl px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-chart-2 hover:from-primary/90 hover:to-chart-2/90"
           >
@@ -73,15 +72,15 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {isLoading ? (
           <RegistryLoading count={4} />
         ) : isEmpty ? (
-          <RegistryEmpty 
+          <RegistryEmpty
             onAddRegistry={handleAddRegistry}
             searchQuery={searchQuery}
           />
         ) : (
           <div className="grid gap-6 grid-cols-2 animate-in fade-in-0 duration-500 delay-500">
             {filteredRegistries.map((registry, index) => (
-              <div 
-                key={registry.id} 
+              <div
+                key={registry.id}
                 className="animate-in slide-in-from-bottom-4 duration-300"
                 style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
               >

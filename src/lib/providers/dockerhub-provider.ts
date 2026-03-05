@@ -44,17 +44,6 @@ interface DockerHubAuthResponse {
   token: string
 }
 
-interface DockerHubError {
-  message: string
-  code?: string
-  details?: unknown
-}
-
-interface DockerRegistryTokenResponse {
-  token: string
-  access_token?: string
-}
-
 export class DockerHubProvider implements RegistryProvider {
   readonly type = "dockerhub" as const
   private readonly registryClient: RegistryHttpClient
@@ -257,8 +246,8 @@ export class DockerHubProvider implements RegistryProvider {
     // Use authenticated username if available (for private repos)
     // Otherwise use configured namespace or default to library
     return this.authenticatedUsername ??
-           this.connection.namespace ??
-           this.config.defaultNamespace
+      this.connection.namespace ??
+      this.config.defaultNamespace
   }
 
   /**

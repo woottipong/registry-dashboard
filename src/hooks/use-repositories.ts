@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
+import { encodeRepoPath } from "@/lib/utils"
+import { queryKeys } from "@/lib/constants/query-keys"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Repository } from "@/types/registry"
 
@@ -73,7 +75,7 @@ export function useRepositories(
   options: RepositoryQueryOptions = {},
 ) {
   return useQuery({
-    queryKey: ["repositories", registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? "", options.namespace ?? ""],
+    queryKey: queryKeys.repositories.byRegistry(registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? "", options.namespace ?? ""),
     enabled: Boolean(registryId) && options.namespace !== undefined,
     staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchRepositories(registryId, options),
@@ -82,7 +84,7 @@ export function useRepositories(
 
 export function useSearchRepositories(registryId: string, query: string) {
   return useQuery({
-    queryKey: ["repositories", "search", registryId, query],
+    queryKey: queryKeys.repositories.search(registryId, query),
     enabled: Boolean(registryId && query.trim().length > 0),
     staleTime: STALE_TIME_REPOSITORIES,
     queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 100 }), // Increased from 25 to 100
@@ -94,10 +96,7 @@ export function useDeleteRepository() {
 
   return useMutation({
     mutationFn: async ({ registryId, repositoryName }: { registryId: string; repositoryName: string }) => {
-      const encodedRepoPath = repositoryName
-        .split("/")
-        .map((segment) => encodeURIComponent(segment))
-        .join("/")
+      const encodedRepoPath = encodeRepoPath(repositoryName)
 
       const response = await fetch(
         `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}`,
@@ -113,7 +112,7 @@ export function useDeleteRepository() {
       return { registryId, repositoryName }
     },
     onSuccess: async ({ registryId }) => {
-      await queryClient.invalidateQueries({ queryKey: ["repositories", registryId] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.repositories.prefix(registryId) })
     },
   })
 }

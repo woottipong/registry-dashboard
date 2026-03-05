@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
-import type { ApiResponse, PaginationMeta } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import type { Tag } from "@/types/registry"
 
 interface RouteContext {
@@ -91,7 +91,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const provider = createProvider(registry!)
-    
+
     // Check if provider supports deletion
     const capabilities = provider.capabilities()
     if (!capabilities.canDelete) {

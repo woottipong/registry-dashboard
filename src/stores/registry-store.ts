@@ -10,7 +10,6 @@ interface RegistryStoreState {
   updateRegistry: (id: string, changes: Partial<RegistryConnection>) => void
   removeRegistry: (id: string) => void
   setDefault: (id: string) => void
-  clearAll: () => void
 }
 
 const STORAGE_KEY = "registry-dashboard:registry-store"
@@ -88,10 +87,10 @@ export const useRegistryStore = create<RegistryStoreState>()(
           registries: state.registries.map((registry) =>
             registry.id === id
               ? {
-                  ...registry,
-                  ...changes,
-                  updatedAt: new Date().toISOString(),
-                }
+                ...registry,
+                ...changes,
+                updatedAt: new Date().toISOString(),
+              }
               : registry,
           ),
         })),
@@ -106,10 +105,6 @@ export const useRegistryStore = create<RegistryStoreState>()(
             isDefault: registry.id === id,
           })),
         })),
-      clearAll: () => {
-        set({ registries: [] })
-        encryptedStorage.removeItem(STORAGE_KEY)
-      },
     }),
     {
       name: STORAGE_KEY,

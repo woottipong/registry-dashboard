@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { STALE_TIME_MANIFEST } from "@/lib/query-client"
+import { encodeRepoPath } from "@/lib/utils"
+import { queryKeys } from "@/lib/constants/query-keys"
 import type { ApiResponse } from "@/types/api"
 import type { ImageConfig, ImageManifest } from "@/types/manifest"
 
@@ -14,16 +16,9 @@ interface HttpError extends Error {
   status: number
 }
 
-function encodeRepoPath(repoName: string): string {
-  return repoName
-    .split("/")
-    .map((segment) => encodeURIComponent(segment))
-    .join("/")
-}
-
 export function useManifest(registryId: string, repoName: string, ref: string) {
   return useQuery({
-    queryKey: ["manifest", registryId, repoName, ref],
+    queryKey: queryKeys.manifests.byRef(registryId, repoName, ref),
     enabled: Boolean(registryId && repoName && ref),
     staleTime: STALE_TIME_MANIFEST,
     retry: false, // Disable retries completely to prevent infinite loops
@@ -54,7 +49,7 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
         const digest = manifestPayload.data.config.digest
         const encodedDigest = encodeURIComponent(digest)
 
-      const configResponse = await fetch(
+        const configResponse = await fetch(
           `/api/v1/registries/${registryId}/blobs/${encodedRepoPath}/${encodedDigest}`,
           { cache: "no-store" },
         )
