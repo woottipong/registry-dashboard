@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { create } from "zustand"
+import { useDebounce } from "@/hooks/use-debounce"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 interface CommandPaletteStore {
@@ -35,16 +36,7 @@ const useCommandPaletteStore = create<CommandPaletteStore>()(
 export function useCommandPalette() {
   const { open, history, setOpen, addHistory, clearHistory } = useCommandPaletteStore()
   const [query, setQuery] = useState("")
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [debouncedQuery, setDebouncedQuery] = useState("")
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => setDebouncedQuery(query), 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [query])
+  const debouncedQuery = useDebounce(query, 300)
 
   // ⌘K / Ctrl+K global shortcut
   useEffect(() => {

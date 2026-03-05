@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useCallback } from "react"
 import Link from "next/link"
+import { useDebounce } from "@/hooks/use-debounce"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { SearchIcon, PlusIcon, FolderIcon, ChevronLeftIcon, ChevronRightIcon, BoxIcon } from "lucide-react"
 import { RepoTable } from "@/components/repository/repo-table"
@@ -21,12 +22,7 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
   const namespaceParam = searchParams.get("namespace")
 
   const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
+  const debouncedSearch = useDebounce(search)
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value)

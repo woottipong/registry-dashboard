@@ -1,7 +1,7 @@
 # T-214 — Shared `useDebounce` Hook
 
 **Epic**: M9 / 9.2 Code Quality & DRY  
-**Status**: 🔵 In Progress  
+**Status**: ✅ Done (2026-03-06)  
 **Priority**: P0  
 **Severity**: 🟡 MEDIUM  
 **Effort**: ~30 min  

@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.  
 > Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-06
+> Last updated: 2026-03-06 (T-214 done)
 
 ---
 
@@ -54,7 +54,7 @@
 | [T-211](./t-211-query-key-factory.md) | Centralized query key factory | ✅ Done | 45 min | 🟡 MEDIUM | ✅ | `constants/query-keys.ts` |
 | [T-212](./t-212-assert-api-success.md) | `assertApiSuccess<T>()` helper | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | `error-handling.ts` |
 | [T-213](./t-213-modern-components-cleanup.md) | Remove `modern-*` duplicates | 🟡 Todo | 1 hr | 🟡 MEDIUM | | `app/`, `components/dashboard/` |
-| [T-214](./t-214-debounce-hook.md) | Shared `useDebounce` hook | 🔵 In Progress | 30 min | 🟡 MEDIUM | ✅ | `hooks/use-debounce.ts` (new) |
+| [T-214](./t-214-debounce-hook.md) | Shared `useDebounce` hook | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | `hooks/use-debounce.ts` |
 
 ### 9.3 Performance Optimization — P1
 
@@ -150,11 +150,11 @@ These are independent — multiple contributors can work in parallel.
 | Category | Total | Done | In Progress | Todo | Backlog |
 |----------|-------|------|-------------|------|---------|
 | Security | 6 | 0 | 0 | 6 | 0 |
-| Code Quality | 5 | 3 | 1 | 1 | 0 |
+| Code Quality | 5 | 4 | 0 | 1 | 0 |
 | Performance | 5 | 0 | 0 | 5 | 0 |
 | Accessibility | 4 | 0 | 0 | 4 | 0 |
 | Lint/Types | 2 | 2 | 0 | 0 | 0 |
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
 | Testing | 3 | 0 | 0 | 0 | 3 |
-| **Total** | **35** | **6** | **1** | **16** | **12** |
+| **Total** | **35** | **7** | **0** | **16** | **12** |

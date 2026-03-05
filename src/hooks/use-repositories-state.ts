@@ -1,7 +1,8 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useRegistries } from '@/hooks/use-registries'
 import { useRepositories as useRepositoriesQuery, useSearchRepositories } from '@/hooks/use-repositories'
+import { useDebounce } from '@/hooks/use-debounce'
 import { REPOSITORY_CONFIG } from '@/lib/constants/repository'
 import type { RegistryConnection, Repository } from '@/types/registry'
 
@@ -15,19 +16,19 @@ interface UseRepositoriesStateReturn {
   search: string
   debouncedSearch: string
   selectedRegistry: string
-  
+
   // Data
   registries: RegistryConnection[]
   repositories: Repository[]
   isLoading: boolean
   isError: boolean
-  
+
   // Actions
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   handleRegistryChange: (id: string) => void
   clearSearch: () => void
   refetch: () => void
-  
+
   // Computed
   hasSearch: boolean
   isEmpty: boolean
@@ -42,16 +43,7 @@ export function useRepositoriesState({ initialRegistry, initialRegistries }: Use
 
   // Search state
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search)
-    }, REPOSITORY_CONFIG.SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [search])
+  const debouncedSearch = useDebounce(search, REPOSITORY_CONFIG.SEARCH_DEBOUNCE_MS)
 
   // Registry data
   const registriesQuery = useRegistries({
@@ -120,19 +112,19 @@ export function useRepositoriesState({ initialRegistry, initialRegistries }: Use
     search,
     debouncedSearch,
     selectedRegistry,
-    
+
     // Data
     registries: registriesQuery.data ?? [],
     repositories,
     isLoading,
     isError,
-    
+
     // Actions
     handleSearchChange,
     handleRegistryChange,
     clearSearch,
     refetch,
-    
+
     // Computed
     hasSearch,
     isEmpty,
