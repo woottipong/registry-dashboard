@@ -4,6 +4,15 @@ import type { RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
 import { UnsupportedError } from "@/lib/providers/types"
 
+// Docker Hub API Constants
+const DOCKER_HUB_CONFIG = {
+  baseUrl: "https://hub.docker.com",
+  registryUrl: "https://registry-1.docker.io",
+  apiVersion: "v2",
+  defaultNamespace: "library",
+  defaultPageSize: 25,
+} as const
+
 interface DockerHubRepoResponse {
   count: number
   results: Array<{
@@ -31,78 +40,128 @@ interface DockerHubTagResponse {
   next?: string | null
 }
 
+interface DockerHubAuthResponse {
+  token: string
+}
+
+interface DockerHubError {
+  message: string
+  code?: string
+  details?: unknown
+}
+
+interface DockerRegistryTokenResponse {
+  token: string
+  access_token?: string
+}
+
 export class DockerHubProvider implements RegistryProvider {
   readonly type = "dockerhub" as const
   private readonly registryClient: RegistryHttpClient
-  private readonly defaultNamespace: string
+  private readonly config: typeof DOCKER_HUB_CONFIG
+  private hubJwtToken: string | null = null
+  private authenticatedUsername: string | null = null
 
   constructor(private readonly connection: RegistryConnection) {
     this.registryClient = new RegistryHttpClient(connection)
-    this.defaultNamespace = connection.namespace ?? "library"
+    this.config = DOCKER_HUB_CONFIG
   }
 
   async ping(): Promise<boolean> {
-    await this.registryClient.request<unknown>("https://registry-1.docker.io/v2/")
-    return true
+    try {
+      // Test Docker Hub API access
+      await this.authenticateHubApi()
+      return true
+    } catch {
+      return false
+    }
   }
 
   async listRepositories(options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
+    await this.ensureAuthenticated()
+
     const page = options.page ?? 1
-    const perPage = options.perPage ?? 25
-    const namespace = this.defaultNamespace
+    const perPage = options.perPage ?? this.config.defaultPageSize
+    const namespace = this.getEffectiveNamespace()
 
-    const response = await this.registryClient.request<DockerHubRepoResponse>(
-      `https://hub.docker.com/v2/repositories/${namespace}/?page=${page}&page_size=${perPage}`,
-    )
+    try {
+      const headers: HeadersInit = {}
+      if (this.hubJwtToken) {
+        headers.Authorization = `JWT ${this.hubJwtToken}`
+      }
 
-    return {
-      items: response.results.map((repo) => ({
-        name: repo.name,
-        namespace: repo.namespace,
-        fullName: `${repo.namespace}/${repo.name}`,
-        description: repo.description,
-        isPrivate: repo.is_private,
-        isOfficial: repo.is_official,
-        starCount: repo.star_count,
-        pullCount: repo.pull_count,
-        lastUpdated: repo.last_updated,
-      })),
-      page,
-      perPage,
-      total: response.count,
-      nextCursor: response.next,
+      const response = await this.registryClient.request<DockerHubRepoResponse>(
+        `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page=${page}&page_size=${perPage}`,
+        { headers },
+      )
+
+      return {
+        items: response.results.map(repo => this.mapRepositoryResponse(repo)),
+        page,
+        perPage,
+        total: response.count,
+        nextCursor: response.next,
+      }
+    } catch (error) {
+      this.handleApiError(error, `Failed to list repositories for namespace ${namespace}`)
     }
   }
 
   async searchRepositories(query: string): Promise<PaginatedResult<Repository>> {
-    const response = await this.registryClient.request<DockerHubRepoResponse>(
-      `https://hub.docker.com/v2/search/repositories/?query=${encodeURIComponent(query)}&page_size=25`,
-    )
+    await this.ensureAuthenticated()
 
+    try {
+      const headers: HeadersInit = {}
+      if (this.hubJwtToken) {
+        headers.Authorization = `JWT ${this.hubJwtToken}`
+      }
+
+      const response = await this.registryClient.request<DockerHubRepoResponse>(
+        `${this.config.baseUrl}/${this.config.apiVersion}/search/repositories/?query=${encodeURIComponent(query)}&page_size=${this.config.defaultPageSize}`,
+        { headers },
+      )
+
+      return {
+        items: response.results.map(repo => this.mapRepositoryResponse(repo)),
+        page: 1,
+        perPage: this.config.defaultPageSize,
+        total: response.count,
+        nextCursor: response.next,
+      }
+    } catch (error) {
+      this.handleApiError(error, `Failed to search repositories with query: ${query}`)
+    }
+  }
+
+  private mapRepositoryResponse(repo: DockerHubRepoResponse['results'][0]): Repository {
     return {
-      items: response.results.map((repo) => ({
-        name: repo.name,
-        namespace: repo.namespace,
-        fullName: `${repo.namespace}/${repo.name}`,
-        description: repo.description,
-        isOfficial: repo.is_official,
-        starCount: repo.star_count,
-        pullCount: repo.pull_count,
-        lastUpdated: repo.last_updated,
-      })),
-      page: 1,
-      perPage: 25,
-      total: response.count,
-      nextCursor: response.next,
+      name: repo.name,
+      namespace: repo.namespace,
+      fullName: `${repo.namespace}/${repo.name}`,
+      description: repo.description,
+      isPrivate: repo.is_private,
+      isOfficial: repo.is_official,
+      starCount: repo.star_count,
+      pullCount: repo.pull_count,
+      lastUpdated: repo.last_updated,
+      tagCount: undefined, // Docker Hub doesn't provide this in listing
     }
   }
 
   async listTags(repo: string, options: ListOptions = {}): Promise<PaginatedResult<Tag>> {
+    await this.authenticateHubApi()
+
     const page = options.page ?? 1
     const perPage = options.perPage ?? 25
 
+    const headers: HeadersInit = {}
+    if (this.hubJwtToken) {
+      headers.Authorization = `JWT ${this.hubJwtToken}`
+    }
+
     const response = await this.registryClient.request<DockerHubTagResponse>(
       `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
+      { headers },
     )
 
     return {
@@ -122,29 +181,46 @@ export class DockerHubProvider implements RegistryProvider {
   }
 
   async getManifest(repo: string, ref: string): Promise<ImageManifest> {
-    const manifest = await this.registryClient.request<Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }>(
-      `https://registry-1.docker.io/v2/${repo}/manifests/${ref}`,
-      {
-        headers: {
-          Accept:
-            "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json",
+    console.log(`[DockerHubProvider] Getting manifest for ${repo}:${ref}`)
+    await this.authenticateHubApi()
+
+    try {
+      console.log(`[DockerHubProvider] Making manifest request to registry-1.docker.io/v2/${repo}/manifests/${ref}`)
+      const manifest = await this.registryClient.request<Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }>(
+        `https://registry-1.docker.io/v2/${repo}/manifests/${ref}`,
+        {
+          headers: {
+            Accept:
+              "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json",
+          },
         },
-      },
-    )
+      )
 
-    const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
+      const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
 
-    return {
-      ...manifest,
-      digest: manifest.digest ?? ref,
-      totalSize,
+      return {
+        ...manifest,
+        digest: manifest.digest ?? ref,
+        totalSize,
+      }
+    } catch (error) {
+      console.error(`[DockerHubProvider] Failed to get manifest for ${repo}:${ref}:`, error)
+      throw error
     }
   }
 
   async getConfig(repo: string, digest: string): Promise<ImageConfig> {
-    return this.registryClient.request<ImageConfig>(
-      `https://registry-1.docker.io/v2/${repo}/blobs/${digest}`,
-    )
+    console.log(`[DockerHubProvider] Getting config for ${repo}:${digest}`)
+    await this.authenticateHubApi()
+
+    try {
+      return this.registryClient.request<ImageConfig>(
+        `https://registry-1.docker.io/v2/${repo}/blobs/${digest}`,
+      )
+    } catch (error) {
+      console.error(`[DockerHubProvider] Failed to get config for ${repo}:${digest}:`, error)
+      throw error
+    }
   }
 
   async deleteManifest(): Promise<void> {
@@ -152,6 +228,7 @@ export class DockerHubProvider implements RegistryProvider {
   }
 
   async authenticate(): Promise<void> {
+    await this.authenticateHubApi()
     await this.ping()
   }
 
@@ -161,6 +238,135 @@ export class DockerHubProvider implements RegistryProvider {
       canDelete: false,
       canSearch: true,
       hasRateLimit: true,
+    }
+  }
+
+  /**
+   * Ensure authentication is set up before making API calls
+   */
+  private async ensureAuthenticated(): Promise<void> {
+    await this.authenticateHubApi()
+  }
+
+  /**
+   * Get the effective namespace to use for API calls
+   */
+  private getEffectiveNamespace(): string {
+    // Use authenticated username if available (for private repos)
+    // Otherwise use configured namespace or default to library
+    return this.authenticatedUsername ??
+           this.connection.namespace ??
+           this.config.defaultNamespace
+  }
+
+  /**
+   * Handle API errors with consistent logging and error transformation
+   */
+  private handleApiError(error: unknown, context: string): never {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error(`[DockerHubProvider] ${context}:`, errorMessage)
+
+    // Re-throw with context for better debugging
+    throw new Error(`${context}: ${errorMessage}`)
+  }
+
+  /**
+   * Authenticate with Docker Hub API using personal access token
+   * This gets a JWT token for accessing private repositories and enhanced API features
+   */
+  private async authenticateHubApi(): Promise<void> {
+    // Skip authentication if no credentials provided (public access only)
+    if (!this.hasCredentials()) {
+      return
+    }
+
+    // If we already have a valid JWT token, no need to re-authenticate
+    if (this.hubJwtToken) {
+      return
+    }
+
+    try {
+      const authResponse = await this.performAuthentication()
+      this.hubJwtToken = authResponse.token
+      this.authenticatedUsername = this.connection.credentials!.username ?? null
+
+      // Verify the token works by making a test request
+      await this.verifyAuthentication()
+
+    } catch (error) {
+      this.handleAuthenticationError(error)
+    }
+  }
+
+  /**
+   * Check if credentials are provided
+   */
+  private hasCredentials(): boolean {
+    return Boolean(
+      this.connection.credentials?.username &&
+      this.connection.credentials?.password
+    )
+  }
+
+  /**
+   * Perform the actual authentication request
+   */
+  private async performAuthentication(): Promise<DockerHubAuthResponse> {
+    return this.registryClient.request<DockerHubAuthResponse>(
+      `${this.config.baseUrl}/${this.config.apiVersion}/users/login/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: this.connection.credentials!.username,
+          password: this.connection.credentials!.password, // PAT or password
+        }),
+      },
+    )
+  }
+
+  /**
+   * Handle authentication errors with detailed logging
+   */
+  private handleAuthenticationError(error: unknown): never {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown authentication error'
+
+    console.error("[DockerHubProvider] Authentication failed:", {
+      username: this.connection.credentials?.username,
+      url: this.config.baseUrl,
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+    })
+
+    throw new Error(
+      `Docker Hub authentication failed: ${errorMessage}. ` +
+      `Please verify your username and personal access token are correct.`
+    )
+  }
+
+  /**
+   * Verify that authentication is working by making a test request
+   */
+  private async verifyAuthentication(): Promise<void> {
+    if (!this.hubJwtToken || !this.authenticatedUsername) {
+      return
+    }
+
+    try {
+      // Try to access user repositories to verify authentication
+      await this.registryClient.request<DockerHubRepoResponse>(
+        `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${this.authenticatedUsername}/?page_size=1`,
+        {
+          headers: {
+            Authorization: `JWT ${this.hubJwtToken}`
+          },
+        },
+      )
+    } catch (error) {
+      console.warn("[DockerHubProvider] Authentication verification failed:", error)
+      // Don't throw here, just log the warning as verification is optional
     }
   }
 }

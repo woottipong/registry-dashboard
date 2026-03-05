@@ -20,7 +20,11 @@ export async function GET() {
     error: null,
   }
 
-  return NextResponse.json(response)
+  return NextResponse.json(response, {
+    headers: {
+      "Cache-Control": "private, max-age=30", // Cache for 30 seconds
+    },
+  })
 }
 
 export async function POST(request: Request) {

@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { ServerIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useMounted } from "@/hooks/use-mounted"
 import type { RegistryConnection } from "@/types/registry"
 
 interface RegistryOverviewCardProps {
@@ -94,6 +96,54 @@ interface RegistryOverviewProps {
 }
 
 export function RegistryOverview({ registries, isLoading }: RegistryOverviewProps) {
+  const isMounted = useMounted()
+
+  // Always show skeletons on server and unmounted client
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col gap-4 p-2 min-h-[300px]">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="group flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap sm:items-center justify-between gap-4 p-6 transition-all duration-300 border-b border-border/50 last:border-0 relative overflow-hidden animate-pulse"
+          >
+            <div className="flex items-start gap-4 flex-1 min-w-[200px]">
+              <div className="relative shrink-0">
+                <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-b from-muted/50 to-muted/30 shadow-sm border border-border/40">
+                  <div className="w-5 h-5 bg-muted-foreground/30 rounded"></div>
+                </div>
+              </div>
+
+              <div className="flex flex-col min-w-0 gap-1.5 justify-center pt-0.5 flex-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="h-5 bg-muted-foreground/40 rounded w-32"></div>
+                  <div className="h-4 bg-primary/20 rounded-full px-2 py-0.5 w-16"></div>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-medium flex-wrap">
+                  <div className="h-3 bg-muted-foreground/20 rounded w-24"></div>
+                  <div className="flex gap-4 items-center ml-2 border-l border-border/60 pl-4">
+                    <div className="h-3 bg-muted-foreground/15 rounded w-8"></div>
+                    <div className="h-3 bg-muted-foreground/15 rounded w-10"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-right">
+                <div className="h-4 bg-muted-foreground/30 rounded w-12 mb-1"></div>
+                <div className="h-3 bg-muted-foreground/20 rounded w-16"></div>
+              </div>
+              <div className="h-8 w-20 bg-primary/20 rounded-lg"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Show loading state when mounted and still loading
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 p-2 min-h-[300px]">
@@ -142,18 +192,10 @@ export function RegistryOverview({ registries, isLoading }: RegistryOverviewProp
   if (!registries.length) return null
 
   return (
-    <div className="flex flex-col gap-3 p-2 min-h-[300px]">
+    <div className="flex flex-col gap-4 p-2 min-h-[300px]">
       {registries.map((registry) => (
         <RegistryListItem key={registry.id} registry={registry} />
       ))}
-      {registries.length === 0 && (
-        <div className="flex items-center justify-center h-[200px] text-muted-foreground/50">
-          <div className="text-center">
-            <ServerIcon className="size-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No registries connected</p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

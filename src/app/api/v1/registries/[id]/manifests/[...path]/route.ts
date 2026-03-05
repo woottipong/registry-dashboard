@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
+import { handleApiError, createAppError } from "@/lib/error-handling"
 import type { ApiResponse } from "@/types/api"
 import type { ImageManifest } from "@/types/manifest"
 
@@ -24,11 +25,17 @@ export async function GET(_request: Request, context: RouteContext) {
   const registry = getRegistry(id)
 
   if (!registry) {
+    const error = createAppError('REGISTRY_NOT_FOUND', `Registry ${id} was not found`)
     return NextResponse.json(
       {
         success: false,
         data: null,
-        error: { code: "REGISTRY_NOT_FOUND", message: `Registry ${id} was not found` },
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          userMessage: error.userMessage,
+        },
       } satisfies ApiResponse<null>,
       { status: 404 },
     )

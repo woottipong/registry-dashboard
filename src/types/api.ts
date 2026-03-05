@@ -2,6 +2,7 @@ export interface ApiError {
   code: string
   message: string
   details?: unknown
+  userMessage?: string
 }
 
 export interface PaginationMeta {

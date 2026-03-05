@@ -81,7 +81,10 @@ export function useDashboardData() {
       // If query is still loading, use cached or partial data
       const repos = queryResult?.data?.items ?? []
       const repoCount = repos.length
-      const tagCount = repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
+      // For providers that don't provide tag counts (like Docker Hub),
+      // we'll leave tagCount undefined until we can fetch it separately
+      const tagCount = repos.some(r => r.tagCount !== undefined) ?
+        repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0) : undefined
       const sizeBytes = repos.reduce((sum: number, r: Repository) => sum + (r.sizeBytes ?? 0), 0)
 
       // Only add to chart data if we have repositories
@@ -98,13 +101,13 @@ export function useDashboardData() {
       }
 
       totalRepos += repoCount
-      totalTagsCount += tagCount
+      totalTagsCount += tagCount ?? 0  // Only add if tagCount is defined
       totalSize += sizeBytes
 
       return {
         ...registry,
         repoCount,
-        tagCount,
+        tagCount: tagCount ?? 0,  // Ensure tagCount is always a number
         sizeBytes
       }
     })

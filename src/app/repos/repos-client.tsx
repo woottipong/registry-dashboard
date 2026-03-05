@@ -20,11 +20,14 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
 
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [showAllRepos, setShowAllRepos] = useState(false)
 
   // Debounce search input to prevent excessive API calls
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search)
+      // Reset to show initial subset when search changes
+      setShowAllRepos(false)
     }, 300)
 
     return () => clearTimeout(timer)
@@ -55,21 +58,60 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
 
   const repositoriesQuery = useRepositories(selectedRegistry, {
     page: 1,
-    perPage: 100,
-    search: debouncedSearch || undefined,
+    perPage: showAllRepos ? 200 : 50, // Load more when showing all repos
+    search: undefined, // Don't search on main query, we'll handle search separately
   })
 
   const searchQuery = useSearchRepositories(selectedRegistry, debouncedSearch)
 
+  // Smart search logic: use client-side search when we have loaded data, server-side fallback
   const activeResult = useMemo(() => {
     if (debouncedSearch.trim().length > 0) {
-      return searchQuery.data
+      // If we have loaded repositories and user is searching, try client-side search first
+      const loadedRepos = repositoriesQuery.data?.items ?? []
+      const hasLoadedRepos = loadedRepos.length > 0 && (showAllRepos || loadedRepos.length >= 50)
+
+      if (hasLoadedRepos) {
+        // Client-side search on loaded repositories (instant results)
+        const searchTerm = debouncedSearch.toLowerCase()
+        const filteredRepos = loadedRepos.filter(repo =>
+          repo.name.toLowerCase().includes(searchTerm) ||
+          repo.description?.toLowerCase().includes(searchTerm) ||
+          repo.namespace?.toLowerCase().includes(searchTerm) ||
+          `${repo.namespace}/${repo.name}`.toLowerCase().includes(searchTerm)
+        )
+
+        return {
+          items: filteredRepos,
+          meta: {
+            page: 1,
+            perPage: filteredRepos.length,
+            total: filteredRepos.length,
+          }
+        }
+      } else {
+        // Fall back to server-side search when we don't have enough loaded data
+        return searchQuery.data
+      }
     }
 
+    // No search - return main repositories
     return repositoriesQuery.data
-  }, [repositoriesQuery.data, searchQuery.data, debouncedSearch])
+  }, [repositoriesQuery.data, searchQuery.data, debouncedSearch, showAllRepos])
+
+  // Determine if we're using client-side or server-side search
+  const isClientSideSearch = useMemo(() => {
+    return debouncedSearch.trim().length > 0 &&
+           (repositoriesQuery.data?.items ?? []).length > 0 &&
+           (showAllRepos || (repositoriesQuery.data?.items ?? []).length >= 50)
+  }, [debouncedSearch, repositoriesQuery.data, showAllRepos])
 
   const items = activeResult?.items ?? []
+
+  // Progressive loading: show initial subset or all repos
+  const displayedRepos = showAllRepos ? items : items.slice(0, 12) // Show first 12 initially
+  const hasMoreRepos = items.length > 12 && !showAllRepos
+  const totalRepos = activeResult?.meta?.total ?? 0
 
   return (
     <section className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-300">
@@ -210,9 +252,39 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
           <div key={`${selectedRegistry}-${search}`} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <RepoGroupedView
               registryId={selectedRegistry}
-              repositories={items}
+              repositories={displayedRepos}
               viewMode="table"
             />
+
+            {/* Load More Button */}
+            {hasMoreRepos && (
+              <div className="mt-8 flex flex-col items-center justify-center space-y-4">
+                <div className="text-center text-sm text-muted-foreground">
+                  Showing {displayedRepos.length} of {totalRepos} repositories
+                </div>
+                <Button
+                  onClick={() => setShowAllRepos(true)}
+                  variant="outline"
+                  size="lg"
+                  className="rounded-2xl px-8"
+                  disabled={repositoriesQuery.isLoading}
+                >
+                  {repositoriesQuery.isLoading ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Load All Repositories
+                      <span className="ml-2 text-xs opacity-70">
+                        ({totalRepos - displayedRepos.length} more)
+                      </span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

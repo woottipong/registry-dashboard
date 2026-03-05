@@ -35,7 +35,8 @@ export async function fetchRepositories(
   const response = await fetch(
     `/api/v1/registries/${registryId}/repositories${queryString}`,
     {
-      cache: "no-store",
+      // Enable client-side caching for better performance
+      cache: "default", // Changed from "no-store" to enable caching
     },
   )
 
@@ -68,7 +69,7 @@ export function useSearchRepositories(registryId: string, query: string) {
     queryKey: ["repositories", "search", registryId, query],
     enabled: Boolean(registryId && query.trim().length > 0),
     staleTime: STALE_TIME_REPOSITORIES,
-    queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 25 }),
+    queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 100 }), // Increased from 25 to 100
   })
 }
 

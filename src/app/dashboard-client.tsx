@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { LayersIcon } from "lucide-react"
-import { StatsCards } from "@/components/dashboard/stats-cards"
 import { DashboardSections } from "@/components/dashboard/dashboard-sections"
 import { Button } from "@/components/ui/button"
 import { useActivity } from "@/contexts/activity-context"
@@ -12,7 +11,7 @@ export function DashboardClient() {
   const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData()
   const { activities } = useActivity()
 
-  const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = dashboardData
+  const { chartData, registriesWithStats } = dashboardData
 
   if (!isLoadingRegistries && registries.length === 0) {
     return (
@@ -47,15 +46,6 @@ export function DashboardClient() {
           <p className="text-muted-foreground/80 font-medium">Aggregated statistics and connections for your registries.</p>
         </div>
       </div>
-
-      <StatsCards
-        totalRegistries={isLoadingRegistries ? undefined : registries.length}
-        totalRepositories={registries.length ? totalRepositories : undefined}
-        totalTags={registries.length ? totalTags : undefined}
-        totalSizeBytes={registries.length ? totalSizeBytes : undefined}
-        isLoadingRegistries={isLoadingRegistries}
-        isLoadingRepos={isLoadingRepos}
-      />
 
       <DashboardSections
         registriesWithStats={registriesWithStats}

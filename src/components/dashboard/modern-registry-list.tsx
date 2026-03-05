@@ -92,14 +92,18 @@ export function ModernRegistryCard({
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-6 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-neutral-900">{repoCount ?? 0}</span>
-              <span className="text-neutral-500">Repositories</span>
+              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+              <span className="text-muted-foreground">Repos:</span>
+              <span className="font-medium text-foreground">{repoCount?.toLocaleString() ?? '...'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-neutral-900">{tagCount ?? 0}</span>
-              <span className="text-neutral-500">Tags</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="text-muted-foreground">Tags:</span>
+              <span className="font-medium text-foreground">
+                {tagCount !== undefined ? tagCount.toLocaleString() : '...'}
+              </span>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import React from "react"
 import { DatabaseIcon, HardDriveIcon, PackageIcon, TagIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatBytes } from "@/lib/format"
+import { useMounted } from "@/hooks/use-mounted"
 
 interface StatsCardsProps {
   totalRegistries?: number
@@ -22,33 +23,35 @@ export function StatsCards({
   isLoadingRegistries,
   isLoadingRepos,
 }: StatsCardsProps) {
+  const isMounted = useMounted()
+
   const stats = [
     {
       label: "Registries",
       icon: DatabaseIcon,
       value: totalRegistries,
-      isLoading: (isLoadingRegistries ?? false) && totalRegistries === undefined,
+      isLoading: isMounted && (isLoadingRegistries ?? false) && totalRegistries === undefined,
       format: (v: number) => v.toString(),
     },
     {
       label: "Repositories",
       icon: PackageIcon,
       value: totalRepositories,
-      isLoading: (isLoadingRepos ?? false) && totalRepositories === undefined,
+      isLoading: isMounted && (isLoadingRepos ?? false) && totalRepositories === undefined,
       format: (v: number) => v.toLocaleString(),
     },
     {
       label: "Total Tags",
       icon: TagIcon,
       value: totalTags,
-      isLoading: (isLoadingRepos ?? false) && totalTags === undefined,
+      isLoading: isMounted && (isLoadingRepos ?? false) && totalTags === undefined,
       format: (v: number) => v.toLocaleString(),
     },
     {
       label: "Storage",
       icon: HardDriveIcon,
       value: totalSizeBytes,
-      isLoading: (isLoadingRepos ?? false) && totalSizeBytes === undefined,
+      isLoading: isMounted && (isLoadingRepos ?? false) && totalSizeBytes === undefined,
       format: (v: number) => formatBytes(v),
     },
   ]

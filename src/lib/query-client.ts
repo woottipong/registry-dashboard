@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 
 const STALE_TIME_REGISTRIES = 30 * 1000
-const STALE_TIME_REPOSITORIES = 60 * 1000
+const STALE_TIME_REPOSITORIES = 2 * 60 * 1000 // 2 minutes - longer for repositories to enable SWR
 const STALE_TIME_TAGS = 30 * 1000
 const STALE_TIME_MANIFEST = 10 * 60 * 1000 // manifests are immutable
 

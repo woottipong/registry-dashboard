@@ -170,7 +170,7 @@ Copy `.env.example` to `.env.local` (dev) or `.env` (Docker) and configure:
 | Registry | Browse | Search | Delete | Rate Limit | Status |
 |---|---|---|---|---|---|
 | Docker Registry V2 | ✅ | — | ✅ | — | **Implemented** |
-| Docker Hub | ✅ | ✅ | — | ✅ tracked | **Implemented** |
+| Docker Hub | ✅ | ✅ | — | ✅ tracked | **Implemented** <br/>*Personal Access Tokens supported* |
 | GHCR | planned | — | planned | — | *Coming Soon* |
 | ECR | planned | — | planned | — | *Coming Soon* |
 | Harbor | planned | — | planned | — | *Coming Soon* |

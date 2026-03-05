@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import {
   FolderOpenIcon,
   LayoutDashboardIcon,
@@ -12,6 +13,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useMounted } from "@/hooks/use-mounted"
 import type { RegistryConnection } from "@/types/registry"
 
 interface SidebarProps {
@@ -30,6 +32,7 @@ function SidebarBody() {
   const searchParams = useSearchParams()
   const currentRegistryId = searchParams.get("registry")
   const { data: registries, isLoading } = useRegistries()
+  const isMounted = useMounted()
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
@@ -91,12 +94,12 @@ function SidebarBody() {
           </div>
 
           <div className="space-y-1 max-h-[300px] overflow-y-auto scrollbar-none">
-            {isLoading ? (
+            {isMounted && isLoading ? (
               <div className="space-y-2 px-2">
                 <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
                 <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
               </div>
-            ) : registries && registries.length > 0 ? (
+            ) : isMounted && registries && registries.length > 0 ? (
               registries.map((registry: RegistryConnection) => {
                 const active = pathname.startsWith("/repos") && currentRegistryId === registry.id
 
@@ -127,8 +130,9 @@ function SidebarBody() {
                 )
               })
             ) : (
-              <div className="px-3 py-4 text-[11px] text-center border border-dashed rounded-xl text-muted-foreground/60">
-                Connect your first registry to get started.
+              <div className="space-y-2 px-2">
+                <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
+                <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
               </div>
             )}
           </div>
