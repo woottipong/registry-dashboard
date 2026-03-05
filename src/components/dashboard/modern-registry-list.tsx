@@ -176,7 +176,7 @@ export function ModernRegistryList({
         ))
       ) : (
         // Actual registry cards
-        registries.map((registry, index) => (
+        registries.map((registry) => (
           <ModernRegistryCard
             key={registry.id}
             registry={registry}

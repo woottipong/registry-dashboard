@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useCallback, useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import {
   AlertTriangleIcon,
@@ -21,7 +21,6 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import dynamic from "next/dynamic"
 import { ManifestSkeleton } from "@/components/skeletons"
@@ -52,10 +51,6 @@ interface ImageInspectorProps {
   registryName?: string
 }
 
-const defaultProps: Partial<ImageInspectorProps> = {
-  registryName: undefined,
-}
-
 // Extract MetricCard component
 interface MetricCardProps {
   icon: React.ComponentType<{ className?: string }>
@@ -76,46 +71,16 @@ const MetricCard = React.memo(({ icon: Icon, label, value, iconColor }: MetricCa
 
 MetricCard.displayName = 'MetricCard'
 
-// Error boundary component
-class ImageInspectorErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
-  }
+// Main component wrapped with error boundary
+const ImageInspectorWithBoundary = React.memo((props: ImageInspectorProps) => (
+  <ErrorBoundary>
+    <ImageInspector {...props} />
+  </ErrorBoundary>
+))
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
-  }
+ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ImageInspector error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="p-6 rounded-full bg-destructive/10 mb-6">
-            <AlertTriangleIcon className="size-12 text-destructive" />
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-muted-foreground text-center max-w-md mb-6">
-            An unexpected error occurred while loading the image inspector.
-          </p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 size-4" />
-            Reload Page
-          </Button>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
+export { ImageInspectorWithBoundary as ImageInspector }
 
 function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspectorProps) {
   const router = useRouter()
@@ -331,14 +296,3 @@ function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspec
     </section>
   )
 }
-
-// Main component wrapped with error boundary
-const ImageInspectorWithBoundary = React.memo((props: ImageInspectorProps) => (
-  <ErrorBoundary>
-    <ImageInspector {...props} />
-  </ErrorBoundary>
-))
-
-ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'
-
-export { ImageInspectorWithBoundary as ImageInspector }
