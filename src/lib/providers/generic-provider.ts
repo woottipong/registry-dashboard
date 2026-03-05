@@ -273,6 +273,7 @@ export class GenericProvider implements RegistryProvider {
     await this.client.request<void>(`/v2/${repo}/manifests/${digest}`, { method: "DELETE" })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async searchRepositories(_query: string): Promise<PaginatedResult<Repository>> {
     throw new UnsupportedError("Search is not supported for generic registry providers")
   }

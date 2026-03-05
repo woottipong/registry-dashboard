@@ -10,6 +10,10 @@ interface ManifestResult {
   config: ImageConfig | null
 }
 
+interface HttpError extends Error {
+  status: number
+}
+
 function encodeRepoPath(repoName: string): string {
   return repoName
     .split("/")
@@ -36,8 +40,8 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
 
         if (!manifestResponse.ok) {
           // Create error with status code for retry logic
-          const error = new Error(`HTTP ${manifestResponse.status}: ${manifestResponse.statusText}`)
-          ;(error as any).status = manifestResponse.status
+          const error = new Error(`HTTP ${manifestResponse.status}: ${manifestResponse.statusText}`) as HttpError
+          error.status = manifestResponse.status
           throw error
         }
 
@@ -57,8 +61,8 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
 
         if (!configResponse.ok) {
           // Create error with status code for retry logic
-          const error = new Error(`HTTP ${configResponse.status}: ${configResponse.statusText}`)
-          ;(error as any).status = configResponse.status
+          const error = new Error(`HTTP ${configResponse.status}: ${configResponse.statusText}`) as HttpError
+          error.status = configResponse.status
           throw error
         }
 
@@ -77,8 +81,8 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
         }
       } catch (error) {
         // Ensure error has status for retry logic
-        if (!(error as any).status) {
-          ;(error as any).status = 500
+        if (!(error as HttpError).status) {
+          (error as HttpError).status = 500
         }
         throw error
       }

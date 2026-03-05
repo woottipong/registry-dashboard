@@ -4,6 +4,7 @@ import { useRegistries } from "@/hooks/use-registries"
 import { fetchRepositories } from "@/hooks/use-repositories"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { DASHBOARD_CONFIG, DASHBOARD_QUERY_KEYS } from "@/lib/constants/dashboard"
+import type { RegistryConnection, ProviderCapabilities, RegistryCredentials, RegistryProviderType, RegistryAuthType, Repository } from "@/types/registry"
 
 interface DashboardData {
   totalRepositories: number
@@ -14,12 +15,12 @@ interface DashboardData {
     id: string
     name: string
     url: string
-    provider: any
-    authType: any
-    credentials?: any
+    provider: RegistryProviderType
+    authType: RegistryAuthType
+    credentials?: RegistryCredentials
     namespace?: string
     isDefault?: boolean
-    capabilities?: any
+    capabilities?: ProviderCapabilities
     createdAt: string
     updatedAt?: string
     repoCount: number
@@ -80,12 +81,12 @@ export function useDashboardData() {
       // If query is still loading, use cached or partial data
       const repos = queryResult?.data?.items ?? []
       const repoCount = repos.length
-      const tagCount = repos.reduce((sum: number, r: any) => sum + (r.tagCount ?? 0), 0)
-      const sizeBytes = repos.reduce((sum: number, r: any) => sum + (r.sizeBytes ?? 0), 0)
+      const tagCount = repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
+      const sizeBytes = repos.reduce((sum: number, r: Repository) => sum + (r.sizeBytes ?? 0), 0)
 
       // Only add to chart data if we have repositories
       if (repoCount > 0) {
-        repos.forEach((r: any) => {
+        repos.forEach((r: Repository) => {
           if ((r.tagCount ?? 0) > 0) {
             allRepos.push({
               name: r.fullName,

@@ -1,7 +1,12 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
-import { useRegistries, useDeleteRegistry, useSetDefaultRegistry, usePingRegistry } from '@/hooks/use-registries'
-import { REGISTRY_CONFIG, REGISTRY_QUERY_KEYS } from '@/lib/constants/registry'
+import { useMemo, useState, useCallback } from 'react'
+import { useRegistries, useDeleteRegistry, useSetDefaultRegistry } from '@/hooks/use-registries'
 import type { RegistryConnection } from '@/types/registry'
+
+interface RegistryStatus {
+  status: 'connected' | 'error' | 'checking'
+  latencyMs?: number
+  checkedAt?: string
+}
 
 interface UseRegistriesStateProps {
   initialRegistries?: RegistryConnection[]
@@ -41,7 +46,7 @@ export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStat
   const [searchQuery, setSearchQuery] = useState('')
   
   // Status tracking
-  const [registryStatuses, setRegistryStatuses] = useState<Record<string, any>>({})
+  const [registryStatuses, setRegistryStatuses] = useState<Record<string, RegistryStatus>>({})
   
   // Registry data
   const { data: registries = [], isLoading, isError } = useRegistries({

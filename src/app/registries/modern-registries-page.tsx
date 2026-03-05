@@ -1,6 +1,6 @@
 "use client"
 
-import { PlusIcon, RefreshCwIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,6 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
     filteredRegistries,
     handleDelete,
     handleSetDefault,
-    hasRegistries,
     isEmpty,
   } = useRegistriesState({ initialRegistries })
 
@@ -59,16 +58,6 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           />
           
           <Button 
-            variant="outline"
-            size="lg"
-            onClick={() => window.location.reload()}
-            className="rounded-xl px-4 py-3 hover:bg-muted/50 transition-all duration-300"
-            title="Refresh page"
-          >
-            <RefreshCwIcon className="size-5" />
-          </Button>
-          
-          <Button 
             onClick={handleAddRegistry} 
             size="lg"
             className="rounded-xl px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-chart-2 hover:from-primary/90 hover:to-chart-2/90"
@@ -82,7 +71,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
       {/* Content */}
       <div className="min-h-[400px] animate-in fade-in-0 duration-700 delay-300">
         {isLoading ? (
-          <RegistryLoading count={6} />
+          <RegistryLoading count={4} />
         ) : isEmpty ? (
           <RegistryEmpty 
             onAddRegistry={handleAddRegistry}
@@ -94,7 +83,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               <div 
                 key={registry.id} 
                 className="animate-in slide-in-from-bottom-4 duration-300"
-                style={{ animationDelay: `${index * 100}ms` }}
+                style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
               >
                 <ModernRegistryCard
                   registry={registry}
@@ -121,52 +110,16 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
 
       {/* Summary */}
       <div className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <h3 className="font-semibold text-lg">Registry Overview</h3>
-              <Badge variant="secondary" className="text-sm bg-primary/10 text-primary border-primary/20">
-                {filteredRegistries.length} of {registries.length} shown
-              </Badge>
-            </div>
-            
-            {/* Quick Stats */}
-            <div className="hidden sm:flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-chart-2 animate-pulse"></div>
-                <span className="text-muted-foreground">
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-destructive animate-pulse"></div>
-                <span className="text-muted-foreground">
-                  Issues
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
-                <span className="text-muted-foreground">
-                  Monitoring
-                </span>
-              </div>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold text-lg">Registry Overview</h3>
+            <Badge variant="secondary" className="text-sm bg-primary/10 text-primary border-primary/20">
+              {filteredRegistries.length} of {registries.length} shown
+            </Badge>
           </div>
-
-          {/* Mobile Status Indicators */}
-          <div className="sm:hidden flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-chart-2"></div>
-              <span className="text-muted-foreground">Connected</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive"></div>
-              <span className="text-muted-foreground">Error</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary"></div>
-              <span className="text-muted-foreground">Checking</span>
-            </div>
+          
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <span>Manage your container registry connections</span>
           </div>
         </div>
       </div>

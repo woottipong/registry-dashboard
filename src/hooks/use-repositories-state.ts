@@ -3,7 +3,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useRegistries } from '@/hooks/use-registries'
 import { useRepositories as useRepositoriesQuery, useSearchRepositories } from '@/hooks/use-repositories'
 import { REPOSITORY_CONFIG } from '@/lib/constants/repository'
-import type { RegistryConnection } from '@/types/registry'
+import type { RegistryConnection, Repository } from '@/types/registry'
 
 interface UseRepositoriesStateProps {
   initialRegistry: string
@@ -18,7 +18,7 @@ interface UseRepositoriesStateReturn {
   
   // Data
   registries: RegistryConnection[]
-  repositories: any[]
+  repositories: Repository[]
   isLoading: boolean
   isError: boolean
   
