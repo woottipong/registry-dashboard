@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.  
 > Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-06 (T-200→T-205 security done)
+> Last updated: 2026-03-06 (M9 9.1 complete; 9.2 T-210/211/212/214 done; 9.5 done; T-265 done — 13/35 total)
 
 ---
 
@@ -35,26 +35,11 @@
 
 ## M9 — Task Matrix
 
-### 9.1 Security Hardening — P0 CRITICAL
-
-| ID | Task | Status | Effort | Severity | GFI | File |
-|----|------|--------|--------|----------|-----|------|
-| [T-200](./t-200-api-response-format.md) | API response format fix | ✅ Done | 30 min | 🔴 CRITICAL | ✅ | `repositories/[...name]/route.ts` |
-| [T-201](./t-201-zod-query-validation.md) | Zod validation on query params | ✅ Done | 2 hr | 🔴 CRITICAL | ✅ | All API routes |
-| [T-202](./t-202-atomic-file-io.md) | Atomic file I/O + corruption recovery | ✅ Done | 1 hr | 🔴 CRITICAL | | `registry-store.ts`, `activity-store.ts` |
-| [T-203](./t-203-csrf-protection.md) | CSRF protection | ✅ Done | 1.5 hr | 🔴 CRITICAL | | `middleware.ts`, all POST/DELETE routes |
-| [T-204](./t-204-credential-encryption.md) | AES-256-GCM credential encryption | ✅ Done | 2 hr | 🔴 CRITICAL | | `registry-store.ts`, `stores/registry-store.ts` |
-| [T-205](./t-205-jwt-expiration.md) | DockerHub JWT expiration check | ✅ Done | 30 min | 🟠 HIGH | ✅ | `dockerhub-provider.ts` |
-
 ### 9.2 Code Quality & DRY — P0
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-210](./t-210-encode-repo-path.md) | Extract `encodeRepoPath()` | ✅ Done | 15 min | 🟡 MEDIUM | ✅ | `utils.ts` |
-| [T-211](./t-211-query-key-factory.md) | Centralized query key factory | ✅ Done | 45 min | 🟡 MEDIUM | ✅ | `constants/query-keys.ts` |
-| [T-212](./t-212-assert-api-success.md) | `assertApiSuccess<T>()` helper | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | `error-handling.ts` |
 | [T-213](./t-213-modern-components-cleanup.md) | Remove `modern-*` duplicates | 🟡 Todo | 1 hr | 🟡 MEDIUM | | `app/`, `components/dashboard/` |
-| [T-214](./t-214-debounce-hook.md) | Shared `useDebounce` hook | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | `hooks/use-debounce.ts` |
 
 ### 9.3 Performance Optimization — P1
 
@@ -75,13 +60,6 @@
 | [T-232](./t-232-reduced-motion.md) | `prefers-reduced-motion` support | 🟡 Todo | 30 min | 🟡 MEDIUM | ✅ | All `modern-*.tsx` |
 | [T-233](./t-233-form-labels.md) | Form `<label>` associations | 🟡 Todo | 20 min | 🟡 MEDIUM | ✅ | `repos-client.tsx`, registry forms |
 
-### 9.5 Lint & Type Safety — P1
-
-| ID | Task | Status | Effort | Severity | GFI | File |
-|----|------|--------|--------|----------|-----|------|
-| [T-240](./t-240-eslint-errors.md) | Fix 26 ESLint errors | ✅ Done | 1 hr | 🟠 HIGH | ✅ | Multiple |
-| [T-241](./t-241-eslint-warnings.md) | Fix 14 ESLint warnings | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | Multiple |
-
 ### 9.6 Architecture & Provider Refactoring — P2
 
 | ID | Task | Status | Effort | Severity | GFI | File |
@@ -99,7 +77,7 @@
 | [T-262](./t-262-components-readme.md) | `components/README.md` | 📋 Backlog | 30 min | 🟡 MEDIUM | ✅ | `src/components/README.md` (new) |
 | [T-263](./t-263-api-contract-doc.md) | `doc/API.md` contract doc | 📋 Backlog | 1 hr | 🟡 MEDIUM | ✅ | `doc/API.md` (new) |
 | [T-264](./t-264-security-md.md) | `SECURITY.md` | 📋 Backlog | 45 min | 🟠 HIGH | ✅ | `SECURITY.md` (new) |
-| [T-265](./t-265-dead-code.md) | Remove dead code | ✅ Done | 15 min | 🟢 LOW | ✅ | Multiple |
+
 | [T-266](./t-266-hardcoded-values.md) | Fix hardcoded values | 📋 Backlog | 30 min | 🟡 MEDIUM | ✅ | `topbar.tsx`, `modern-dashboard-client.tsx` |
 
 ### 9.8 Testing Coverage — P2
@@ -130,11 +108,10 @@ T-250 (ProviderRegistry) ─────────────────► 
 
 ## Sprint Recommendation
 
-### Sprint 1 — Security First (Week 1)
-Pick any of: **T-200, T-201, T-202, T-203, T-204, T-205**  
-These are independent — multiple contributors can work in parallel.
+### Sprint 1 — Security First ✅ Complete
+T-200–T-205 all done. T-210–T-212, T-214, T-240, T-241, T-265 also done.
 
-### Sprint 2 — Quality & UX (Week 2)
+### Sprint 2 — Quality & UX (Next)
 **T-213, T-220, T-221, T-222, T-223** — Performance & DRY cleanup  
 **T-230, T-231, T-232, T-233** — Accessibility pass
 
@@ -149,7 +126,7 @@ These are independent — multiple contributors can work in parallel.
 
 | Category | Total | Done | In Progress | Todo | Backlog |
 |----------|-------|------|-------------|------|---------|
-| Security | 6 | 0 | 0 | 6 | 0 |
+| Security | 6 | 6 | 0 | 0 | 0 |
 | Code Quality | 5 | 4 | 0 | 1 | 0 |
 | Performance | 5 | 0 | 0 | 5 | 0 |
 | Accessibility | 4 | 0 | 0 | 4 | 0 |
@@ -157,4 +134,4 @@ These are independent — multiple contributors can work in parallel.
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
 | Testing | 3 | 0 | 0 | 0 | 3 |
-| **Total** | **35** | **7** | **0** | **16** | **12** |
+| **Total** | **35** | **13** | **0** | **10** | **12** |
