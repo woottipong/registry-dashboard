@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
     const registry = searchParams.get('registry')
 
-    const activities = listActivities({ limit, registry })
+    const activities = listActivities({ limit, registry: registry || undefined })
 
     const response: ApiResponse<ActivityItem[]> = {
       success: true,

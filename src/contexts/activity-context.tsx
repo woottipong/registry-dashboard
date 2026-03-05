@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
-interface ActivityItem {
+export interface ActivityItem {
   id: string
   type: 'push' | 'pull' | 'delete' | 'connect' | 'view' | 'inspect'
   repository: string

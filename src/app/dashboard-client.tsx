@@ -5,103 +5,16 @@ import { LayersIcon } from "lucide-react"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { DashboardSections } from "@/components/dashboard/dashboard-sections"
 import { Button } from "@/components/ui/button"
-import { useMemo } from "react"
-import { useRegistries } from "@/hooks/use-registries"
-import { useQueries } from "@tanstack/react-query"
-import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
-import { fetchRepositories } from "@/hooks/use-repositories"
 import { useActivity } from "@/contexts/activity-context"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 
 export function DashboardClient() {
-  const registriesQuery = useRegistries()
-  const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
+  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData()
   const { activities } = useActivity()
 
-  // Fetch repositories with pagination and lazy loading
-  const repoQueryConfigs = useMemo(() => {
-    return memoizedRegistries.map((registry) => ({
-      queryKey: ["repositories", registry.id, 1, 20, ""], // Reduced from 50 to 20 for better performance
-      queryFn: () => fetchRepositories(registry.id, { perPage: 20 }), // Reduced page size
-      staleTime: STALE_TIME_REPOSITORIES,
-      enabled: memoizedRegistries.length > 0, // Only fetch when registries are loaded
-    }))
-  }, [memoizedRegistries])
+  const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = dashboardData
 
-  // Progressive loading: Load basic data first, then detailed stats
-  const repoQueries = useQueries({
-    queries: repoQueryConfigs,
-  })
-
-  const isLoadingRegistries = registriesQuery.isLoading
-  const isLoadingRepos = repoQueries.some((q) => q.isLoading)
-
-  // Optimize stats calculation with better memoization
-  const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = useMemo(() => {
-    // Early return if no data yet
-    if (memoizedRegistries.length === 0) {
-      return {
-        totalRepositories: 0,
-        totalTags: 0,
-        totalSizeBytes: 0,
-        chartData: [],
-        registriesWithStats: []
-      }
-    }
-
-    const allRepos: { name: string; registryId: string; tagCount: number }[] = []
-    let totalRepos = 0
-    let totalTagsCount = 0
-    let totalSize = 0
-
-    const regStats = memoizedRegistries.map((registry, index) => {
-      const queryResult = repoQueries[index]
-
-      // If query is still loading, use cached or partial data
-      const repos = queryResult?.data?.items ?? []
-      const repoCount = repos.length
-      const tagCount = repos.reduce((sum: number, r: any) => sum + (r.tagCount ?? 0), 0)
-      const sizeBytes = repos.reduce((sum: number, r: any) => sum + (r.sizeBytes ?? 0), 0)
-
-      // Only add to chart data if we have repositories
-      if (repoCount > 0) {
-        repos.forEach((r: any) => {
-          if ((r.tagCount ?? 0) > 0) {
-            allRepos.push({
-              name: r.fullName,
-              registryId: registry.id,
-              tagCount: r.tagCount ?? 0,
-            })
-          }
-        })
-      }
-
-      totalRepos += repoCount
-      totalTagsCount += tagCount
-      totalSize += sizeBytes
-
-      return {
-        ...registry,
-        repoCount,
-        tagCount,
-        sizeBytes
-      }
-    })
-
-    // Sort and limit chart data for better performance
-    const sortedChartData = allRepos
-      .sort((a, b) => b.tagCount - a.tagCount)
-      .slice(0, 10) // Limit to top 10 for chart performance
-
-    return {
-      totalRepositories: totalRepos,
-      totalTags: totalTagsCount,
-      totalSizeBytes: totalSize,
-      chartData: sortedChartData,
-      registriesWithStats: regStats
-    }
-  }, [memoizedRegistries, repoQueries])
-
-  if (!isLoadingRegistries && memoizedRegistries.length === 0) {
+  if (!isLoadingRegistries && registries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 relative animate-in fade-in duration-500">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-accent/10 blur-3xl -z-10 pointer-events-none" />
@@ -136,10 +49,10 @@ export function DashboardClient() {
       </div>
 
       <StatsCards
-        totalRegistries={isLoadingRegistries ? undefined : memoizedRegistries.length}
-        totalRepositories={memoizedRegistries.length ? totalRepositories : undefined}
-        totalTags={memoizedRegistries.length ? totalTags : undefined}
-        totalSizeBytes={memoizedRegistries.length ? totalSizeBytes : undefined}
+        totalRegistries={isLoadingRegistries ? undefined : registries.length}
+        totalRepositories={registries.length ? totalRepositories : undefined}
+        totalTags={registries.length ? totalTags : undefined}
+        totalSizeBytes={registries.length ? totalSizeBytes : undefined}
         isLoadingRegistries={isLoadingRegistries}
         isLoadingRepos={isLoadingRepos}
       />

@@ -2,7 +2,7 @@
 
 import React from "react"
 import { formatDistanceToNow } from "date-fns"
-import { ActivityIcon, ArrowDownIcon, ArrowUpIcon, Trash2Icon, ServerIcon } from "lucide-react"
+import { ActivityIcon, ArrowDownIcon, ArrowUpIcon, Trash2Icon, ServerIcon, EyeIcon, SearchIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -26,6 +26,8 @@ const ActivityIconMap = {
   pull: ArrowDownIcon,
   delete: Trash2Icon,
   connect: ServerIcon,
+  view: EyeIcon,
+  inspect: SearchIcon,
 }
 
 const ActivityColorMap = {
@@ -33,6 +35,8 @@ const ActivityColorMap = {
   pull: "text-blue-600 bg-blue-50 border-blue-200",
   delete: "text-red-600 bg-red-50 border-red-200",
   connect: "text-purple-600 bg-purple-50 border-purple-200",
+  view: "text-amber-600 bg-amber-50 border-amber-200",
+  inspect: "text-indigo-600 bg-indigo-50 border-indigo-200",
 }
 
 function ActivityItem({ activity }: { activity: ActivityItem }) {

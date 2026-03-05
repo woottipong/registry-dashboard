@@ -7,10 +7,11 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
-import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
+import { useRegistry } from "@/hooks/use-registries"
 import { useActivity } from "@/contexts/activity-context"
 import type { Tag } from "@/types/registry"
 
@@ -113,7 +114,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     deleteTags.mutate(
       { registryId, repoName, digests },
       {
-        onSuccess: (result: any) => {
+        onSuccess: () => {
           // Close modal immediately for smooth UX
           setTagsToDelete([])
 
@@ -127,7 +128,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
           toast.success(`${tagsToDelete.length} tags deleted successfully`)
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           toast.error(error.message)
           setTagsToDelete([])
         },

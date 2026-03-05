@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories, useSearchRepositories } from "@/hooks/use-repositories"
+import type { RegistryConnection } from "@/types/registry"
 
-export function RepositoriesClient({ initialRegistry, initialRegistries }: { initialRegistry: string, initialRegistries: any[] }) {
+export function RepositoriesClient({ initialRegistry, initialRegistries }: { initialRegistry: string, initialRegistries: RegistryConnection[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()

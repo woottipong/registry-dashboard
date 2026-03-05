@@ -97,7 +97,7 @@ interface RegistryOverviewProps {
 export function RegistryOverview({ registries, isLoading }: RegistryOverviewProps) {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-2">
+      <div className="flex flex-col gap-4 p-2 min-h-[300px]">
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
@@ -143,10 +143,18 @@ export function RegistryOverview({ registries, isLoading }: RegistryOverviewProp
   if (!registries.length) return null
 
   return (
-    <div className="flex flex-col gap-3 p-2">
+    <div className="flex flex-col gap-3 p-2 min-h-[300px]">
       {registries.map((registry) => (
         <RegistryListItem key={registry.id} registry={registry} />
       ))}
+      {registries.length === 0 && (
+        <div className="flex items-center justify-center h-[200px] text-muted-foreground/50">
+          <div className="text-center">
+            <ServerIcon className="size-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No registries connected</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
