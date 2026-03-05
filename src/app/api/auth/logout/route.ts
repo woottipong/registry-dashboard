@@ -1,20 +1,21 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
+import type { ApiResponse } from "@/types/api"
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    // Destroy session
     const session = await getSession()
     session.destroy()
 
-    // Redirect to login page
-    const loginUrl = new URL("/login", request.url)
-    return NextResponse.redirect(loginUrl)
+    const response: ApiResponse<null> = { success: true, data: null, error: null }
+    return NextResponse.json(response)
   } catch (error) {
     console.error("Logout error:", error)
-    return NextResponse.json(
-      { error: { message: "Internal server error" } },
-      { status: 500 }
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "INTERNAL_ERROR", message: "Internal server error" },
+    }
+    return NextResponse.json(response, { status: 500 })
   }
 }

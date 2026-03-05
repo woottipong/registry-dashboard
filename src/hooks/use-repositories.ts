@@ -42,9 +42,9 @@ export async function fetchRepositories(
   if (response.ok) {
     const data = await response.json()
 
-    // Rich format: { items: Repository[] }
-    if (data.items && Array.isArray(data.items)) {
-      const items: Repository[] = data.items.filter(
+    // ApiResponse<Repository[]> format: { success, data: Repository[] }
+    if (data.success && Array.isArray(data.data)) {
+      const items: Repository[] = data.data.filter(
         (repo: Repository) => (repo.tagCount ?? 0) > 0
       )
       return {

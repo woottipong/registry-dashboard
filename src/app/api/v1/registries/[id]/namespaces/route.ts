@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
+import type { ApiResponse } from "@/types/api"
+import type { Namespace } from "@/types/registry"
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -9,42 +11,40 @@ interface RouteContext {
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params
 
-  if (!id) {
-    return NextResponse.json(
-      { errors: [{ code: "INVALID_REQUEST", message: "Registry ID is required" }] },
-      { status: 400 }
-    )
-  }
-
   const registry = getRegistry(id)
   if (!registry) {
-    return NextResponse.json(
-      { errors: [{ code: "NAME_UNKNOWN", message: `Registry ${id} not found` }] },
-      { status: 404 }
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "REGISTRY_NOT_FOUND", message: `Registry ${id} was not found` },
+    }
+    return NextResponse.json(response, { status: 404 })
   }
 
   const provider = createProvider(registry)
 
   try {
-    // listNamespaces only fetches catalog names (no per-repo tag fetches) — fast
     const namespaces = await provider.listNamespaces()
 
-    return NextResponse.json({ namespaces }, {
-      headers: {
-        "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
-      },
+    const response: ApiResponse<Namespace[]> = {
+      success: true,
+      data: namespaces,
+      error: null,
+    }
+
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=120" },
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        errors: [{
-          code: "UNKNOWN",
-          message: "Unable to fetch namespaces",
-          detail: error instanceof Error ? error.message : String(error)
-        }]
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: {
+        code: "NAMESPACES_FETCH_FAILED",
+        message: "Unable to fetch namespaces",
+        details: error instanceof Error ? error.message : String(error),
       },
-      { status: 502 }
-    )
+    }
+    return NextResponse.json(response, { status: 502 })
   }
 }

@@ -23,21 +23,19 @@ export function LoginForm() {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
       })
 
-      if (response.ok) {
-        // Redirect to home page on successful login
+      const data = await response.json()
+
+      if (response.ok && data.success) {
         router.push("/")
         router.refresh()
       } else {
-        const data = await response.json()
-        setError(data.error?.message || "Login failed")
+        setError(data.error?.message ?? "Login failed")
       }
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.")
     } finally {
       setIsLoading(false)

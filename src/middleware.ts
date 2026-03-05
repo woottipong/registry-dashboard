@@ -5,7 +5,15 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow access to these paths without authentication
-  const publicPaths = ["/login", "/api/auth/login", "/api/auth/logout", "/_next", "/favicon.ico"]
+  const publicPaths = [
+    "/login",
+    "/api/auth/login",
+    "/api/auth/logout",
+    "/api/health",
+    "/_next",
+    "/favicon.ico",
+    "/icon.svg",
+  ]
   const isPublicPath = publicPaths.some(path =>
     pathname === path || pathname.startsWith(path + "/")
   )

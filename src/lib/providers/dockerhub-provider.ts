@@ -78,10 +78,23 @@ export class DockerHubProvider implements RegistryProvider {
   }
 
   async listNamespaces(): Promise<Namespace[]> {
-    // Docker Hub is single-namespace (the authenticated user/org)
+    await this.ensureAuthenticated()
     const namespace = this.getEffectiveNamespace()
-    const result = await this.listRepositories({ page: 1, perPage: 1 })
-    return [{ name: namespace, repositoryCount: result.total ?? 0 }]
+
+    try {
+      const headers: HeadersInit = this.hubJwtToken
+        ? { Authorization: `JWT ${this.hubJwtToken}` }
+        : {}
+
+      const response = await this.registryClient.request<DockerHubRepoResponse>(
+        `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page_size=1`,
+        { headers },
+      )
+
+      return [{ name: namespace, repositoryCount: response.count }]
+    } catch {
+      return [{ name: namespace, repositoryCount: 0 }]
+    }
   }
 
   async listRepositories(options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
@@ -188,46 +201,28 @@ export class DockerHubProvider implements RegistryProvider {
   }
 
   async getManifest(repo: string, ref: string): Promise<ImageManifest> {
-    console.log(`[DockerHubProvider] Getting manifest for ${repo}:${ref}`)
     await this.authenticateHubApi()
 
-    try {
-      console.log(`[DockerHubProvider] Making manifest request to registry-1.docker.io/v2/${repo}/manifests/${ref}`)
-      const manifest = await this.registryClient.request<Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }>(
-        `https://registry-1.docker.io/v2/${repo}/manifests/${ref}`,
-        {
-          headers: {
-            Accept:
-              "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json",
-          },
+    const manifest = await this.registryClient.request<Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }>(
+      `https://registry-1.docker.io/v2/${repo}/manifests/${ref}`,
+      {
+        headers: {
+          Accept:
+            "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json",
         },
-      )
+      },
+    )
 
-      const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
+    const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
 
-      return {
-        ...manifest,
-        digest: manifest.digest ?? ref,
-        totalSize,
-      }
-    } catch (error) {
-      console.error(`[DockerHubProvider] Failed to get manifest for ${repo}:${ref}:`, error)
-      throw error
-    }
+    return { ...manifest, digest: manifest.digest ?? ref, totalSize }
   }
 
   async getConfig(repo: string, digest: string): Promise<ImageConfig> {
-    console.log(`[DockerHubProvider] Getting config for ${repo}:${digest}`)
     await this.authenticateHubApi()
-
-    try {
-      return this.registryClient.request<ImageConfig>(
-        `https://registry-1.docker.io/v2/${repo}/blobs/${digest}`,
-      )
-    } catch (error) {
-      console.error(`[DockerHubProvider] Failed to get config for ${repo}:${digest}:`, error)
-      throw error
-    }
+    return this.registryClient.request<ImageConfig>(
+      `https://registry-1.docker.io/v2/${repo}/blobs/${digest}`,
+    )
   }
 
   async deleteManifest(): Promise<void> {

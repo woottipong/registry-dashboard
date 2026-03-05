@@ -9,15 +9,13 @@ async function fetchNamespaces(registryId: string): Promise<Namespace[]> {
     cache: "default",
   })
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(
-      errorData.errors?.[0]?.message ?? "Unable to fetch namespaces"
-    )
+  const data = await response.json()
+
+  if (response.ok && data.success && Array.isArray(data.data)) {
+    return data.data as Namespace[]
   }
 
-  const data = await response.json()
-  return data.namespaces as Namespace[]
+  throw new Error(data.error?.message ?? data.errors?.[0]?.message ?? "Unable to fetch namespaces")
 }
 
 export function useNamespaces(registryId: string) {
