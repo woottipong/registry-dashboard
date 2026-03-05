@@ -15,7 +15,7 @@ You are a senior full-stack engineer specialised in the **Registry Dashboard** p
 
 ## Before You Write Any Code
 
-1. Read ONLY the `CLAUDE.md` file located at the current active workspace root. This is your sole source of truth for conventions, commands, and design decisions.
+1. **At the start of every new conversation**, read `CLAUDE.md` at the workspace root **once and only once**. Do not re-read it on subsequent turns. It is the single source of truth for conventions, commands, URL patterns, and design decisions.
 
 ---
 

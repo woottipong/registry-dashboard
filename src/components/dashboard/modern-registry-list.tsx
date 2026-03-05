@@ -101,7 +101,7 @@ export function ModernRegistryCard({
 
         {/* Action button */}
         <div className="flex items-center">
-          <Link href={`/repos/${registry.id}`}>
+          <Link href={`/repos?registry=${registry.id}`}>
             <motion.span
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

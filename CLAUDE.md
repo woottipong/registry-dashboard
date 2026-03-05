@@ -1,5 +1,9 @@
 # Registry Dashboard — Project Instructions
 
+> **Agent startup rule**: At the start of every new conversation, read this file (`CLAUDE.md`) **once** before writing any code or making any edits. It is the single source of truth for conventions, commands, URL patterns, and design decisions.
+
+---
+
 ## Project Overview
 
 Registry Dashboard is a modern, self-hosted web dashboard for browsing and managing Docker container images stored in Docker Registry V2 compatible registries. It supports multiple registries simultaneously, including Docker Hub and vanilla Registry V2.
@@ -85,11 +89,22 @@ Repositories are loaded via a two-step flow for performance:
 
 The URL uses `_root` as a sentinel value for the empty-string namespace (root-level repos without a `/`).
 
+### Frontend URL Patterns
+
+Use these exact URL shapes when building navigation links:
+
 ```
-/repos                          → namespace overview
-/repos?namespace=easyread       → repos in "easyread" namespace
-/repos?namespace=_root          → root-level repos (no path separator)
+/repos                                    → namespace/registry overview
+/repos?registry=<id>                      → repos filtered by registry  ← Browse button target
+/repos?registry=<id>&namespace=<ns>       → repos in a namespace
+/repos?registry=<id>&namespace=_root      → root-level repos
+/repos/<registryId>/<repoFullName>        → tag explorer for a repo
+/repos/<registryId>/<repoFullName>?tag=<t> → image inspector for a tag
+/registries                               → registry management
+/registries/<id>/edit                     → edit a registry
 ```
+
+**Never** use `/repos/<registryId>` alone as a route — the registry filter is a query param, not a path segment.
 
 ### Authentication
 
