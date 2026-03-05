@@ -37,7 +37,7 @@ function RegistryListItem({ registry, repoCount, tagCount }: RegistryOverviewCar
 
         <div className="flex flex-col min-w-0 gap-1.5 justify-center pt-0.5">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <Link href={`/repos?registry=${registry.id}`} className="font-bold text-base hover:text-primary transition-colors line-clamp-1 break-all">
+            <Link href={`/repos?registry=${registry.id}`} className="font-bold text-base hover:text-primary transition-colors line-clamp-1 break-all cursor-pointer">
               {registry.name}
             </Link>
             <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 rounded-full px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider shrink-0">

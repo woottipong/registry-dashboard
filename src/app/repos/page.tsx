@@ -62,7 +62,7 @@ export default async function RepositoriesPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <RepositoriesClient initialRegistry={selectedRegistry} />
+      <RepositoriesClient initialRegistry={selectedRegistry} initialRegistries={registries} />
     </HydrationBoundary>
   )
 }

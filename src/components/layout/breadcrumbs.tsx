@@ -29,7 +29,7 @@ export function Breadcrumbs() {
     <nav aria-label="Breadcrumb" className="hidden items-center gap-1 text-sm md:flex">
       <Link
         href="/"
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
       >
         <HomeIcon className="size-4" />
         <span>Home</span>
@@ -45,7 +45,7 @@ export function Breadcrumbs() {
           ) : (
             <Link
               href={item.href}
-              className="rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
             >
               {item.label}
             </Link>

@@ -64,7 +64,7 @@ function SidebarBody() {
                   key={href}
                   href={href}
                   className={cn(
-                    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
                     active
                       ? "text-primary bg-primary/10 border border-primary/20"
                       : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
@@ -83,7 +83,7 @@ function SidebarBody() {
             <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em]">Registries</p>
             <Link
               href="/registries/new"
-              className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+              className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
               title="Add Registry"
             >
               <PlusIcon className="size-3.5" />
@@ -105,7 +105,7 @@ function SidebarBody() {
                     key={registry.id}
                     href={`/repos?registry=${registry.id}`}
                     className={cn(
-                      "group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                      "group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200 cursor-pointer",
                       active
                         ? "bg-primary/5 text-primary"
                         : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
@@ -150,22 +150,17 @@ function SidebarBody() {
   )
 }
 
-import { Suspense } from "react"
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
       <aside className="hidden h-screen w-60 shrink-0 border-r border-border lg:block z-40 bg-background">
-        <Suspense fallback={<div className="h-full w-full bg-sidebar/50" />}>
-          <SidebarBody />
-        </Suspense>
+        <SidebarBody />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent side="left" className="w-64 p-0 border-r border-border" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <Suspense fallback={<div className="h-full w-full bg-sidebar/50" />}>
-            <SidebarBody />
-          </Suspense>
+          <SidebarBody />
         </SheetContent>
       </Sheet>
     </>

@@ -34,10 +34,11 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
   return payload.data
 }
 
-export function useRegistries() {
+export function useRegistries(options?: { initialData?: RegistryConnection[] }) {
   return useQuery({
     queryKey: registryKeys.all,
     staleTime: STALE_TIME_REGISTRIES,
+    ...options,
     queryFn: async () => {
       const response = await fetch("/api/v1/registries", { cache: "no-store" })
       return handleApiResponse<RegistryConnection[]>(response)

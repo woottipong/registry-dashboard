@@ -1,30 +1,41 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import React, { useMemo, useState, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { LayoutGridIcon, ListIcon, SearchIcon, PlusIcon } from "lucide-react"
+import { SearchIcon, PlusIcon } from "lucide-react"
 import { RepoGroupedView } from "@/components/repository/repo-grouped-view"
-import { RepoGrid } from "@/components/repository/repo-grid"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories, useSearchRepositories } from "@/hooks/use-repositories"
-import { useUiStore } from "@/stores/ui-store"
 
-export function RepositoriesClient({ initialRegistry }: { initialRegistry: string }) {
+export function RepositoriesClient({ initialRegistry, initialRegistries }: { initialRegistry: string, initialRegistries: any[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const registryParam = searchParams.get("registry")
 
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
-  const repoViewMode = useUiStore((state) => state.repoViewMode)
-  const setRepoViewMode = useUiStore((state) => state.setRepoViewMode)
+  // Debounce search input to prevent excessive API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
 
-  const registriesQuery = useRegistries()
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value)
+  }, [])
+
+  const registriesQuery = useRegistries({
+    initialData: initialRegistries,
+  })
 
   const selectedRegistry = useMemo(() => {
     if (registryParam) return registryParam
@@ -43,19 +54,19 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
 
   const repositoriesQuery = useRepositories(selectedRegistry, {
     page: 1,
-    perPage: 10000,
-    search: search || undefined,
+    perPage: 100,
+    search: debouncedSearch || undefined,
   })
 
-  const searchQuery = useSearchRepositories(selectedRegistry, search)
+  const searchQuery = useSearchRepositories(selectedRegistry, debouncedSearch)
 
   const activeResult = useMemo(() => {
-    if (search.trim().length > 0) {
+    if (debouncedSearch.trim().length > 0) {
       return searchQuery.data
     }
 
     return repositoriesQuery.data
-  }, [repositoriesQuery.data, searchQuery.data, search])
+  }, [repositoriesQuery.data, searchQuery.data, debouncedSearch])
 
   const items = activeResult?.items ?? []
 
@@ -68,35 +79,6 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
             Explore and manage container images across your connected registries.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="inline-flex bg-secondary/50 p-1 rounded-xl border border-border/50 backdrop-blur-sm">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setRepoViewMode("grid")}
-              className={cn(
-                "h-8 px-3 rounded-lg transition-all duration-200",
-                repoViewMode === "grid" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <LayoutGridIcon className="size-4 mr-2" />
-              <span className="text-xs font-semibold">Grid</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setRepoViewMode("table")}
-              className={cn(
-                "h-8 px-3 rounded-lg transition-all duration-200",
-                repoViewMode === "table" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <ListIcon className="size-4 mr-2" />
-              <span className="text-xs font-semibold">Table</span>
-            </Button>
-          </div>
-        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4">
@@ -104,16 +86,16 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
           <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-            }}
+            onChange={handleSearchChange}
             className="h-12 pl-11 bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all"
             placeholder="Quick search by name or tag..."
+            aria-label="Search repositories"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-foreground p-1"
+              aria-label="Clear search"
             >
               Clear
             </button>
@@ -129,11 +111,13 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
                   key={registry.id}
                   onClick={() => handleRegistryChange(registry.id)}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2",
+                    "px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer",
                     isActive
                       ? "bg-primary text-white shadow-lg shadow-primary/20"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   )}
+                  aria-label={`Select ${registry.name} registry`}
+                  aria-pressed={isActive}
                 >
                   <div className={cn(
                     "size-2 rounded-full",
@@ -145,7 +129,7 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
             })}
             <Link
               href="/registries/new"
-              className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border/50 ml-1 flex items-center gap-2"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border/50 ml-1 flex items-center gap-2 cursor-pointer"
             >
               <PlusIcon className="size-3.5" />
               <span>Connect</span>
@@ -170,18 +154,63 @@ export function RepositoriesClient({ initialRegistry }: { initialRegistry: strin
           </div>
         ) : repositoriesQuery.isLoading || searchQuery.isLoading ? (
           <div className="animate-in fade-in duration-300">
-            <RepoGrid registryId={selectedRegistry} repositories={[]} isLoading />
+            <div className="rounded-lg border border-border/50 bg-card/40 backdrop-blur-xl shadow-sm">
+              <div className="p-6">
+                <div className="space-y-4">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="h-8 w-8 rounded-lg bg-muted/50 animate-pulse" />
+                        <div className="space-y-1 flex-1">
+                          <div className="h-4 w-32 bg-muted/50 rounded animate-pulse" />
+                          <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 text-sm">
+                        <div className="h-4 w-12 bg-muted/50 rounded animate-pulse" />
+                        <div className="h-4 w-16 bg-muted/50 rounded animate-pulse" />
+                        <div className="h-6 w-16 bg-muted/50 rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : repositoriesQuery.isError || searchQuery.isError ? (
+          <div className="rounded-3xl border border-destructive/50 bg-destructive/5 p-20 text-center animate-in fade-in duration-300">
+            <div className="mx-auto w-16 h-16 rounded-3xl bg-destructive/10 flex items-center justify-center mb-6">
+              <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-destructive">Failed to Load Repositories</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-8">
+              Unable to fetch repositories from the selected registry. Please try again or contact support if the problem persists.
+            </p>
+            <Button
+              onClick={() => {
+                repositoriesQuery.refetch()
+                if (debouncedSearch.trim().length > 0) {
+                  searchQuery.refetch()
+                }
+              }}
+              variant="outline"
+              className="rounded-2xl"
+            >
+              Try Again
+            </Button>
           </div>
         ) : items.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border/50 bg-card/20 p-20 text-center animate-in fade-in duration-300">
             <p className="text-muted-foreground">No repositories found matching your search.</p>
           </div>
         ) : (
-          <div key={`${selectedRegistry}-${repoViewMode}-${search}`} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div key={`${selectedRegistry}-${search}`} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <RepoGroupedView
               registryId={selectedRegistry}
               repositories={items}
-              viewMode={repoViewMode}
+              viewMode="table"
             />
           </div>
         )}
