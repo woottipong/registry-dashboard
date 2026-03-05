@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useMemo, useState, useEffect } from "react"
+import React, { useCallback, useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { SearchIcon, TagIcon } from "lucide-react"
+import { SearchIcon, TagIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
@@ -18,13 +19,23 @@ interface TagExplorerClientProps {
   repoName: string
 }
 
-export function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
+function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const searchParams = useSearchParams()
   const selectedTag = searchParams.get("tag")
 
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null)
   const [tagsToDelete, setTagsToDelete] = useState<Tag[]>([])
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [search])
 
   // Fetch data
   const registryQuery = useRegistry(registryId)
@@ -35,14 +46,40 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
   const tags = tagsQuery.data?.items ?? []
 
-  // Filter tags based on search
+  // Memoize expensive computations
   const filteredTags = useMemo(() => {
-    if (!search.trim()) return tags
-    const lowerSearch = search.toLowerCase()
+    if (!debouncedSearch.trim()) return tags
+    const lowerSearch = debouncedSearch.toLowerCase()
     return tags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
-  }, [tags, search])
+  }, [tags, debouncedSearch])
 
-  // Event handlers
+  // Memoize shared tags calculation
+  const sharedWithTag = useMemo(() => {
+    if (!tagToDelete?.digest) return []
+    return tags
+      .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
+      .map((t) => t.name)
+  }, [tags, tagToDelete])
+
+  // Memoize bulk unique digest count
+  const bulkUniqueDigestCount = useMemo(() => {
+    return new Set(tagsToDelete.map((t) => t.digest).filter((d) => d)).size
+  }, [tagsToDelete])
+
+  // Memoize tag count display
+  const tagCountDisplay = useMemo(() => {
+    return `${tags.length} ${tags.length === 1 ? "tag" : "tags"}`
+  }, [tags.length])
+
+  // Memoize event handlers
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value)
+  }, [])
+
+  const handleClearSearch = useCallback(() => {
+    setSearch("")
+  }, [])
+
   const handleDeleteClick = useCallback((tag: Tag) => {
     setTagToDelete(tag)
   }, [])
@@ -87,19 +124,6 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
     )
   }, [deleteTags, registryId, repoName, tagsToDelete])
 
-  // Get tags that share the same digest as the tag being deleted
-  const sharedWithTag = useMemo(() => {
-    if (!tagToDelete?.digest) return []
-    return tags
-      .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
-      .map((t) => t.name)
-  }, [tags, tagToDelete])
-
-  // Count unique digests for bulk delete
-  const bulkUniqueDigestCount = useMemo(() => {
-    return new Set(tagsToDelete.map((t) => t.digest).filter((d) => d)).size
-  }, [tagsToDelete])
-
   // Show image inspector if a tag is selected
   if (selectedTag) {
     return (
@@ -114,31 +138,52 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
 
   return (
     <section className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <h1 className="truncate text-2xl font-semibold">{repoName}</h1>
-            {registryQuery.data && (
-              <Badge variant="secondary">{registryQuery.data.name}</Badge>
-            )}
+      {/* Enhanced Header */}
+      <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-primary/3 to-primary/10 border border-primary/20 p-4 md:p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TagIcon className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold">{repoName}</h1>
+                <p className="text-sm text-muted-foreground">Tag Explorer</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {registryQuery.data && (
+                <Badge variant="outline">{registryQuery.data.name}</Badge>
+              )}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <TagIcon className="size-3" />
+                <span>{tagCountDisplay}</span>
+              </div>
+            </div>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            <TagIcon className="mr-1 inline size-3.5" />
-            {tags.length} {tags.length === 1 ? "tag" : "tags"}
-          </p>
         </div>
       </div>
 
-      {/* Search */}
+      {/* Enhanced Search */}
       <div className="relative max-w-sm">
         <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-8"
+          onChange={handleSearchChange}
+          className="pl-8 pr-8"
           placeholder="Filter tags…"
         />
+        {search && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
+            onClick={handleClearSearch}
+          >
+            <XIcon className="size-3" />
+          </Button>
+        )}
       </div>
 
       {/* Content */}
@@ -163,12 +208,9 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
             }
           </p>
           {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
+            <Button onClick={handleClearSearch}>
               Clear search
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -207,3 +249,53 @@ export function TagExplorerClient({ registryId, repoName }: TagExplorerClientPro
     </section>
   )
 }
+
+// Main component wrapped with error boundary
+class TagExplorerErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('TagExplorer error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="p-6 rounded-full bg-destructive/10 mb-6">
+            <div className="text-4xl">⚠️</div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
+          <p className="text-muted-foreground text-center max-w-md mb-6">
+            An unexpected error occurred while loading the tag explorer.
+          </p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Reload Page
+          </Button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+const TagExplorerWithBoundary = React.memo((props: TagExplorerClientProps) => (
+  <TagExplorerErrorBoundary>
+    <TagExplorerClient {...props} />
+  </TagExplorerErrorBoundary>
+))
+
+TagExplorerWithBoundary.displayName = 'TagExplorerWithBoundary'
+
+export { TagExplorerWithBoundary as TagExplorerClient }
