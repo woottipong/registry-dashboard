@@ -3,8 +3,6 @@
 import { motion } from "framer-motion"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { TrendingUpIcon } from "lucide-react"
-import { DASHBOARD_DESIGN } from "@/lib/design/dashboard-design"
-import { cn } from "@/lib/utils"
 
 interface ChartData {
   name: string
@@ -21,20 +19,20 @@ interface ModernChartProps {
 export function ModernChart({ data, isLoading, title = "Top Repositories by Tags" }: ModernChartProps) {
   if (isLoading) {
     return (
-      <div className={cn(DASHBOARD_DESIGN.components.chart.container, "animate-pulse")}>
-        <div className="h-6 bg-neutral-200 rounded w-48 mb-6" />
-        <div className="h-64 bg-neutral-200 rounded-lg" />
+      <div className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6 animate-pulse">
+        <div className="h-6 bg-muted rounded w-48 mb-6" />
+        <div className="h-64 bg-muted rounded-lg" />
       </div>
     )
   }
 
   if (data.length === 0) {
     return (
-      <div className={cn(DASHBOARD_DESIGN.components.chart.container)}>
+      <div className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <TrendingUpIcon className="w-8 h-8 text-neutral-400 mx-auto mb-3" />
-            <p className="text-sm text-neutral-600">No data available</p>
+            <TrendingUpIcon className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No data available</p>
           </div>
         </div>
       </div>
@@ -45,18 +43,18 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: parseFloat(DASHBOARD_DESIGN.motion.duration.normal) / 1000,
+      transition={{
+        duration: 0.3,
         ease: [0.16, 1, 0.3, 1] as const
       }}
-      className={DASHBOARD_DESIGN.components.chart.container}
+      className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6"
     >
       {/* Chart header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className={cn(DASHBOARD_DESIGN.components.chart.title)}>
+        <h3 className="text-lg font-semibold text-foreground mb-4">
           {title}
         </h3>
-        <div className="flex items-center gap-2 text-xs text-neutral-500">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <TrendingUpIcon className="w-4 h-4" />
           <span>{data.length} repositories</span>
         </div>
@@ -70,32 +68,32 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
         >
           <defs>
             <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.3}/>
+              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.3} />
             </linearGradient>
           </defs>
-          
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="#e5e7eb" 
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#e5e7eb"
             opacity={0.5}
           />
-          
-          <XAxis 
+
+          <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: 'var(--color-muted-foreground, #6b7280)' }}
             angle={-45}
             textAnchor="end"
             height={80}
             interval={0}
           />
-          
-          <YAxis 
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+
+          <YAxis
+            tick={{ fontSize: 11, fill: 'var(--color-muted-foreground, #6b7280)' }}
             axisLine={false}
             tickLine={false}
           />
-          
+
           <Tooltip
             contentStyle={{
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -107,9 +105,9 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
             labelStyle={{ fontWeight: 600, color: '#111827' }}
             formatter={(value) => [`${value ?? 0} tags`, 'Count']}
           />
-          
-          <Bar 
-            dataKey="tagCount" 
+
+          <Bar
+            dataKey="tagCount"
             fill="url(#colorGradient)"
             radius={[4, 4, 0, 0]}
             animationDuration={800}

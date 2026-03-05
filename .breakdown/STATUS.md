@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.  
 > Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-06 (M9 9.1 complete; 9.2 T-210/211/212/214 done; 9.5 done; T-265 done — 13/35 total)
+> Last updated: 2026-03-06 (M9 9.1 complete; 9.2 all done; 9.5 done; T-265 done — 14/35 total)
 
 ---
 
@@ -39,7 +39,7 @@
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-213](./t-213-modern-components-cleanup.md) | Remove `modern-*` duplicates | 🟡 Todo | 1 hr | 🟡 MEDIUM | | `app/`, `components/dashboard/` |
+| [T-213](./t-213-modern-components-cleanup.md) | Remove `modern-*` duplicates | ✅ Done | 1 hr | 🟡 MEDIUM | | `app/`, `components/dashboard/` |
 
 ### 9.3 Performance Optimization — P1
 
@@ -127,11 +127,11 @@ T-200–T-205 all done. T-210–T-212, T-214, T-240, T-241, T-265 also done.
 | Category | Total | Done | In Progress | Todo | Backlog |
 |----------|-------|------|-------------|------|---------|
 | Security | 6 | 6 | 0 | 0 | 0 |
-| Code Quality | 5 | 4 | 0 | 1 | 0 |
+| Code Quality | 5 | 5 | 0 | 0 | 0 |
 | Performance | 5 | 0 | 0 | 5 | 0 |
 | Accessibility | 4 | 0 | 0 | 4 | 0 |
 | Lint/Types | 2 | 2 | 0 | 0 | 0 |
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
 | Testing | 3 | 0 | 0 | 0 | 3 |
-| **Total** | **35** | **13** | **0** | **10** | **12** |
+| **Total** | **35** | **14** | **0** | **9** | **12** |

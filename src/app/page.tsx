@@ -1,5 +1,5 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
-import { DashboardClient } from "./dashboard-client"
+import { ModernDashboardClient } from "./modern-dashboard-client"
 import { listRegistries } from "@/lib/registry-store"
 import { createProvider } from "@/lib/providers"
 
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <DashboardClient />
+      <ModernDashboardClient />
     </HydrationBoundary>
   )
 }
