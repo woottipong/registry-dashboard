@@ -135,17 +135,6 @@ function SidebarBody() {
         </div>
       </div>
 
-      <div className="mt-auto p-4">
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 relative overflow-hidden group">
-          <div className="relative z-10">
-            <p className="text-xs font-semibold text-primary mb-1">Docker Helper</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              Managing 3 registries with over 100 repositories.
-            </p>
-          </div>
-          <div className="absolute -right-4 -bottom-4 size-16 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors" />
-        </div>
-      </div>
     </div>
   )
 }
@@ -153,8 +142,10 @@ function SidebarBody() {
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
-      <aside className="hidden h-screen w-60 shrink-0 border-r border-border lg:block z-40 bg-background">
-        <SidebarBody />
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-60 lg:border-r lg:border-border lg:bg-background">
+        <div className="flex h-full flex-col">
+          <SidebarBody />
+        </div>
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>

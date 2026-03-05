@@ -1,14 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  type HeaderContext,
-  type CellContext,
-  type RowSelectionState,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
@@ -48,7 +45,7 @@ export function TagTable({
   onBulkDeleteClick,
 }: TagTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }])
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [rowSelection, setRowSelection] = useState({})
 
   const columns = useMemo<ColumnDef<Tag>[]>(
     () => [
@@ -56,7 +53,7 @@ export function TagTable({
         ? [
             {
               id: "select",
-              header: ({ table }: HeaderContext<Tag, unknown>) => (
+              header: ({ table }) => (
                 <Checkbox
                   checked={
                     table.getIsAllPageRowsSelected()
@@ -69,7 +66,7 @@ export function TagTable({
                   aria-label="Select all"
                 />
               ),
-              cell: ({ row }: CellContext<Tag, unknown>) => (
+              cell: ({ row }) => (
                 <Checkbox
                   checked={row.getIsSelected()}
                   onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -223,32 +220,34 @@ export function TagTable({
         </div>
       )}
 
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="rounded-md border border-border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
