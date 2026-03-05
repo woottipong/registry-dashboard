@@ -34,6 +34,8 @@ services:
       NODE_ENV: development
       DATA_DIR: /app/data
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production-x1}
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD:-admin123}
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       # Mount source code for hot-reload (node_modules excluded via anonymous volume)

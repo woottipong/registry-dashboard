@@ -1,10 +1,19 @@
 "use client"
 
-import { MenuIcon, MoonIcon, SunIcon } from "lucide-react"
+import { MenuIcon, MoonIcon, SunIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { useUiStore } from "@/stores/ui-store"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface TopbarProps {
   onOpenSidebar: () => void
@@ -13,11 +22,22 @@ interface TopbarProps {
 export function Topbar({ onOpenSidebar }: TopbarProps) {
   const { theme, setTheme } = useTheme()
   const setThemePreference = useUiStore((state) => state.setTheme)
+  const router = useRouter()
 
   const handleThemeToggle = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
     setTheme(newTheme)
     setThemePreference(newTheme)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+      router.push("/login")
+      router.refresh()
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
   }
 
   return (
@@ -55,11 +75,34 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
             </div>
           </Button>
 
-          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] hidden sm:block">
-            <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-              <span className="text-[10px] font-bold">JD</span>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] hidden sm:flex"
+              >
+                <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                  <UserIcon className="size-4 text-primary" />
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">Admin User</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    Logged in
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOutIcon className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

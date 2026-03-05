@@ -2,6 +2,16 @@
 
 A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries. Supports Docker Hub, GHCR, Harbor, ECR, and vanilla Docker Registry V2.
 
+## ✨ Features
+
+- **🎨 Modern UI**: Beautiful, responsive interface with smooth animations and hover effects
+- **🔍 Advanced Search**: Real-time search with keyboard shortcuts and search hints
+- **📊 Interactive Dashboard**: Live statistics and registry status monitoring
+- **🌙 Dark/Light Theme**: Automatic theme support with CSS custom properties
+- **📱 Mobile Responsive**: Optimized for desktop and mobile devices
+- **⚡ Fast & Lightweight**: Built with Next.js 16 and optimized for performance
+- **🔒 Secure**: Encrypted credential storage and secure API design
+
 ## Tech Stack
 
 - **Next.js 16** (App Router) + TypeScript 5
@@ -37,10 +47,46 @@ bun run format       # Prettier
 bun run typecheck    # tsc --noEmit
 bun test             # Unit tests (Vitest)
 bun run test:watch   # Unit tests in watch mode
-bun run test:e2e     # E2E tests (Playwright)
+bun run test:coverage  # Unit tests with coverage
+bun run test:e2e      # E2E tests (Playwright)
 ```
 
-## Docker
+## Development
+
+### Testing
+
+```bash
+# Unit tests
+bun test
+bun run test:watch
+bun run test:coverage
+
+# E2E tests
+bun run test:e2e
+
+# Linting & formatting
+bun run lint
+bun run lint:fix
+bun run format
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and ensure tests pass
+4. Run linting: `bun run lint:fix`
+5. Format code: `bun run format`
+6. Commit your changes: `git commit -m 'Add some feature'`
+7. Push to the branch: `git push origin feature/your-feature`
+8. Submit a pull request
+
+### Architecture Notes
+
+- **API Design**: BFF (Backend for Frontend) pattern - browser never calls registry APIs directly
+- **State Management**: Server state with TanStack Query, client state with Zustand
+- **Security**: Credentials encrypted at rest, secure API routes with validation
+- **Performance**: Optimized with React Server Components, streaming, and caching
 
 ### Development (hot-reload, no build step)
 
@@ -121,12 +167,13 @@ Copy `.env.example` to `.env.local` (dev) or `.env` (Docker) and configure:
 
 ## Supported Registries
 
-| Registry | Browse | Search | Delete | Rate Limit |
-|---|---|---|---|---|
-| Docker Registry V2 | ✅ | — | ✅ | — |
-| Docker Hub | ✅ | ✅ | — | ✅ tracked |
-| GHCR | planned | — | planned | — |
-| ECR | planned | — | planned | — |
+| Registry | Browse | Search | Delete | Rate Limit | Status |
+|---|---|---|---|---|---|
+| Docker Registry V2 | ✅ | — | ✅ | — | **Implemented** |
+| Docker Hub | ✅ | ✅ | — | ✅ tracked | **Implemented** |
+| GHCR | planned | — | planned | — | *Coming Soon* |
+| ECR | planned | — | planned | — | *Coming Soon* |
+| Harbor | planned | — | planned | — | *Coming Soon* |
 
 ## Project Structure
 
