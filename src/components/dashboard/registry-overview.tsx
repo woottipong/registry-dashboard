@@ -97,9 +97,45 @@ interface RegistryOverviewProps {
 export function RegistryOverview({ registries, isLoading }: RegistryOverviewProps) {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-2 p-2">
-        <Skeleton className="h-20 w-full rounded-md" />
-        <Skeleton className="h-20 w-full rounded-md" />
+      <div className="flex flex-col gap-4 p-2">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="group flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap sm:items-center justify-between gap-4 p-6 transition-all duration-300 border-b border-border/50 last:border-0 relative overflow-hidden animate-pulse"
+            style={{ animationDelay: `${index * 150}ms` }}
+          >
+            <div className="flex items-start gap-4 flex-1 min-w-[200px]">
+              <div className="relative shrink-0">
+                <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-b from-muted/50 to-muted/30 shadow-sm border border-border/40">
+                  <div className="w-5 h-5 bg-muted-foreground/30 rounded"></div>
+                </div>
+              </div>
+
+              <div className="flex flex-col min-w-0 gap-1.5 justify-center pt-0.5 flex-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="h-5 bg-muted-foreground/40 rounded w-32"></div>
+                  <div className="h-4 bg-primary/20 rounded-full px-2 py-0.5 w-16"></div>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs text-muted-foreground/60 font-medium flex-wrap">
+                  <div className="h-3 bg-muted-foreground/20 rounded w-24"></div>
+                  <div className="flex gap-4 items-center ml-2 border-l border-border/60 pl-4">
+                    <div className="h-3 bg-muted-foreground/15 rounded w-8"></div>
+                    <div className="h-3 bg-muted-foreground/15 rounded w-10"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-right">
+                <div className="h-4 bg-muted-foreground/30 rounded w-12 mb-1"></div>
+                <div className="h-3 bg-muted-foreground/20 rounded w-16"></div>
+              </div>
+              <div className="h-8 w-20 bg-primary/20 rounded-lg"></div>
+            </div>
+          </div>
+        ))}
       </div>
     )
   }

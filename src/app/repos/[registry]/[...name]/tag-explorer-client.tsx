@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
-import { useRegistry } from "@/hooks/use-registries"
 import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
+import { useActivity } from "@/contexts/activity-context"
 import type { Tag } from "@/types/registry"
 
 interface TagExplorerClientProps {
@@ -45,6 +45,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   const canDelete = registryQuery.data?.capabilities?.canDelete ?? false
   const tags = tagsQuery.data?.items ?? []
+  const { addActivity } = useActivity()
 
   // Memoize expensive computations
   const filteredTags = useMemo(() => {
@@ -108,21 +109,31 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   )
 
   const handleBulkDeleteConfirm = useCallback(() => {
-    const digests = tagsToDelete.map((t) => t.digest).filter(Boolean)
+    const digests = tagsToDelete.map((t: Tag) => t.digest).filter(Boolean)
     deleteTags.mutate(
       { registryId, repoName, digests },
       {
-        onSuccess: () => {
-          toast.success(`${tagsToDelete.length} tags deleted successfully`)
+        onSuccess: (result: any) => {
+          // Close modal immediately for smooth UX
           setTagsToDelete([])
+
+          // Track bulk delete activity
+          addActivity({
+            type: 'delete',
+            repository: repoName,
+            registry: registryQuery.data?.name || registryId,
+            user: 'user', // Could be enhanced to get real user info
+          })
+
+          toast.success(`${tagsToDelete.length} tags deleted successfully`)
         },
-        onError: (error) => {
+        onError: (error: any) => {
           toast.error(error.message)
           setTagsToDelete([])
         },
       },
     )
-  }, [deleteTags, registryId, repoName, tagsToDelete])
+  }, [deleteTags, registryId, repoName, tagsToDelete, addActivity, registryQuery.data?.name])
 
   // Show image inspector if a tag is selected
   if (selectedTag) {

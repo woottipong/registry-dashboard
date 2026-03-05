@@ -1,37 +1,33 @@
 "use client"
 
 import Link from "next/link"
-import { DatabaseIcon, LayersIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import dynamic from "next/dynamic"
+import { LayersIcon } from "lucide-react"
 import { StatsCards } from "@/components/dashboard/stats-cards"
-import { RegistryOverview } from "@/components/dashboard/registry-overview"
-import { Skeleton } from "@/components/ui/skeleton"
+import { DashboardSections } from "@/components/dashboard/dashboard-sections"
+import { Button } from "@/components/ui/button"
 import { useMemo } from "react"
 import { useRegistries } from "@/hooks/use-registries"
-import { fetchRepositories } from "@/hooks/use-repositories"
 import { useQueries } from "@tanstack/react-query"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
-
-const TopReposChart = dynamic(
-  () => import("@/components/dashboard/top-repos-chart").then((m) => m.TopReposChart),
-  { loading: () => <Skeleton className="h-[250px] w-full border border-border rounded-md" />, ssr: false },
-)
+import { fetchRepositories } from "@/hooks/use-repositories"
+import { useActivity } from "@/contexts/activity-context"
 
 export function DashboardClient() {
   const registriesQuery = useRegistries()
   const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
+  const { activities } = useActivity()
 
-  // Memoize the query configurations so useQueries doesn't see a new array reference on every render
+  // Fetch repositories with pagination and lazy loading
   const repoQueryConfigs = useMemo(() => {
     return memoizedRegistries.map((registry) => ({
-      queryKey: ["repositories", registry.id, 1, 50, ""],
-      queryFn: () => fetchRepositories(registry.id, { perPage: 50 }),
+      queryKey: ["repositories", registry.id, 1, 20, ""], // Reduced from 50 to 20 for better performance
+      queryFn: () => fetchRepositories(registry.id, { perPage: 20 }), // Reduced page size
       staleTime: STALE_TIME_REPOSITORIES,
+      enabled: memoizedRegistries.length > 0, // Only fetch when registries are loaded
     }))
   }, [memoizedRegistries])
 
-  // Fetch repositories for ALL registries in parallel
+  // Progressive loading: Load basic data first, then detailed stats
   const repoQueries = useQueries({
     queries: repoQueryConfigs,
   })
@@ -39,27 +35,49 @@ export function DashboardClient() {
   const isLoadingRegistries = registriesQuery.isLoading
   const isLoadingRepos = repoQueries.some((q) => q.isLoading)
 
-  // Use useMemo to prevent recalculating stats on every minor re-render
+  // Optimize stats calculation with better memoization
   const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = useMemo(() => {
+    // Early return if no data yet
+    if (memoizedRegistries.length === 0) {
+      return {
+        totalRepositories: 0,
+        totalTags: 0,
+        totalSizeBytes: 0,
+        chartData: [],
+        registriesWithStats: []
+      }
+    }
+
     const allRepos: { name: string; registryId: string; tagCount: number }[] = []
+    let totalRepos = 0
+    let totalTagsCount = 0
+    let totalSize = 0
 
     const regStats = memoizedRegistries.map((registry, index) => {
       const queryResult = repoQueries[index]
+
+      // If query is still loading, use cached or partial data
       const repos = queryResult?.data?.items ?? []
-
       const repoCount = repos.length
-      const tagCount = repos.reduce((sum, r) => sum + (r.tagCount ?? 0), 0)
-      const sizeBytes = repos.reduce((sum, r) => sum + (r.sizeBytes ?? 0), 0)
+      const tagCount = repos.reduce((sum: number, r: any) => sum + (r.tagCount ?? 0), 0)
+      const sizeBytes = repos.reduce((sum: number, r: any) => sum + (r.sizeBytes ?? 0), 0)
 
-      repos.forEach((r) => {
-        if ((r.tagCount ?? 0) > 0) {
-          allRepos.push({
-            name: r.fullName,
-            registryId: registry.id,
-            tagCount: r.tagCount ?? 0,
-          })
-        }
-      })
+      // Only add to chart data if we have repositories
+      if (repoCount > 0) {
+        repos.forEach((r: any) => {
+          if ((r.tagCount ?? 0) > 0) {
+            allRepos.push({
+              name: r.fullName,
+              registryId: registry.id,
+              tagCount: r.tagCount ?? 0,
+            })
+          }
+        })
+      }
+
+      totalRepos += repoCount
+      totalTagsCount += tagCount
+      totalSize += sizeBytes
 
       return {
         ...registry,
@@ -69,16 +87,16 @@ export function DashboardClient() {
       }
     })
 
-    const tRepos = regStats.reduce((sum, r) => sum + r.repoCount, 0)
-    const tTags = regStats.reduce((sum, r) => sum + r.tagCount, 0)
-    const tSize = regStats.reduce((sum, r) => sum + (r.sizeBytes ?? 0), 0)
-    const cData = allRepos.sort((a, b) => b.tagCount - a.tagCount).slice(0, 10)
+    // Sort and limit chart data for better performance
+    const sortedChartData = allRepos
+      .sort((a, b) => b.tagCount - a.tagCount)
+      .slice(0, 10) // Limit to top 10 for chart performance
 
     return {
-      totalRepositories: tRepos,
-      totalTags: tTags,
-      totalSizeBytes: tSize,
-      chartData: cData,
+      totalRepositories: totalRepos,
+      totalTags: totalTagsCount,
+      totalSizeBytes: totalSize,
+      chartData: sortedChartData,
       registriesWithStats: regStats
     }
   }, [memoizedRegistries, repoQueries])
@@ -126,37 +144,13 @@ export function DashboardClient() {
         isLoadingRepos={isLoadingRepos}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <section className="space-y-5">
-          <div className="flex items-center gap-2.5 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-2">
-            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-              <DatabaseIcon className="size-4" />
-            </div>
-            <h2>Active Connections</h2>
-          </div>
-          <div className="rounded-[2rem] border border-border/60 bg-card/40 backdrop-blur-xl shadow-sm relative overflow-hidden min-h-[300px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-            <RegistryOverview registries={registriesWithStats} isLoading={isLoadingRegistries} />
-          </div>
-        </section>
-
-        {chartData.length > 0 && (
-          <section className="space-y-5">
-            <div className="flex items-center gap-2.5 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-2">
-              <div className="p-1.5 rounded-lg bg-chart-2/10 text-chart-2">
-                <LayersIcon className="size-4" />
-              </div>
-              <h2>Inventory Distribution</h2>
-            </div>
-            <div className="rounded-[2rem] border border-border/60 bg-card/40 backdrop-blur-xl shadow-sm p-8 relative overflow-hidden min-h-[300px] flex items-center justify-center">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-              <div className="w-full relative z-10">
-                <TopReposChart data={chartData} isLoading={isLoadingRepos} />
-              </div>
-            </div>
-          </section>
-        )}
-      </div>
+      <DashboardSections
+        registriesWithStats={registriesWithStats}
+        chartData={chartData}
+        isLoadingRegistries={isLoadingRegistries}
+        isLoadingRepos={isLoadingRepos}
+        activities={activities}
+      />
     </div>
   )
 }

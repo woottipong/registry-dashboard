@@ -1,0 +1,131 @@
+import { randomUUID } from "crypto"
+import fs from "fs"
+import path from "path"
+import { z } from "zod"
+import { config } from "@/lib/config"
+import type { ActivityItem } from "@/contexts/activity-context"
+
+const activityInputSchema = z.object({
+  type: z.enum(['push', 'pull', 'delete', 'connect', 'view', 'inspect']),
+  repository: z.string(),
+  registry: z.string(),
+  tag: z.string().optional(),
+  user: z.string().optional(),
+})
+
+export type ActivityInput = z.infer<typeof activityInputSchema>
+
+function getStorePath(): string {
+  return path.join(config.DATA_DIR, "activities.json")
+}
+
+function ensureDataDir(): void {
+  fs.mkdirSync(config.DATA_DIR, { recursive: true })
+}
+
+function readStore(): ActivityItem[] {
+  const storePath = getStorePath()
+  try {
+    if (!fs.existsSync(storePath)) {
+      return []
+    }
+    const raw = fs.readFileSync(storePath, "utf-8")
+    const parsed = JSON.parse(raw) as ActivityItem[]
+    // Convert timestamp strings back to Date objects
+    return parsed.map(activity => ({
+      ...activity,
+      timestamp: new Date(activity.timestamp)
+    }))
+  } catch {
+    console.error("[activity-store] Failed to read store, starting fresh")
+    return []
+  }
+}
+
+function writeStore(activities: ActivityItem[]): void {
+  ensureDataDir()
+  const storePath = getStorePath()
+  const data = JSON.stringify(activities, null, 2)
+  fs.writeFileSync(storePath, data, "utf-8")
+}
+
+export function parseActivityInput(payload: unknown): ActivityInput {
+  return activityInputSchema.parse(payload)
+}
+
+export function listActivities(options: { limit?: number; registry?: string } = {}): ActivityItem[] {
+  const { limit = 50, registry } = options
+  let activities = readStore()
+
+  // Filter by registry if specified
+  if (registry) {
+    activities = activities.filter(activity => activity.registry === registry)
+  }
+
+  // Sort by timestamp (newest first) and limit
+  return activities
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, limit)
+}
+
+export function createActivity(payload: ActivityInput): ActivityItem {
+  const activities = readStore()
+  const id = randomUUID()
+  const now = new Date()
+
+  const activity: ActivityItem = {
+    id,
+    type: payload.type,
+    repository: payload.repository,
+    registry: payload.registry,
+    tag: payload.tag,
+    user: payload.user,
+    timestamp: now,
+  }
+
+  // Add to the beginning of the array (newest first)
+  activities.unshift(activity)
+
+  // Keep only the last 1000 activities to prevent file from growing too large
+  const trimmedActivities = activities.slice(0, 1000)
+
+  writeStore(trimmedActivities)
+  return activity
+}
+
+export function clearActivities(): void {
+  writeStore([])
+}
+
+export function getActivityStats(): {
+  totalActivities: number
+  activitiesByType: Record<string, number>
+  activitiesByRegistry: Record<string, number>
+  recentActivityCount: number
+} {
+  const activities = readStore()
+  const now = new Date()
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+  const stats = {
+    totalActivities: activities.length,
+    activitiesByType: {} as Record<string, number>,
+    activitiesByRegistry: {} as Record<string, number>,
+    recentActivityCount: 0,
+  }
+
+  activities.forEach(activity => {
+    // Count by type
+    stats.activitiesByType[activity.type] = (stats.activitiesByType[activity.type] || 0) + 1
+
+    // Count by registry
+    stats.activitiesByRegistry[activity.registry] = (stats.activitiesByRegistry[activity.registry] || 0) + 1
+
+    // Count recent activities (last 24 hours)
+    if (activity.timestamp >= oneDayAgo) {
+      stats.recentActivityCount++
+    }
+  })
+
+  return stats
+}
