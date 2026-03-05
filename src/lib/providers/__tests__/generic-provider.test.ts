@@ -223,14 +223,14 @@ describe("GenericProvider", () => {
             })),
           })
         }
-        // child manifest fetch (for created date)
+        // child manifest fetch (for created date and actual size)
         return Promise.resolve({
           ok: true, status: 200, headers: new Headers(),
           text: () => Promise.resolve(JSON.stringify({
             schemaVersion: 2,
             mediaType: "application/vnd.oci.image.manifest.v1+json",
             config: { size: 500, digest: "sha256:childcfg" },
-            layers: [],
+            layers: [{ mediaType: "application/vnd.oci.image.layer.v1.tar+gzip", size: 1400, digest: "sha256:layer1" }],
           })),
         })
       }) as typeof fetch

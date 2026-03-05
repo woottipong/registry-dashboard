@@ -14,8 +14,6 @@ interface StatsCardsProps {
   isLoadingRepos?: boolean
 }
 
-import { motion } from "framer-motion"
-
 export function StatsCards({
   totalRegistries,
   totalRepositories,
@@ -59,18 +57,15 @@ export function StatsCards({
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/40 border border-border/50 rounded-[2rem] overflow-hidden backdrop-blur-sm relative shadow-sm">
       {/* Subtle background glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-chart-2/5 blur-xl pointer-events-none" />
-      
-      {stats.map(({ label, format, value, isLoading, icon: Icon }, index) => (
-        <motion.div
+
+      {stats.map(({ label, format, value, isLoading, icon: Icon }) => (
+        <div
           key={label}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: index * 0.05 }}
-          className="bg-card/40 p-8 flex flex-col gap-3 transition-all duration-300 hover:bg-card/80 hover:shadow-lg hover:-translate-y-0.5 group relative z-10"
+          className="bg-card/40 p-8 flex flex-col gap-3 transition-all duration-300 hover:bg-card/80 hover:shadow-lg hover:-translate-y-0.5 group relative z-10 animate-in fade-in zoom-in-95 duration-500"
         >
           {/* Subtle accent line on hover */}
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
+
           <div className="flex items-center gap-2">
             <div className="size-6 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 flex items-center justify-center text-primary transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] group-hover:from-primary group-hover:to-primary/80 group-hover:text-white">
               <Icon className="size-3.5" />
@@ -92,7 +87,7 @@ export function StatsCards({
               </>
             )}
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   )

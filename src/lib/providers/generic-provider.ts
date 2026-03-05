@@ -134,16 +134,16 @@ export class GenericProvider implements RegistryProvider {
       const digest = raw.digest?.startsWith("sha256:")
         ? raw.digest
         : (contentDigest?.startsWith("sha256:") ? contentDigest : null)
-          ?? await this.resolveDigest(repo, tagName)
-          ?? tagName
+        ?? await this.resolveDigest(repo, tagName)
+        ?? tagName
 
       // Multi-arch index — aggregate size from all children, read platform from first entry
       if (INDEX_MEDIA_TYPES.has(raw.mediaType)) {
         const index = raw as ImageIndex & { digest?: string }
-        const totalSize = index.manifests.reduce((sum, m) => sum + m.size, 0)
+        let totalSize = index.manifests.reduce((sum, m) => sum + m.size, 0)
         const firstPlatform = index.manifests[0]?.platform
 
-        // Try to resolve created date from first child manifest's config
+        // Try to resolve created date and actual size from first child manifest's config
         let createdAt: string | null = null
         const firstEntry = index.manifests[0]
         if (firstEntry) {
@@ -151,12 +151,19 @@ export class GenericProvider implements RegistryProvider {
             const child = await this.client.request<
               Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }
             >(`/v2/${repo}/manifests/${firstEntry.digest}`, { headers: { Accept: acceptHeader } })
+
+            // Calculate actual image size from child manifest
+            const childSize = (child.config?.size ?? 0) + (child.layers ?? []).reduce((sum, l) => sum + l.size, 0)
+            if (childSize > 0) {
+              totalSize = childSize
+            }
+
             if (child.config?.digest) {
               const cfg = await this.getConfig(repo, child.config.digest)
               createdAt = cfg?.created ?? null
             }
           } catch {
-            // created date is optional
+            // created date and size extraction is optional
           }
         }
 
@@ -266,7 +273,7 @@ export class GenericProvider implements RegistryProvider {
     await this.client.request<void>(`/v2/${repo}/manifests/${digest}`, { method: "DELETE" })
   }
 
-  async searchRepositories(): Promise<PaginatedResult<Repository>> {
+  async searchRepositories(_query: string): Promise<PaginatedResult<Repository>> {
     throw new UnsupportedError("Search is not supported for generic registry providers")
   }
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRightIcon } from "lucide-react"
 import { RepoTable } from "./repo-table"
 import { RepoGrid } from "./repo-grid"
@@ -20,7 +19,7 @@ export function RepoGroupedView({ registryId, repositories, viewMode }: RepoGrou
   // Group repositories by namespace
   const groupedRepos = useMemo(() => {
     const groups: Record<string, Repository[]> = {}
-    
+
     repositories.forEach((repo) => {
       // For images without namespace (e.g., library/nginx or just nginx), we use "library" or root
       const namespace = repo.namespace || "root"
@@ -29,7 +28,7 @@ export function RepoGroupedView({ registryId, repositories, viewMode }: RepoGrou
       }
       groups[namespace].push(repo)
     })
-    
+
     // Sort namespaces alphabetically
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
   }, [repositories])
@@ -68,14 +67,11 @@ export function RepoGroupedView({ registryId, repositories, viewMode }: RepoGrou
               className="w-full flex items-center justify-between px-6 py-4 bg-background hover:bg-muted/50 transition-colors text-left border-b border-border/50"
             >
               <div className="flex items-center gap-4">
-                <motion.div
-                  initial={false}
-                  animate={{ rotate: isExpanded ? 90 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-primary"
+                <div
+                  className={cn("text-primary transition-transform duration-200", isExpanded ? "rotate-90" : "rotate-0")}
                 >
                   <ChevronRightIcon className="size-6 stroke-[3]" />
-                </motion.div>
+                </div>
                 <span className="font-medium text-foreground">
                   {namespace === "root" ? "/" : `${namespace}/`}
                 </span>
@@ -87,28 +83,18 @@ export function RepoGroupedView({ registryId, repositories, viewMode }: RepoGrou
             </button>
 
             {/* Group Content */}
-            <AnimatePresence initial={false}>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className={cn(
-                    "p-4 border-t border-border/50 bg-background/30",
-                    viewMode === "grid" ? "" : "p-0"
-                  )}>
-                    {viewMode === "grid" ? (
-                      <RepoGrid registryId={registryId} repositories={repos} />
-                    ) : (
-                      <RepoTable registryId={registryId} repositories={repos} />
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isExpanded && (
+              <div className={cn(
+                "border-t border-border/50 bg-background/30 animate-in slide-in-from-top-2 duration-200 fade-in",
+                viewMode === "grid" ? "p-4" : "p-0 pb-2"
+              )}>
+                {viewMode === "grid" ? (
+                  <RepoGrid registryId={registryId} repositories={repos} />
+                ) : (
+                  <RepoTable registryId={registryId} repositories={repos} />
+                )}
+              </div>
+            )}
           </div>
         )
       })}

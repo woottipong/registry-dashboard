@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { RepoCard } from "@/components/repository/repo-card"
 import type { Repository } from "@/types/registry"
 
@@ -8,21 +7,6 @@ interface RepoGridProps {
   registryId: string
   repositories: Repository[]
   isLoading?: boolean
-}
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
 }
 
 export function RepoGrid({ registryId, repositories, isLoading = false }: RepoGridProps) {
@@ -37,20 +21,15 @@ export function RepoGrid({ registryId, repositories, isLoading = false }: RepoGr
   }
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
-    >
+    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {repositories.map((repository) => (
-        <motion.div key={repository.fullName} variants={item}>
+        <div key={repository.fullName}>
           <RepoCard
             registryId={registryId}
             repository={repository}
           />
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   )
 }

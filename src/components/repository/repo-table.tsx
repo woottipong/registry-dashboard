@@ -13,6 +13,7 @@ import {
 import { ArrowUpDownIcon, TagsIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -56,7 +57,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             type="button"
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-ml-4"
           >
             Name
             <ArrowUpDownIcon className="size-4" />
@@ -107,52 +107,56 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   return (
     <div className="w-full relative">
       <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              const isName = header.id === "fullName"
-              const isTags = header.id === "tagCount"
-              
-              return (
-                <TableHead 
-                  key={header.id}
-                  className={isName ? "w-[60%]" : isTags ? "w-[20%]" : "w-[20%] text-right"}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              )
-            })}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow
-            key={row.id}
-            className="cursor-pointer"
-            onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
-            onMouseEnter={() => handleMouseEnter(row.original)}
-          >
-            {row.getVisibleCells().map((cell) => {
-              const isName = cell.column.id === "fullName"
-              const isTags = cell.column.id === "tagCount"
-              
-              return (
-                <TableCell 
-                  key={cell.id}
-                  className={isName ? "w-[60%]" : isTags ? "w-[20%]" : "w-[20%] text-right"}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              )
-            })}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                const isName = header.id === "fullName"
+                const isTags = header.id === "tagCount"
+
+                return (
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      isName ? "w-[60%] pl-6" : isTags ? "w-[20%]" : "w-[20%] text-right pr-6"
+                    )}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              className="cursor-pointer"
+              onClick={() => router.push(`/repos/${registryId}/${row.original.fullName}`)}
+              onMouseEnter={() => handleMouseEnter(row.original)}
+            >
+              {row.getVisibleCells().map((cell) => {
+                const isName = cell.column.id === "fullName"
+                const isTags = cell.column.id === "tagCount"
+
+                return (
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      isName ? "w-[60%] pl-6" : isTags ? "w-[20%]" : "w-[20%] text-right pr-6"
+                    )}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   )
 }

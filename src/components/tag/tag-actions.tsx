@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { ClipboardIcon, EyeIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -24,11 +24,6 @@ export function TagActions({
   onDeleteClick,
 }: TagActionsProps) {
   const router = useRouter()
-
-  function copyDigest() {
-    void navigator.clipboard.writeText(tag.digest)
-    toast.success("Digest copied to clipboard")
-  }
 
   function copyPullCommand() {
     const cmd = generatePullCommand({ repository: repoName, tag: tag.name })
@@ -62,16 +57,6 @@ export function TagActions({
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy pull command</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8" onClick={copyDigest}>
-              <ClipboardIcon className="size-3.5" />
-              <span className="sr-only">Copy digest</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Copy digest</TooltipContent>
         </Tooltip>
 
         <Tooltip>

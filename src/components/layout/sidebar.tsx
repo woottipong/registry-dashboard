@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
 import {
   FolderOpenIcon,
   LayoutDashboardIcon,
@@ -25,8 +24,6 @@ const NAV_LINKS = [
   { href: "/repos", label: "Repositories", icon: FolderOpenIcon, exact: false },
   { href: "/registries", label: "Registries", icon: ServerIcon, exact: false },
 ]
-
-
 
 function SidebarBody() {
   const pathname = usePathname()
@@ -69,17 +66,10 @@ function SidebarBody() {
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                     active
-                      ? "text-primary"
+                      ? "text-primary bg-primary/10 border border-primary/20"
                       : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
                   )}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute inset-0 rounded-lg bg-primary/10 border border-primary/20"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
                   <Icon className={cn("size-4 shrink-0 transition-transform group-hover:scale-110 relative z-10", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
                   <span className="relative z-10">{label}</span>
                 </Link>
@@ -101,58 +91,46 @@ function SidebarBody() {
           </div>
 
           <div className="space-y-1 max-h-[300px] overflow-y-auto scrollbar-none">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {isLoading ? (
-                <div key="loading" className="space-y-2 px-2">
-                  <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
-                  <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
-                </div>
-              ) : registries && registries.length > 0 ? (
-                registries.map((registry: RegistryConnection, index: number) => {
-                  const active = pathname.startsWith("/repos") && currentRegistryId === registry.id
+            {isLoading ? (
+              <div className="space-y-2 px-2">
+                <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
+                <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
+              </div>
+            ) : registries && registries.length > 0 ? (
+              registries.map((registry: RegistryConnection) => {
+                const active = pathname.startsWith("/repos") && currentRegistryId === registry.id
 
-                  return (
-                    <motion.div
-                      key={registry.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Link
-                        href={`/repos?registry=${registry.id}`}
-                        className={cn(
-                          "group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200",
-                          active
-                            ? "bg-primary/5 text-primary"
-                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                        )}
-                      >
-                        <div className="flex items-center gap-2.5 truncate">
-                          <div className={cn(
-                            "flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold shrink-0",
-                            active ? "bg-primary text-white border-primary" : "bg-sidebar border-border group-hover:border-primary/50"
-                          )}>
-                            {registry.name.substring(0, 1).toUpperCase()}
-                          </div>
-                          <span className="truncate font-medium">{registry.name}</span>
-                        </div>
-                        {registry.isDefault && (
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary/40 ring-4 ring-primary/5 shrink-0" />
-                        )}
-                      </Link>
-                    </motion.div>
-                  )
-                })
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="px-3 py-4 text-[11px] text-center border border-dashed rounded-xl text-muted-foreground/60"
-                >
-                  Connect your first registry to get started.
-                </motion.div>
-              )}
-            </AnimatePresence>
+                return (
+                  <Link
+                    key={registry.id}
+                    href={`/repos?registry=${registry.id}`}
+                    className={cn(
+                      "group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                      active
+                        ? "bg-primary/5 text-primary"
+                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 truncate">
+                      <div className={cn(
+                        "flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold shrink-0",
+                        active ? "bg-primary text-white border-primary" : "bg-sidebar border-border group-hover:border-primary/50"
+                      )}>
+                        {registry.name.substring(0, 1).toUpperCase()}
+                      </div>
+                      <span className="truncate font-medium">{registry.name}</span>
+                    </div>
+                    {registry.isDefault && (
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/40 ring-4 ring-primary/5 shrink-0" />
+                    )}
+                  </Link>
+                )
+              })
+            ) : (
+              <div className="px-3 py-4 text-[11px] text-center border border-dashed rounded-xl text-muted-foreground/60">
+                Connect your first registry to get started.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -172,17 +150,22 @@ function SidebarBody() {
   )
 }
 
+import { Suspense } from "react"
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
       <aside className="hidden h-screen w-60 shrink-0 border-r border-border lg:block z-40 bg-background">
-        <SidebarBody />
+        <Suspense fallback={<div className="h-full w-full bg-sidebar/50" />}>
+          <SidebarBody />
+        </Suspense>
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent side="left" className="w-64 p-0 border-r border-border" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <SidebarBody />
+          <Suspense fallback={<div className="h-full w-full bg-sidebar/50" />}>
+            <SidebarBody />
+          </Suspense>
         </SheetContent>
       </Sheet>
     </>
