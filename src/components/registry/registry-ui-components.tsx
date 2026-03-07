@@ -200,7 +200,7 @@ export function ModernRegistryCard({
           className="rounded-lg hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
           title="Test registry connectivity"
         >
-          <RefreshCwIcon className={cn("size-4", isLoading && "animate-spin")} />
+          <RefreshCwIcon className={cn("size-4", isLoading && "motion-safe:animate-spin")} />
           Test
         </Button>
         <Button

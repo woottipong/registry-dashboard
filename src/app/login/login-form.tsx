@@ -95,13 +95,14 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOffIcon className="w-[18px] h-[18px]" />
+                  <EyeOffIcon className="w-[18px] h-[18px]" aria-hidden="true" />
                 ) : (
-                  <EyeIcon className="w-[18px] h-[18px]" />
+                  <EyeIcon className="w-[18px] h-[18px]" aria-hidden="true" />
                 )}
               </button>
             </div>
@@ -121,7 +122,7 @@ export function LoginForm() {
           >
             {isLoading ? (
               <>
-                <Loader2Icon className="w-[18px] h-[18px] mr-2 animate-spin" />
+                <Loader2Icon className="w-[18px] h-[18px] mr-2 motion-safe:animate-spin" />
                 Signing In...
               </>
             ) : (

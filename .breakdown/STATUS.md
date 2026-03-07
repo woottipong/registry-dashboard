@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.
 > Individual task details → `[task-id]-[name].md` in this directory.
-> Last updated: 2026-03-07 (M9 9.1 complete; 9.2 all done; 9.3 all done; 9.5 done; T-265 done; 9.8 all done — 22/35 total)
+> Last updated: 2026-03-07 (M9 9.1 complete; 9.2 all done; 9.3 all done; 9.4 all done; 9.5 done; T-265 done; 9.8 all done — 26/35 total)
 
 ---
 
@@ -55,10 +55,10 @@
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-230](./t-230-semantic-table.md) | Semantic table markup in `repo-table` | 🟡 Todo | 1 hr | 🟠 HIGH | ✅ | `repo-table.tsx` |
-| [T-231](./t-231-aria-labels.md) | Aria-labels for dashboard elements | 🟡 Todo | 45 min | 🟡 MEDIUM | ✅ | `stats-cards.tsx`, `activity-feed.tsx` |
-| [T-232](./t-232-reduced-motion.md) | `prefers-reduced-motion` support | 🟡 Todo | 30 min | 🟡 MEDIUM | ✅ | All `modern-*.tsx` |
-| [T-233](./t-233-form-labels.md) | Form `<label>` associations | 🟡 Todo | 20 min | 🟡 MEDIUM | ✅ | `repos-client.tsx`, registry forms |
+| [T-230](./t-230-semantic-table.md) | Semantic table markup in `repo-table` | ✅ Done | 1 hr | 🟠 HIGH | ✅ | `repo-table.tsx`, `tag-table.tsx` |
+| [T-231](./t-231-aria-labels.md) | Aria-labels for dashboard elements | ✅ Done | 45 min | 🟡 MEDIUM | ✅ | `topbar.tsx`, `login-form.tsx` |
+| [T-232](./t-232-reduced-motion.md) | `prefers-reduced-motion` support | ✅ Done | 30 min | 🟡 MEDIUM | ✅ | `globals.css`, `animate-*` components |
+| [T-233](./t-233-form-labels.md) | Form `<label>` associations | ✅ Done | 20 min | 🟡 MEDIUM | ✅ | `login-form.tsx`, `registry-form.tsx` |
 
 ### 9.6 Architecture & Provider Refactoring — P2
 
@@ -129,9 +129,9 @@ T-200–T-205 all done. T-210–T-212, T-214, T-240, T-241, T-265 also done.
 | Security | 6 | 6 | 0 | 0 | 0 |
 | Code Quality | 5 | 5 | 0 | 0 | 0 |
 | Performance | 5 | 5 | 0 | 0 | 0 |
-| Accessibility | 4 | 0 | 0 | 4 | 0 |
+| Accessibility | 4 | 4 | 0 | 0 | 0 |
 | Lint/Types | 2 | 2 | 0 | 0 | 0 |
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
 | Testing | 3 | 3 | 0 | 0 | 0 |
-| **Total** | **35** | **22** | **0** | **4** | **9** |
+| **Total** | **35** | **26** | **0** | **0** | **9** |

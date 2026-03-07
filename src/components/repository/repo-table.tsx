@@ -44,10 +44,10 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   }, [debouncedHoveredRepo, registryId, queryClient])
 
   return (
-    <div className="divide-y divide-border/40">
+    <ul className="divide-y divide-border/40" role="list">
       {repositories.map((repo) => (
+        <li key={repo.fullName}>
         <button
-          key={repo.fullName}
           type="button"
           className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors text-left group"
           onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
@@ -80,7 +80,8 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
           {/* Arrow */}
           <ChevronRightIcon className="flex-shrink-0 size-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
         </button>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }

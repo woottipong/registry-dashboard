@@ -171,7 +171,7 @@ describe('ModernRegistryCard', () => {
     render(<ModernRegistryCard {...defaultProps} isLoading={true} />)
     
     const refreshIcon = screen.getByTestId('refresh-icon')
-    expect(refreshIcon).toHaveClass('animate-spin')
+    expect(refreshIcon).toHaveClass('motion-safe:animate-spin')
   })
 })
 

@@ -278,7 +278,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             />
 
             {currentAuthType === "basic" && (
-              <div className="grid gap-4 sm:grid-cols-2 animate-in fade-in zoom-in-95 duration-200">
+              <div className="grid gap-4 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
                 <FormField
                   control={form.control}
                   name="username"
@@ -309,7 +309,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             )}
 
             {currentAuthType === "bearer" && (
-              <div className="animate-in fade-in zoom-in-95 duration-200">
+              <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
                 <FormField
                   control={form.control}
                   name="token"

@@ -80,6 +80,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="User menu"
                 className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] hidden sm:flex"
               >
                 <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
