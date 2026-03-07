@@ -2,7 +2,7 @@
 
 > **Source of truth** for all phases, epics, and tasks.  
 > Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-06 (M9 9.1 complete; 9.2 all done; 9.5 done; T-265 done — 14/35 total)
+> Last updated: 2026-03-07 (M9 9.1 complete; 9.2 all done; 9.3 all done; 9.5 done; T-265 done — 19/35 total)
 
 ---
 
@@ -45,11 +45,11 @@
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-220](./t-220-n-plus-one-namespaces.md) | Fix N+1 in `listNamespaces()` | 🟡 Todo | 1 hr | 🟠 HIGH | | `generic-provider.ts` |
-| [T-221](./t-221-debounce-hover-prefetch.md) | Debounce tag prefetch on hover | 🟡 Todo | 20 min | 🟡 MEDIUM | ✅ | `repo-table.tsx` |
-| [T-222](./t-222-parallel-query-toggle.md) | Disable unused parallel queries | 🟡 Todo | 15 min | 🟡 MEDIUM | ✅ | `use-repositories-state.ts` |
-| [T-223](./t-223-lazy-dashboard-stats.md) | Lazy-load dashboard stats | 🟡 Todo | 1 hr | 🟡 MEDIUM | | `use-dashboard-data.ts` |
-| [T-224](./t-224-memoize-layer-size.md) | Memoize layer `maxSize` calc | 🟡 Todo | 5 min | 🟢 LOW | ✅ | `layer-list.tsx` |
+| [T-220](./t-220-n-plus-one-namespaces.md) | Fix N+1 in `listNamespaces()` | ✅ Done | 1 hr | 🟠 HIGH | | `generic-provider.ts` |
+| [T-221](./t-221-debounce-hover-prefetch.md) | Debounce tag prefetch on hover | ✅ Done | 20 min | 🟡 MEDIUM | ✅ | `repo-table.tsx` |
+| [T-222](./t-222-parallel-query-toggle.md) | Disable unused parallel queries | ✅ Done | 15 min | 🟡 MEDIUM | ✅ | `use-repositories-state.ts` |
+| [T-223](./t-223-lazy-dashboard-stats.md) | Lazy-load dashboard stats | ✅ Done | 1 hr | 🟡 MEDIUM | | `use-dashboard-data.ts` |
+| [T-224](./t-224-memoize-layer-size.md) | Memoize layer `maxSize` calc | ✅ Done | 5 min | 🟢 LOW | ✅ | `layer-list.tsx` |
 
 ### 9.4 Accessibility — P1
 
@@ -128,10 +128,10 @@ T-200–T-205 all done. T-210–T-212, T-214, T-240, T-241, T-265 also done.
 |----------|-------|------|-------------|------|---------|
 | Security | 6 | 6 | 0 | 0 | 0 |
 | Code Quality | 5 | 5 | 0 | 0 | 0 |
-| Performance | 5 | 0 | 0 | 5 | 0 |
+| Performance | 5 | 5 | 0 | 0 | 0 |
 | Accessibility | 4 | 0 | 0 | 4 | 0 |
 | Lint/Types | 2 | 2 | 0 | 0 | 0 |
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
 | Testing | 3 | 0 | 0 | 0 | 3 |
-| **Total** | **35** | **14** | **0** | **9** | **12** |
+| **Total** | **35** | **19** | **0** | **4** | **12** |
