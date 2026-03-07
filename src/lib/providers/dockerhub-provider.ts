@@ -107,7 +107,7 @@ export class DockerHubProvider implements RegistryProvider {
     }
   }
 
-  async listRepositories(options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
+  async listRepositories(_options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
     await this.ensureAuthenticated()
 
     const namespace = this.getEffectiveNamespace()

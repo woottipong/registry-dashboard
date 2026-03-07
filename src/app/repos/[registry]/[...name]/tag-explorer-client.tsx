@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, XIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,6 +31,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const [page, setPage] = useState(1)
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null)
   const [tagsToDelete, setTagsToDelete] = useState<Tag[]>([])
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
 
   // Debounce search input
   useEffect(() => {
@@ -62,6 +63,12 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     const lowerSearch = debouncedSearch.toLowerCase()
     return memoizedTags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
   }, [memoizedTags, debouncedSearch])
+
+  // Derive selected tags from row indices (TanStack Table uses string indices as default row IDs)
+  const selectedRowTags = useMemo(
+    () => filteredTags.filter((_, i) => rowSelection[String(i)]),
+    [filteredTags, rowSelection],
+  )
 
   // Derived pagination
   const totalTags = meta?.total ?? memoizedTags.length
@@ -120,23 +127,26 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   )
 
   const handleBulkDeleteConfirm = useCallback(() => {
-    const digests = tagsToDelete.map((t: Tag) => t.digest).filter(Boolean)
+    const snapshot = [...tagsToDelete]
+    const digests = snapshot.map((t: Tag) => t.digest).filter(Boolean)
     deleteTags.mutate(
       { registryId, repoName, digests },
       {
         onSuccess: () => {
-          // Close modal immediately for smooth UX
           setTagsToDelete([])
+          setRowSelection({})
 
           // Track bulk delete activity
           addActivity({
             type: 'delete',
             repository: repoName,
             registry: registryQuery.data?.name || registryId,
-            user: 'user', // Could be enhanced to get real user info
+            user: 'user',
           })
 
-          toast.success(`${tagsToDelete.length} tags deleted successfully`)
+          snapshot.forEach((t, i) => {
+            setTimeout(() => toast.success(`Tag "${t.name}" deleted`), i * 180)
+          })
         },
         onError: (error: Error) => {
           toast.error(error.message)
@@ -188,23 +198,35 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      {/* Enhanced Search */}
-      <div className="relative max-w-sm">
-        <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={handleSearchChange}
-          className="pl-8 pr-8"
-          placeholder="Filter tags…"
-        />
-        {search && (
+      {/* Search and bulk-action toolbar */}
+      <div className="flex items-center gap-2">
+        <div className="relative max-w-sm flex-1">
+          <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={handleSearchChange}
+            className="pl-8 pr-8"
+            placeholder="Filter tags…"
+          />
+          {search && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
+              onClick={handleClearSearch}
+            >
+              <XIcon className="size-3" />
+            </Button>
+          )}
+        </div>
+        {canDelete && selectedRowTags.length > 0 && (
           <Button
-            variant="ghost"
             size="sm"
-            className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
-            onClick={handleClearSearch}
+            variant="destructive"
+            onClick={() => handleBulkDeleteClick(selectedRowTags)}
           >
-            <XIcon className="size-3" />
+            <Trash2Icon className="size-4" />
+            Delete {selectedRowTags.length} selected
           </Button>
         )}
       </div>
@@ -245,6 +267,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             canDelete={canDelete}
             isLoading={tagsQuery.isLoading}
             registryUrl={registryQuery.data?.url}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
             onDeleteClick={handleDeleteClick}
             onBulkDeleteClick={handleBulkDeleteClick}
           />

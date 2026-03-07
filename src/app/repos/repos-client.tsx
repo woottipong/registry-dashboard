@@ -4,15 +4,18 @@ import React, { useMemo, useState, useCallback } from "react"
 import Link from "next/link"
 import { useDebounce } from "@/hooks/use-debounce"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { SearchIcon, PlusIcon, FolderIcon, ChevronLeftIcon, ChevronRightIcon, BoxIcon } from "lucide-react"
+import { SearchIcon, PlusIcon, FolderIcon, ChevronLeftIcon, ChevronRightIcon, BoxIcon, ArrowUpDownIcon } from "lucide-react"
 import { RepoTable } from "@/components/repository/repo-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories } from "@/hooks/use-repositories"
 import { useNamespaces } from "@/hooks/use-namespaces"
 import type { RegistryConnection } from "@/types/registry"
+
+type SortOption = 'name-asc' | 'name-desc' | 'tags-desc' | 'tags-asc' | 'updated-desc' | 'updated-asc'
 
 export function RepositoriesClient({ initialRegistry, initialRegistries }: { initialRegistry: string, initialRegistries: RegistryConnection[] }) {
   const router = useRouter()
@@ -22,6 +25,7 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
   const namespaceParam = searchParams.get("namespace")
 
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState<SortOption>('tags-desc')
   const debouncedSearch = useDebounce(search)
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,8 +73,11 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
   const namespacesQuery = useNamespaces(selectedRegistry)
 
   // Step 2: Load repos only when a namespace is selected
+  // perPage=1000 (schema max) ensures we get all repos in a namespace at once;
+  // generic provider fetches the full catalog anyway and just slices the result.
   const repositoriesQuery = useRepositories(selectedRegistry, {
     page: 1,
+    perPage: 1000,
     namespace: selectedNamespace !== null ? selectedNamespaceValue : undefined,
   })
 
@@ -84,6 +91,37 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
       repo.fullName?.toLowerCase().includes(term)
     )
   }, [repositoriesQuery.data, debouncedSearch])
+
+  // Client-side sort
+  const sortedRepos = useMemo(() => {
+    const repos = [...filteredRepos]
+    switch (sortBy) {
+      case 'name-asc':
+        return repos.sort((a, b) => a.name.localeCompare(b.name))
+      case 'name-desc':
+        return repos.sort((a, b) => b.name.localeCompare(a.name))
+      case 'tags-desc':
+        return repos.sort((a, b) => (b.tagCount ?? 0) - (a.tagCount ?? 0))
+      case 'tags-asc':
+        return repos.sort((a, b) => (a.tagCount ?? 0) - (b.tagCount ?? 0))
+      case 'updated-desc':
+        return repos.sort((a, b) => {
+          if (!a.lastUpdated && !b.lastUpdated) return 0
+          if (!a.lastUpdated) return 1
+          if (!b.lastUpdated) return -1
+          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+        })
+      case 'updated-asc':
+        return repos.sort((a, b) => {
+          if (!a.lastUpdated && !b.lastUpdated) return 0
+          if (!a.lastUpdated) return 1
+          if (!b.lastUpdated) return -1
+          return new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
+        })
+      default:
+        return repos
+    }
+  }, [filteredRepos, sortBy])
 
   return (
     <section className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-300">
@@ -116,25 +154,40 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
 
       {/* Toolbar */}
       {selectedNamespace !== null ? (
-        /* Namespace detail — search only */
-        <div className="relative group">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            value={search}
-            onChange={handleSearchChange}
-            className="h-12 pl-11 bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all"
-            placeholder={`Search in ${selectedNamespaceValue || 'root'}...`}
-            aria-label="Search repositories"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-foreground p-1"
-              aria-label="Clear search"
-            >
-              Clear
-            </button>
-          )}
+        /* Namespace detail — search + sort */
+        <div className="flex items-center gap-2">
+          <div className="relative group flex-1">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              value={search}
+              onChange={handleSearchChange}
+              className="h-12 pl-11 bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all"
+              placeholder={`Search in ${selectedNamespaceValue || 'root'}...`}
+              aria-label="Search repositories"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-foreground p-1"
+                aria-label="Clear search"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <SelectTrigger className="h-12 w-48 rounded-2xl bg-card/50 border-border/50 shrink-0" aria-label="Sort repositories">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name-asc">Name A→Z</SelectItem>
+              <SelectItem value="name-desc">Name Z→A</SelectItem>
+              <SelectItem value="tags-desc">Most Tags</SelectItem>
+              <SelectItem value="tags-asc">Fewest Tags</SelectItem>
+              <SelectItem value="updated-desc">Newest First</SelectItem>
+              <SelectItem value="updated-asc">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       ) : (
         /* Namespace overview — registry selector */
@@ -203,7 +256,7 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
           ) : (
             <div key={`${selectedRegistry}-${selectedNamespaceValue}`} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="rounded-2xl border border-border/50 bg-card/30 overflow-hidden backdrop-blur-sm">
-                <RepoTable registryId={selectedRegistry} repositories={filteredRepos} />
+                <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
               </div>
             </div>
           )

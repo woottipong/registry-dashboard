@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   type ColumnDef,
   flexRender,
@@ -32,6 +33,8 @@ interface TagTableProps {
   canDelete: boolean
   isLoading?: boolean
   registryUrl?: string
+  rowSelection: Record<string, boolean>
+  onRowSelectionChange: (value: Record<string, boolean>) => void
   onDeleteClick: (tag: Tag) => void
   onBulkDeleteClick: (tags: Tag[]) => void
 }
@@ -43,11 +46,12 @@ export function TagTable({
   canDelete,
   isLoading,
   registryUrl,
+  rowSelection,
+  onRowSelectionChange,
   onDeleteClick,
   onBulkDeleteClick,
 }: TagTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }])
-  const [rowSelection, setRowSelection] = useState({})
 
   const columns = useMemo<ColumnDef<Tag>[]>(
     () => [
@@ -183,7 +187,10 @@ export function TagTable({
     columns,
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(rowSelection) : updater
+      onRowSelectionChange(next)
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: canDelete,
@@ -204,25 +211,6 @@ export function TagTable({
 
   return (
     <div className="space-y-2">
-      {canDelete && hasSelection && (
-        <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 px-4 py-2">
-          <span className="text-sm text-muted-foreground">
-            {selectedTags.length} {selectedTags.length === 1 ? "tag" : "tags"} selected
-          </span>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              onBulkDeleteClick(selectedTags)
-              setRowSelection({})
-            }}
-          >
-            <Trash2Icon className="size-3.5" />
-            Delete selected
-          </Button>
-        </div>
-      )}
-
       <div className="rounded-md border border-border">
         <Table>
           <TableHeader>
@@ -250,15 +238,23 @@ export function TagTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            <AnimatePresence initial={false}>
+              {table.getRowModel().rows.map((row) => (
+                <motion.tr
+                  key={row.original.name}
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                  exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
+                  layout
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           </TableBody>
         </Table>
       </div>

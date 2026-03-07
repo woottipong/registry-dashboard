@@ -23,10 +23,11 @@ export interface RepositoryQueryResult {
 export function makeRepositoryQueryString(options: RepositoryQueryOptions): string {
   const params = new URLSearchParams()
 
-  if (options.page) params.set("page", String(options.page))
-  if (options.perPage) params.set("perPage", String(options.perPage))
+  if (options.page !== undefined) params.set("page", String(options.page))
+  if (options.perPage !== undefined) params.set("perPage", String(options.perPage))
   if (options.search) params.set("search", options.search)
-  if (options.namespace) params.set("namespace", options.namespace)
+  // Use !== undefined so that empty-string namespace (root) is correctly sent as ?namespace=
+  if (options.namespace !== undefined) params.set("namespace", options.namespace)
 
   const query = params.toString()
   return query ? `?${query}` : ""

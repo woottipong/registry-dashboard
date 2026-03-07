@@ -82,8 +82,25 @@ export function useDeleteTags() {
 
       return { registryId, repoName }
     },
+    onMutate: async ({ registryId, repoName, digests }) => {
+      const queryKeyPrefix = ["tags", registryId, repoName] as const
+      await queryClient.cancelQueries({ queryKey: queryKeyPrefix })
+      const previousEntries = queryClient.getQueriesData<TagsResult>({ queryKey: queryKeyPrefix })
+      const digestSet = new Set(digests)
+      queryClient.setQueriesData<TagsResult>({ queryKey: queryKeyPrefix }, (old) => {
+        if (!old) return old
+        return { ...old, items: old.items.filter((t) => !digestSet.has(t.digest)) }
+      })
+      return { previousEntries }
+    },
+    onError: (_error, _variables, context) => {
+      for (const [key, data] of context?.previousEntries ?? []) {
+        queryClient.setQueryData(key, data)
+      }
+    },
     onSuccess: async ({ registryId, repoName }) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.byRepo(registryId, repoName) })
+      // Use prefix key so ALL pages for this repo are invalidated, not just page 1
+      await queryClient.invalidateQueries({ queryKey: ["tags", registryId, repoName] })
     },
   })
 }
@@ -117,28 +134,32 @@ export function useDeleteTag() {
       return { registryId, repoName }
     },
     onMutate: async ({ registryId, repoName, digest }) => {
-      const queryKey = queryKeys.tags.byRepo(registryId, repoName)
+      // Use prefix so cancel/update applies to ALL pages, not just page 1
+      const queryKeyPrefix = ["tags", registryId, repoName] as const
 
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData<TagsResult>(queryKey)
+      await queryClient.cancelQueries({ queryKey: queryKeyPrefix })
 
-      if (previous) {
-        queryClient.setQueryData<TagsResult>(queryKey, {
-          ...previous,
-          items: previous.items.filter((tag) => tag.digest !== digest),
-        })
-      }
+      // Snapshot every matching cache entry for rollback
+      const previousEntries = queryClient.getQueriesData<TagsResult>({ queryKey: queryKeyPrefix })
 
-      return { previous, queryKey }
+      // Optimistically remove the deleted tag from all pages
+      queryClient.setQueriesData<TagsResult>({ queryKey: queryKeyPrefix }, (old) => {
+        if (!old) return old
+        return { ...old, items: old.items.filter((tag) => tag.digest !== digest) }
+      })
+
+      return { previousEntries }
     },
     onError: (_error, _variables, context) => {
-      if (context?.previous && context?.queryKey) {
-        queryClient.setQueryData(context.queryKey, context.previous)
+      if (context?.previousEntries) {
+        for (const [key, data] of context.previousEntries) {
+          queryClient.setQueryData(key, data)
+        }
       }
     },
     onSettled: async (_data, _error, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.tags.byRepo(variables.registryId, variables.repoName),
+        queryKey: ["tags", variables.registryId, variables.repoName],
       })
     },
   })
