@@ -12,4 +12,14 @@ coverage
 .idea
 Dockerfile*
 docker-compose*.yml
+compose*.yml
 *.md
+*.pem
+*.key
+*.p12
+*.pfx
+data/
+e2e/
+.github/
+.breakdown/
+CLAUDE.md

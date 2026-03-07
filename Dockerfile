@@ -5,7 +5,8 @@ FROM oven/bun:1.3.9-alpine AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
 
 # Stage 2: Build the application
 FROM oven/bun:1.3.9-alpine AS builder
@@ -15,18 +16,24 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Build-time placeholders — satisfy Zod validation during static page collection.
+# These values are scoped to this stage and do NOT appear in the runtime image.
+ENV SESSION_SECRET="build-time-placeholder-secret-min-32-chars!"
+ENV APP_PASSWORD="buildtime"
 
-RUN bun run build
+RUN --mount=type=cache,target=/app/.next/cache \
+    bun run build
 
 # Stage 3: Production runner (minimal node image — bun not needed at runtime)
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
-RUN apk add --no-cache wget
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache wget
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -38,8 +45,11 @@ USER nextjs
 
 VOLUME ["/app/data"]
 
+ARG GIT_SHA=local
 LABEL org.opencontainers.image.title="Registry Dashboard" \
-      org.opencontainers.image.description="Modern web dashboard for browsing and managing Docker container images"
+      org.opencontainers.image.description="Modern web dashboard for browsing and managing Docker container images" \
+      org.opencontainers.image.source="https://github.com/org/registry-ui" \
+      org.opencontainers.image.revision="${GIT_SHA}"
 
 EXPOSE 3000
 ENV PORT=3000

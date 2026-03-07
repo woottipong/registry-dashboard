@@ -3,7 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: registry-dashboard-ui:latest
+      args:
+        GIT_SHA: ${GIT_SHA:-local}
+    image: spinsoft-transcription/registry-dashboard-ui:beta-1
     container_name: registry-dashboard-ui
     restart: unless-stopped
     ports:
@@ -12,13 +14,17 @@ services:
       NODE_ENV: production
       DATA_DIR: /app/data
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD:-admin123}
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ui-data:/app/data
-    depends_on:
-      registry:
-        condition: service_healthy
     networks:
       - registry-net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
       interval: 30s

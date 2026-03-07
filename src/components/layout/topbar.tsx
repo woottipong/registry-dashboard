@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { MenuIcon, MoonIcon, SunIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
@@ -55,7 +56,9 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
           </Button>
 
           <div className="hidden lg:block">
-            <Breadcrumbs />
+            <Suspense fallback={null}>
+              <Breadcrumbs />
+            </Suspense>
           </div>
         </div>
 
