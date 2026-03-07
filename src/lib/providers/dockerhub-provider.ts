@@ -110,27 +110,34 @@ export class DockerHubProvider implements RegistryProvider {
   async listRepositories(options: ListOptions & { namespace?: string } = {}): Promise<PaginatedResult<Repository>> {
     await this.ensureAuthenticated()
 
-    const page = options.page ?? 1
-    const perPage = options.perPage ?? this.config.defaultPageSize
     const namespace = this.getEffectiveNamespace()
+    // Hub API page_size max is 100; fetch all pages so consumers see the full list
+    const pageSize = 100
+
+    const headers: HeadersInit = {}
+    if (this.hubJwtToken) {
+      headers.Authorization = `JWT ${this.hubJwtToken}`
+    }
 
     try {
-      const headers: HeadersInit = {}
-      if (this.hubJwtToken) {
-        headers.Authorization = `JWT ${this.hubJwtToken}`
+      const allItems: Repository[] = []
+      let nextUrl: string | null = `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page=1&page_size=${pageSize}`
+      let total = 0
+
+      while (nextUrl) {
+        const url: string = nextUrl
+        const response: DockerHubRepoResponse = await this.registryClient.request<DockerHubRepoResponse>(url, { headers })
+        total = response.count
+        allItems.push(...response.results.map((repo) => this.mapRepositoryResponse(repo)))
+        nextUrl = response.next ?? null
       }
 
-      const response = await this.registryClient.request<DockerHubRepoResponse>(
-        `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page=${page}&page_size=${perPage}`,
-        { headers },
-      )
-
       return {
-        items: response.results.map(repo => this.mapRepositoryResponse(repo)),
-        page,
-        perPage,
-        total: response.count,
-        nextCursor: response.next,
+        items: allItems,
+        page: 1,
+        perPage: allItems.length,
+        total,
+        nextCursor: null,
       }
     } catch (error) {
       this.handleApiError(error, `Failed to list repositories for namespace ${namespace}`)

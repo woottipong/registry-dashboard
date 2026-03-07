@@ -45,18 +45,16 @@ export async function fetchRepositories(
   if (response.ok) {
     const data = await response.json()
 
-    // ApiResponse<Repository[]> format: { success, data: Repository[] }
+    // ApiResponse<Repository[]> format: { success, data: Repository[], meta?: PaginationMeta }
     if (data.success && Array.isArray(data.data)) {
       const items: Repository[] = data.data
-      return {
-        items,
-        meta: {
-          page: options.page || 1,
-          perPage: options.perPage || items.length,
-          total: items.length,
-          totalPages: 1,
-        }
+      const meta: PaginationMeta = data.meta ?? {
+        page: options.page || 1,
+        perPage: options.perPage || items.length,
+        total: items.length,
+        totalPages: 1,
       }
+      return { items, meta }
     }
   }
 

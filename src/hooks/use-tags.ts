@@ -12,15 +12,16 @@ interface TagsResult {
   meta?: PaginationMeta
 }
 
-export function useTags(registryId: string, repoName: string) {
+export function useTags(registryId: string, repoName: string, page = 1, perPage = 50) {
   return useQuery({
-    queryKey: queryKeys.tags.byRepo(registryId, repoName),
+    queryKey: queryKeys.tags.byRepo(registryId, repoName, page, perPage),
     enabled: Boolean(registryId && repoName),
     staleTime: STALE_TIME_TAGS,
     queryFn: async (): Promise<TagsResult> => {
       const encodedRepoPath = encodeRepoPath(repoName)
+      const params = new URLSearchParams({ page: String(page), perPage: String(perPage) })
       const response = await fetch(
-        `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags`,
+        `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags?${params}`,
         { cache: "default" }
       )
 
@@ -28,15 +29,13 @@ export function useTags(registryId: string, repoName: string) {
 
       if (response.ok && data.success && Array.isArray(data.data)) {
         const tags: Tag[] = data.data
-        return {
-          items: tags,
-          meta: {
-            page: 1,
-            perPage: tags.length,
-            total: tags.length,
-            totalPages: 1,
-          }
+        const meta: PaginationMeta = data.meta ?? {
+          page,
+          perPage,
+          total: tags.length,
+          totalPages: 1,
         }
+        return { items: tags, meta }
       }
 
       if (data.errors?.[0]) {

@@ -71,7 +71,6 @@ export function RepositoriesClient({ initialRegistry, initialRegistries }: { ini
   // Step 2: Load repos only when a namespace is selected
   const repositoriesQuery = useRepositories(selectedRegistry, {
     page: 1,
-    perPage: 500,
     namespace: selectedNamespace !== null ? selectedNamespaceValue : undefined,
   })
 

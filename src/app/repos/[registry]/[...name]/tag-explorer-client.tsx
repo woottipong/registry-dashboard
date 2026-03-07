@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { SearchIcon, TagIcon, XIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,12 +20,15 @@ interface TagExplorerClientProps {
   repoName: string
 }
 
+const PER_PAGE = 50
+
 function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const searchParams = useSearchParams()
   const selectedTag = searchParams.get("tag")
 
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [page, setPage] = useState(1)
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null)
   const [tagsToDelete, setTagsToDelete] = useState<Tag[]>([])
 
@@ -33,6 +36,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search)
+      setPage(1) // reset to first page on new search
     }, 300)
 
     return () => clearTimeout(timer)
@@ -40,7 +44,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Fetch data
   const registryQuery = useRegistry(registryId)
-  const tagsQuery = useTags(registryId, repoName)
+  const tagsQuery = useTags(registryId, repoName, page, PER_PAGE)
   const deleteTag = useDeleteTag()
   const deleteTags = useDeleteTags()
 
@@ -49,13 +53,19 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Memoize tags to prevent dependency issues
   const memoizedTags = useMemo(() => tagsQuery.data?.items ?? [], [tagsQuery.data?.items])
+  const meta = tagsQuery.data?.meta
 
-  // Memoize expensive computations
+  // Client-side search filter (only filters the current page for generic registries;
+  // Docker Hub already server-paginates so searching resets to p1 above)
   const filteredTags = useMemo(() => {
     if (!debouncedSearch.trim()) return memoizedTags
     const lowerSearch = debouncedSearch.toLowerCase()
     return memoizedTags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
   }, [memoizedTags, debouncedSearch])
+
+  // Derived pagination
+  const totalTags = meta?.total ?? memoizedTags.length
+  const totalPages = meta?.totalPages ?? 1
 
   // Memoize shared tags calculation
   const sharedWithTag = useMemo(() => {
@@ -70,10 +80,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     return new Set(memoizedTags.map((t) => t.digest).filter((d) => d)).size
   }, [memoizedTags])
 
-  // Memoize tag count display
-  const tagCountDisplay = useMemo(() => {
-    return `${memoizedTags.length} ${memoizedTags.length === 1 ? "tag" : "tags"}`
-  }, [memoizedTags.length])
+  // Tag count display uses real total from meta
+  const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
 
   // Memoize event handlers
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,16 +237,49 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
           )}
         </div>
       ) : (
-        <TagTable
-          registryId={registryId}
-          repoName={repoName}
-          tags={filteredTags}
-          canDelete={canDelete}
-          isLoading={tagsQuery.isLoading}
-          registryUrl={registryQuery.data?.url}
-          onDeleteClick={handleDeleteClick}
-          onBulkDeleteClick={handleBulkDeleteClick}
-        />
+        <>
+          <TagTable
+            registryId={registryId}
+            repoName={repoName}
+            tags={filteredTags}
+            canDelete={canDelete}
+            isLoading={tagsQuery.isLoading}
+            registryUrl={registryQuery.data?.url}
+            onDeleteClick={handleDeleteClick}
+            onBulkDeleteClick={handleBulkDeleteClick}
+          />
+
+          {/* Pagination controls — only shown when there are multiple pages */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages} &bull; {totalTags} tags
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1 || tagsQuery.isFetching}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeftIcon className="size-4" />
+                  Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages || tagsQuery.isFetching}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="Next page"
+                >
+                  Next
+                  <ChevronRightIcon className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete Dialog */}

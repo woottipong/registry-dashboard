@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
 import { listQuerySchema } from "@/lib/validators/query-schemas"
-import type { ApiResponse } from "@/types/api"
+import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Tag } from "@/types/registry"
 
 interface RouteContext {
@@ -67,10 +67,19 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const result = await provider.listTags(repositoryName, { page, perPage })
 
+    const meta: PaginationMeta = {
+      page: result.page,
+      perPage: result.perPage,
+      total: result.total ?? result.items.length,
+      totalPages: result.total ? Math.ceil(result.total / result.perPage) : 1,
+      nextCursor: result.nextCursor,
+    }
+
     const response: ApiResponse<Tag[]> = {
       success: true,
       data: result.items,
       error: null,
+      meta,
     }
 
     return NextResponse.json(response, {
