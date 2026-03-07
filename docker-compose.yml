@@ -16,7 +16,6 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
       APP_USERNAME: ${APP_USERNAME:-admin}
       APP_PASSWORD: ${APP_PASSWORD:-admin123}
-      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ui-data:/app/data
     networks:

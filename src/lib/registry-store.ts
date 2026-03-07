@@ -6,9 +6,23 @@ import { config } from "@/lib/config"
 import { decryptCredential, encryptCredential } from "@/lib/crypto"
 import type { RegistryConnection } from "@/types/registry"
 
+const ALLOWED_PROTOCOLS = new Set(["http:", "https:"])
+
 const registryInputSchema = z.object({
   name: z.string().min(1),
-  url: z.string().url(),
+  url: z
+    .string()
+    .url()
+    .refine(
+      (url) => {
+        try {
+          return ALLOWED_PROTOCOLS.has(new URL(url).protocol)
+        } catch {
+          return false
+        }
+      },
+      { message: "Registry URL must use http:// or https://" },
+    ),
   provider: z.enum(["generic", "dockerhub", "ghcr", "ecr", "gcr", "acr"]).optional(),
   authType: z.enum(["none", "basic", "bearer"]).default("none"),
   credentials: z

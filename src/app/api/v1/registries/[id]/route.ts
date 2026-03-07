@@ -13,6 +13,15 @@ interface RouteContext {
   params: Promise<{ id: string }>
 }
 
+function sanitize(registry: RegistryConnection) {
+  const { credentials, ...rest } = registry
+  return {
+    ...rest,
+    hasCredentials: !!(credentials?.password || credentials?.token),
+    capabilities: createProvider(registry).capabilities(),
+  }
+}
+
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params
   const registry = getRegistry(id)
@@ -30,11 +39,9 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json(response, { status: 404 })
   }
 
-  const capabilities = createProvider(registry).capabilities()
-
-  const response: ApiResponse<RegistryConnection> = {
+  const response: ApiResponse<ReturnType<typeof sanitize>> = {
     success: true,
-    data: { ...registry, capabilities },
+    data: sanitize(registry),
     error: null,
   }
 
@@ -62,21 +69,21 @@ export async function PUT(request: Request, context: RouteContext) {
       return NextResponse.json(response, { status: 404 })
     }
 
-    const response: ApiResponse<RegistryConnection> = {
+    const response: ApiResponse<ReturnType<typeof sanitize>> = {
       success: true,
-      data: updated,
+      data: sanitize(updated),
       error: null,
     }
 
     return NextResponse.json(response)
   } catch (error) {
+    console.error("[PUT /api/v1/registries/:id]", error)
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "INVALID_PAYLOAD",
-        message: "Unable to update registry",
-        details: error instanceof Error ? error.message : error,
+        message: error instanceof Error ? error.message : "Unable to update registry",
       },
     }
 
