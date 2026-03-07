@@ -16,8 +16,8 @@ import { truncateDigest } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
 interface BulkDeleteDialogProps {
-  count: number
-  uniqueDigestCount: number
+  tags: Tag[]
+  sideEffectTags: string[]
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
@@ -25,14 +25,14 @@ interface BulkDeleteDialogProps {
 }
 
 export function BulkDeleteDialog({
-  count,
-  uniqueDigestCount,
+  tags,
+  sideEffectTags,
   open,
   onOpenChange,
   onConfirm,
   isPending = false,
 }: BulkDeleteDialogProps) {
-  const sharedCount = count - uniqueDigestCount
+  const count = tags.length
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,10 +48,34 @@ export function BulkDeleteDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {sharedCount > 0 && (
+        <div className="rounded-md border bg-muted/40 px-4 py-3">
+          <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Tags to delete
+          </p>
+          <div className="max-h-40 overflow-y-auto space-y-1">
+            {tags.map((tag) => (
+              <div key={tag.name} className="flex items-center gap-2">
+                <span className="font-mono text-sm font-medium">{tag.name}</span>
+                {tag.digest ? (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {truncateDigest(tag.digest, 8)}
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {sideEffectTags.length > 0 && (
           <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
-            <strong>{sharedCount} of the selected tags share a digest</strong> with other tags not in
-            your selection. Deleting will remove those sibling tags too.
+            <strong>Also deletes unselected tags</strong> — these tags share a digest with your
+            selection and will be removed too:{" "}
+            {sideEffectTags.map((name, i) => (
+              <React.Fragment key={name}>
+                {i > 0 && <span>, </span>}
+                <span className="font-mono font-medium">{name}</span>
+              </React.Fragment>
+            ))}
           </div>
         )}
 

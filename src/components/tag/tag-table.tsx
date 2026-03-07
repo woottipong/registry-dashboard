@@ -36,7 +36,6 @@ interface TagTableProps {
   rowSelection: Record<string, boolean>
   onRowSelectionChange: (value: Record<string, boolean>) => void
   onDeleteClick: (tag: Tag) => void
-  onBulkDeleteClick: (tags: Tag[]) => void
 }
 
 export function TagTable({
@@ -49,7 +48,6 @@ export function TagTable({
   rowSelection,
   onRowSelectionChange,
   onDeleteClick,
-  onBulkDeleteClick,
 }: TagTableProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }])
 

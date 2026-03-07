@@ -22,7 +22,7 @@ export function useTags(registryId: string, repoName: string, page = 1, perPage 
       const params = new URLSearchParams({ page: String(page), perPage: String(perPage) })
       const response = await fetch(
         `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags?${params}`,
-        { cache: "default" }
+        { cache: "no-store" }
       )
 
       const data = await response.json()
@@ -98,9 +98,8 @@ export function useDeleteTags() {
         queryClient.setQueryData(key, data)
       }
     },
-    onSuccess: async ({ registryId, repoName }) => {
-      // Use prefix key so ALL pages for this repo are invalidated, not just page 1
-      await queryClient.invalidateQueries({ queryKey: ["tags", registryId, repoName] })
+    onSettled: async (_data, _error, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["tags", variables.registryId, variables.repoName] })
     },
   })
 }

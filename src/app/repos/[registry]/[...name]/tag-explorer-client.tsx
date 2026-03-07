@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useMemo, useState, useEffect } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -82,10 +83,15 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       .map((t) => t.name)
   }, [memoizedTags, tagToDelete])
 
-  // Memoize bulk unique digest count
-  const bulkUniqueDigestCount = useMemo(() => {
-    return new Set(memoizedTags.map((t) => t.digest).filter((d) => d)).size
-  }, [memoizedTags])
+  // Tags that are NOT selected but will also be deleted because they share a digest with a selected tag
+  const bulkSideEffectTags = useMemo(() => {
+    if (selectedRowTags.length === 0) return []
+    const selectedDigests = new Set(selectedRowTags.map((t) => t.digest).filter(Boolean))
+    const selectedNames = new Set(selectedRowTags.map((t) => t.name))
+    return memoizedTags
+      .filter((t) => !selectedNames.has(t.name) && t.digest && selectedDigests.has(t.digest))
+      .map((t) => t.name)
+  }, [selectedRowTags, memoizedTags])
 
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
@@ -198,35 +204,23 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      {/* Search and bulk-action toolbar */}
-      <div className="flex items-center gap-2">
-        <div className="relative max-w-sm flex-1">
-          <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={handleSearchChange}
-            className="pl-8 pr-8"
-            placeholder="Filter tags…"
-          />
-          {search && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
-              onClick={handleClearSearch}
-            >
-              <XIcon className="size-3" />
-            </Button>
-          )}
-        </div>
-        {canDelete && selectedRowTags.length > 0 && (
+      {/* Search toolbar */}
+      <div className="relative max-w-sm">
+        <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={handleSearchChange}
+          className="pl-8 pr-8"
+          placeholder="Filter tags…"
+        />
+        {search && (
           <Button
+            variant="ghost"
             size="sm"
-            variant="destructive"
-            onClick={() => handleBulkDeleteClick(selectedRowTags)}
+            className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
+            onClick={handleClearSearch}
           >
-            <Trash2Icon className="size-4" />
-            Delete {selectedRowTags.length} selected
+            <XIcon className="size-3" />
           </Button>
         )}
       </div>
@@ -270,7 +264,6 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
             onDeleteClick={handleDeleteClick}
-            onBulkDeleteClick={handleBulkDeleteClick}
           />
 
           {/* Pagination controls — only shown when there are multiple pages */}
@@ -319,14 +312,51 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       {/* Bulk Delete Dialog */}
       {tagsToDelete.length > 0 && (
         <BulkDeleteDialog
-          count={tagsToDelete.length}
-          uniqueDigestCount={bulkUniqueDigestCount}
+          tags={tagsToDelete}
+          sideEffectTags={bulkSideEffectTags}
           open
           onOpenChange={(open: boolean) => { if (!open) setTagsToDelete([]) }}
           onConfirm={handleBulkDeleteConfirm}
           isPending={deleteTags.isPending}
         />
       )}
+
+      {/* Floating selection action bar */}
+      <AnimatePresence>
+        {canDelete && selectedRowTags.length > 0 && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", damping: 22, stiffness: 320 }}
+            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+          >
+            <div className="flex items-center gap-3 rounded-full border border-border bg-background px-5 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
+              <span className="text-sm font-medium tabular-nums">
+                {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
+              </span>
+              <div className="h-4 w-px bg-border" />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
+                onClick={() => setRowSelection({})}
+              >
+                Clear
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="h-7 rounded-full px-4"
+                onClick={() => handleBulkDeleteClick(selectedRowTags)}
+              >
+                <Trash2Icon className="size-3.5" />
+                Delete
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
