@@ -1,8 +1,8 @@
 # Registry Dashboard — Project Kanban
 
-> **Source of truth** for all phases, epics, and tasks.  
-> Individual task details → `[task-id]-[name].md` in this directory.  
-> Last updated: 2026-03-07 (M9 9.1 complete; 9.2 all done; 9.3 all done; 9.5 done; T-265 done — 19/35 total)
+> **Source of truth** for all phases, epics, and tasks.
+> Individual task details → `[task-id]-[name].md` in this directory.
+> Last updated: 2026-03-07 (M9 9.1 complete; 9.2 all done; 9.3 all done; 9.5 done; T-265 done; 9.8 all done — 22/35 total)
 
 ---
 
@@ -84,9 +84,9 @@
 
 | ID | Task | Status | Effort | Severity | GFI | File |
 |----|------|--------|--------|----------|-----|------|
-| [T-270](./t-270-provider-factory-tests.md) | Provider factory selection tests | 📋 Backlog | 45 min | 🟡 MEDIUM | ✅ | `lib/__tests__/provider-factory.test.ts` (new) |
-| [T-271](./t-271-file-io-tests.md) | File I/O edge case tests | 📋 Backlog | 1 hr | 🟡 MEDIUM | | `lib/__tests__/registry-store.test.ts` |
-| [T-272](./t-272-security-tests.md) | Security function tests | 📋 Backlog | 1 hr | 🟡 MEDIUM | | `lib/__tests__/security.test.ts` (new) |
+| [T-270](./t-270-provider-factory-tests.md) | Provider factory selection tests | ✅ Done | 45 min | 🟡 MEDIUM | ✅ | `lib/__tests__/provider-factory.test.ts`, `lib/__tests__/generic-provider.test.ts` |
+| [T-271](./t-271-file-io-tests.md) | File I/O edge case tests | ✅ Done | 1 hr | 🟡 MEDIUM | | `lib/__tests__/registry-store.test.ts`, `lib/__tests__/activity-store.test.ts` |
+| [T-272](./t-272-security-tests.md) | Security function tests | ✅ Done | 1 hr | 🟡 MEDIUM | | `lib/__tests__/crypto.test.ts`, `lib/__tests__/csrf.test.ts` |
 
 ---
 
@@ -133,5 +133,5 @@ T-200–T-205 all done. T-210–T-212, T-214, T-240, T-241, T-265 also done.
 | Lint/Types | 2 | 2 | 0 | 0 | 0 |
 | Architecture | 3 | 0 | 0 | 0 | 3 |
 | DX/Docs | 7 | 1 | 0 | 0 | 6 |
-| Testing | 3 | 0 | 0 | 0 | 3 |
-| **Total** | **35** | **19** | **0** | **4** | **12** |
+| Testing | 3 | 3 | 0 | 0 | 0 |
+| **Total** | **35** | **22** | **0** | **4** | **9** |
