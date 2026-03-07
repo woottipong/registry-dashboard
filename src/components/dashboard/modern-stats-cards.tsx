@@ -94,7 +94,7 @@ interface StatsGridProps {
 export function StatsGrid({ stats, isLoading }: StatsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {stats.map((stat, index) => (
+      {stats.map((stat) => (
         <StatCard
           key={stat.title}
           {...stat}

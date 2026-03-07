@@ -1,9 +1,16 @@
 "use client"
 
 import { PlusIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { RegistrySearch, ModernRegistryCard, RegistryLoading, RegistryEmpty } from "@/components/registry/registry-ui-components"
+import {
+  ModernRegistryCard,
+  RegistryLoading,
+  RegistryEmpty,
+  RegistryError,
+  RegistrySummary,
+} from "@/components/registry/registry-ui-components"
 import { useRegistriesState } from "@/hooks/use-registries-state"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -13,89 +20,67 @@ interface ModernRegistriesPageProps {
 
 export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPageProps = {}) {
   const {
+    registries,
     isLoading,
-    searchQuery,
-    setSearchQuery,
-    filteredRegistries,
+    isError,
     handleDelete,
     handleSetDefault,
+    registryStatuses,
     isEmpty,
   } = useRegistriesState({ initialRegistries })
 
+  const router = useRouter()
+  const defaultRegistry = registries.find((r) => r.isDefault)
+
   const handleAddRegistry = () => {
-    window.location.href = '/registries/new'
+    router.push("/registries/new")
   }
 
   return (
-    <section className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-300">
+    <section className="flex flex-col gap-8 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Registries
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your connected container registries.
-          </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight">Registries</h1>
+          <RegistrySummary total={registries.length} defaultRegistry={defaultRegistry} />
         </div>
 
-        <div className="flex items-center gap-4">
-          <RegistrySearch
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onClear={() => setSearchQuery('')}
-            disabled={isLoading}
-          />
-
-          <Button
-            onClick={handleAddRegistry}
-            size="default"
-          >
-            <PlusIcon className="size-4 mr-2" />
-            Add Registry
-          </Button>
-        </div>
+        <Button onClick={handleAddRegistry}>
+          <PlusIcon data-icon="inline-start" />
+          Add Registry
+        </Button>
       </div>
 
       {/* Content */}
-      <div className="min-h-[400px] animate-in fade-in-0 duration-700 delay-300">
-        {isLoading ? (
-          <RegistryLoading count={4} />
-        ) : isEmpty ? (
-          <RegistryEmpty
-            onAddRegistry={handleAddRegistry}
-            searchQuery={searchQuery}
-          />
-        ) : (
-          <div className="grid gap-6 grid-cols-2 animate-in fade-in-0 duration-500 delay-500">
-            {filteredRegistries.map((registry, index) => (
-              <div
-                key={registry.id}
-                className="animate-in slide-in-from-bottom-4 duration-300"
-                style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
-              >
-                <ModernRegistryCard
-                  registry={registry}
-                  status="checking"
-                  onEdit={() => window.location.href = `/registries/${registry.id}/edit`}
-                  onDelete={() => {
-                    handleDelete(registry.id)
-                    toast.success("Registry removed")
-                  }}
-                  onSetDefault={() => {
-                    handleSetDefault(registry.id)
-                    toast.success("Default registry updated")
-                  }}
-                  onPing={() => {
-                    toast.info("Registry test functionality coming soon")
-                  }}
-                  isLoading={false}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <RegistryLoading count={4} />
+      ) : isError ? (
+        <RegistryError onRetry={() => router.refresh()} />
+      ) : isEmpty ? (
+        <RegistryEmpty onAddRegistry={handleAddRegistry} />
+      ) : (
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {registries.map((registry) => (
+            <ModernRegistryCard
+              key={registry.id}
+              registry={registry}
+              status={registryStatuses[registry.id]?.status ?? "checking"}
+              latencyMs={registryStatuses[registry.id]?.latencyMs}
+              onEdit={() => {
+                router.push(`/registries/${registry.id}/edit`)
+              }}
+              onDelete={() => {
+                handleDelete(registry.id)
+                toast.success("Registry removed")
+              }}
+              onSetDefault={() => {
+                handleSetDefault(registry.id)
+                toast.success("Default registry updated")
+              }}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

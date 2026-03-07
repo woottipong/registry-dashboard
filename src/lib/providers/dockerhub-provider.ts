@@ -1,5 +1,5 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
-import type { ImageConfig, ImageManifest } from "@/types/manifest"
+import type { ImageConfig, ImageManifest, ManifestBlobReference } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
 import { UnsupportedError } from "@/lib/providers/types"
@@ -213,19 +213,60 @@ export class DockerHubProvider implements RegistryProvider {
   async getManifest(repo: string, ref: string): Promise<ImageManifest> {
     await this.authenticateHubApi()
 
-    const manifest = await this.registryClient.request<Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }>(
+    type ManifestOrIndex = {
+      schemaVersion?: number
+      mediaType?: string
+      digest?: string
+      config?: ManifestBlobReference
+      layers?: ManifestBlobReference[]
+      // present when Docker Hub returns a manifest list (multi-arch)
+      manifests?: Array<{
+        mediaType: string
+        size: number
+        digest: string
+        platform?: { architecture: string; os: string; variant?: string }
+      }>
+    }
+
+    const response = await this.registryClient.request<ManifestOrIndex>(
       `https://registry-1.docker.io/v2/${repo}/manifests/${ref}`,
       {
         headers: {
-          Accept:
-            "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json",
+          Accept: [
+            "application/vnd.oci.image.manifest.v1+json",
+            "application/vnd.docker.distribution.manifest.v2+json",
+            "application/vnd.docker.distribution.manifest.list.v2+json",
+            "application/vnd.oci.image.index.v1+json",
+            "application/json",
+          ].join(", "),
         },
       },
     )
 
-    const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
+    // Docker Hub frequently returns a manifest list for multi-arch images.
+    // Resolve to linux/amd64, or fall back to the first entry.
+    if (response.manifests && response.manifests.length > 0) {
+      const preferred =
+        response.manifests.find(
+          (m) => m.platform?.os === "linux" && m.platform?.architecture === "amd64",
+        ) ?? response.manifests[0]
+      return this.getManifest(repo, preferred.digest)
+    }
 
-    return { ...manifest, digest: manifest.digest ?? ref, totalSize }
+    // Single-arch manifest — config and layers must be present
+    if (!response.config || !response.layers) {
+      throw new Error(`Unexpected manifest format for ${repo}:${ref} — missing config or layers`)
+    }
+
+    const totalSize = response.config.size + response.layers.reduce((sum, layer) => sum + layer.size, 0)
+    return {
+      schemaVersion: response.schemaVersion ?? 2,
+      mediaType: response.mediaType ?? "",
+      config: response.config,
+      layers: response.layers,
+      digest: response.digest ?? ref,
+      totalSize,
+    }
   }
 
   async getConfig(repo: string, digest: string): Promise<ImageConfig> {

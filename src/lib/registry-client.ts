@@ -173,14 +173,17 @@ export class RegistryHttpClient {
   }
 
   private buildAuthHeader(): string | null {
+    // Prioritise a Bearer token that was acquired dynamically via a 401 token-challenge
+    // exchange. This is required for registries (incl. Docker Hub) that refuse Basic auth
+    // on the registry API even when the connection is configured as "basic".
+    if (this.bearerToken) {
+      return `Bearer ${this.bearerToken}`
+    }
+
     if (this.connection.authType === "basic") {
       const username = this.connection.credentials?.username ?? ""
       const password = this.connection.credentials?.password ?? ""
       return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
-    }
-
-    if (this.connection.authType === "bearer" && this.bearerToken) {
-      return `Bearer ${this.bearerToken}`
     }
 
     return null

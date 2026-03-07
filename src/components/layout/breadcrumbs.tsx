@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { ChevronRightIcon, HomeIcon } from "lucide-react"
 import { useRegistries } from "@/hooks/use-registries"
+import { useMounted } from "@/hooks/use-mounted"
 
 // Known static path labels
 const PATH_LABELS: Record<string, string> = {
@@ -36,6 +37,7 @@ export function Breadcrumbs() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { data: registries } = useRegistries()
+  const isMounted = useMounted()
 
   const segments = pathname.split("/").filter(Boolean)
 
@@ -70,8 +72,9 @@ export function Breadcrumbs() {
   })
 
   // When on /repos with ?registry= query param, append registry name as context
-  const registryParam = searchParams.get("registry")
-  const namespaceParam = searchParams.get("namespace")
+  // Only read after mount to avoid SSR/client hydration mismatch
+  const registryParam = isMounted ? searchParams.get("registry") : null
+  const namespaceParam = isMounted ? searchParams.get("namespace") : null
   const isReposRoot = pathname === "/repos"
 
   const contextCrumbs: BreadcrumbItem[] = []

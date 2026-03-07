@@ -60,8 +60,8 @@
   --radius-input: 0.75rem;
   --radius-modal: 1.5rem;
 
-  /* Light Theme: Pearl & Violet */
-  --background: #fdfdfd;
+  /* Light Theme: Indigo Frost — subtle lavender tint for depth */
+  --background: #f5f4fb;
   --foreground: #09090b;
   --card: #ffffff;
   --card-foreground: #09090b;
@@ -72,42 +72,42 @@
   --primary: #6366f1;
   --primary-foreground: #ffffff;
 
-  /* Secondary: Soft Gray */
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
+  /* Secondary: Lavender wash */
+  --secondary: #eeecfb;
+  --secondary-foreground: #3730a3;
 
   /* Muted */
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
+  --muted: #f0eef9;
+  --muted-foreground: #6b6b80;
 
-  /* Accent */
-  --accent: #f8fafc;
-  --accent-foreground: #6366f1;
+  /* Accent: clear indigo tint for hover states */
+  --accent: #e8e6f8;
+  --accent-foreground: #4f46e5;
 
   /* Destructive */
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
 
-  /* Borders and Rings */
-  --border: #e4e4e7;
-  --input: #e4e4e7;
+  /* Borders and Rings: indigo-tinted */
+  --border: #dddaf0;
+  --input: #dddaf0;
   --ring: #6366f1;
 
-  /* Charts */
+  /* Charts: distinct hues — no purple overlap with primary */
   --chart-1: #6366f1;
-  --chart-2: #8b5cf6;
+  --chart-2: #10b981;
   --chart-3: #f59e0b;
   --chart-4: #ec4899;
   --chart-5: #06b6d4;
 
-  /* Sidebar */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #09090b;
+  /* Sidebar: lavender panel — clearly distinct from white cards */
+  --sidebar: #ede9f8;
+  --sidebar-foreground: #18181b;
   --sidebar-primary: #6366f1;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4f4f5;
-  --sidebar-accent-foreground: #18181b;
-  --sidebar-border: #e4e4e7;
+  --sidebar-accent: #e0dbf5;
+  --sidebar-accent-foreground: #3730a3;
+  --sidebar-border: #d6d1ee;
   --sidebar-ring: #6366f1;
 }
 
@@ -174,6 +174,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

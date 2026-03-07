@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import { useRegistriesState } from '@/hooks/use-registries-state'
 import { useRegistries, useDeleteRegistry, useSetDefaultRegistry, usePingRegistry } from '@/hooks/use-registries'
 import type { RegistryConnection } from '@/types/registry'
@@ -86,49 +86,12 @@ describe('useRegistriesState', () => {
   it('should initialize with correct default values', () => {
     const { result } = renderHook(() => useRegistriesState())
 
-    expect(result.current.searchQuery).toBe('')
     expect(result.current.registries).toEqual(mockRegistries)
-    expect(result.current.filteredRegistries).toEqual(mockRegistries)
     expect(result.current.isLoading).toBe(false)
     expect(result.current.isError).toBe(false)
     expect(result.current.hasRegistries).toBe(true)
     expect(result.current.isEmpty).toBe(false)
     expect(result.current.hasError).toBe(false)
-  })
-
-  it('should filter registries based on search query', async () => {
-    const { result } = renderHook(() => useRegistriesState())
-
-    // Search by name
-    result.current.setSearchQuery('Test')
-
-    await waitFor(() => {
-      expect(result.current.filteredRegistries).toHaveLength(1)
-      expect(result.current.filteredRegistries[0].name).toBe('Test Registry')
-    })
-
-    // Search by URL
-    result.current.setSearchQuery('another')
-
-    await waitFor(() => {
-      expect(result.current.filteredRegistries).toHaveLength(1)
-      expect(result.current.filteredRegistries[0].name).toBe('Another Registry')
-    })
-
-    // Search by provider
-    result.current.setSearchQuery('dockerhub')
-
-    await waitFor(() => {
-      expect(result.current.filteredRegistries).toHaveLength(1)
-      expect(result.current.filteredRegistries[0].provider).toBe('dockerhub')
-    })
-
-    // Clear search
-    result.current.setSearchQuery('')
-
-    await waitFor(() => {
-      expect(result.current.filteredRegistries).toHaveLength(2)
-    })
   })
 
   it('should handle delete registry', () => {

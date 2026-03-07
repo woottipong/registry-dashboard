@@ -1,6 +1,6 @@
 "use client"
 
-import { ServerIcon, ExternalLinkIcon } from "lucide-react"
+import { ServerIcon, ArrowRightIcon, BoxIcon } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,13 +40,23 @@ export function ModernRegistryCard({
     )
   }
 
+  const { Icon: ProviderIcon, bg: providerBg, iconColor: providerIconColor } =
+    registry.provider === "dockerhub"
+      ? { Icon: BoxIcon, bg: "bg-blue-500/10", iconColor: "text-blue-500" }
+      : { Icon: ServerIcon, bg: "bg-muted", iconColor: "text-primary" }
+
+  const providerLabel = registry.provider === "dockerhub" ? "Docker Hub" : "Generic"
+
   return (
-    <div className="group relative p-6 rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/20 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/5">
+    <div className="group relative p-6 rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/20 hover:shadow-md hover:shadow-primary/5">
       <div className="flex items-start gap-4">
         {/* Registry icon with status indicator */}
         <div className="relative">
-          <div className="p-3 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm group-hover:border-primary/20 group-hover:bg-primary/5 transition-all duration-300">
-            <ServerIcon className="size-6 text-primary" />
+          <div className={cn(
+            "p-3 rounded-xl border border-border/50 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/20",
+            providerBg
+          )}>
+            <ProviderIcon className={cn("size-6", providerIconColor)} />
           </div>
           {registry.isDefault && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background shadow-sm" />
@@ -60,7 +70,7 @@ export function ModernRegistryCard({
               {registry.name}
             </h3>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-              {registry.provider}
+              {providerLabel}
             </span>
             {registry.isDefault && (
               <Badge variant="outline" className="text-chart-3 border-chart-3/40 bg-chart-3/10 text-xs">
@@ -78,13 +88,13 @@ export function ModernRegistryCard({
             <div className="flex items-center gap-2">
               <div className="size-2 bg-chart-5 rounded-full" />
               <span className="text-muted-foreground">Repos:</span>
-              <span className="font-medium text-foreground">{repoCount?.toLocaleString() ?? '...'}</span>
+              <span className="font-medium text-foreground">{repoCount?.toLocaleString() ?? "..."}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="size-2 bg-chart-2 rounded-full" />
               <span className="text-muted-foreground">Tags:</span>
               <span className="font-medium text-foreground">
-                {tagCount !== undefined ? tagCount.toLocaleString() : '...'}
+                {tagCount !== undefined ? tagCount.toLocaleString() : "..."}
               </span>
             </div>
           </div>
@@ -92,10 +102,10 @@ export function ModernRegistryCard({
 
         {/* Action button */}
         <div className="flex items-center">
-          <Button asChild size="sm">
+          <Button asChild size="sm" variant="outline">
             <Link href={`/repos?registry=${registry.id}`}>
-              <ExternalLinkIcon data-icon="inline-start" />
               Browse
+              <ArrowRightIcon data-icon="inline-end" />
             </Link>
           </Button>
         </div>

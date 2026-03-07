@@ -55,7 +55,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
             <MenuIcon className="size-5" />
           </Button>
 
-          <div className="hidden lg:block">
+          <div className="hidden md:block">
             <Suspense fallback={null}>
               <Breadcrumbs />
             </Suspense>

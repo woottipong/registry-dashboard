@@ -55,7 +55,7 @@ function SidebarBody() {
         </div>
       </div>
 
-      <div className="px-4 space-y-6 pt-2">
+      <div className="px-4 space-y-6 pt-2 pb-4">
         <div>
           <p className="px-2 mb-3 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em]">General</p>
           <nav className="space-y-1">
@@ -92,7 +92,7 @@ function SidebarBody() {
             </Link>
           </div>
 
-          <div className="space-y-1 max-h-[300px] overflow-y-auto scrollbar-none">
+          <div className="space-y-1 max-h-[300px] overflow-y-auto">
             {isMounted && isLoading ? (
               <div className="space-y-2 px-2">
                 <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />

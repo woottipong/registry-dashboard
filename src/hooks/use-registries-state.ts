@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useRegistries, useDeleteRegistry, useSetDefaultRegistry } from '@/hooks/use-registries'
 import type { RegistryConnection } from '@/types/registry'
 
@@ -18,11 +18,6 @@ interface UseRegistriesStateReturn {
   isLoading: boolean
   isError: boolean
 
-  // Search and filtering
-  searchQuery: string
-  setSearchQuery: (query: string) => void
-  filteredRegistries: RegistryConnection[]
-
   // Actions
   handleDelete: (id: string) => void
   handleSetDefault: (id: string) => void
@@ -41,9 +36,6 @@ interface UseRegistriesStateReturn {
 }
 
 export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStateProps = {}): UseRegistriesStateReturn {
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('')
-
   // Status tracking
   const [registryStatuses, setRegistryStatuses] = useState<Record<string, RegistryStatus>>({})
 
@@ -56,23 +48,10 @@ export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStat
   const deleteRegistry = useDeleteRegistry()
   const setDefaultRegistry = useSetDefaultRegistry()
 
-  // Filter registries based on search
-  const filteredRegistries = useMemo(() => {
-    if (!searchQuery.trim()) return registries
-
-    const query = searchQuery.toLowerCase()
-    return registries.filter(registry =>
-      registry.name.toLowerCase().includes(query) ||
-      registry.url.toLowerCase().includes(query) ||
-      registry.provider?.toLowerCase().includes(query)
-    )
-  }, [registries, searchQuery])
-
   // Handle delete
   const handleDelete = useCallback((id: string) => {
     deleteRegistry.mutate(id, {
       onSuccess: () => {
-        // Clear status for deleted registry
         setRegistryStatuses(prev => {
           const newStatuses = { ...prev }
           delete newStatuses[id]
@@ -87,15 +66,7 @@ export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStat
     const registry = registries.find(item => item.id === id)
     if (!registry) return
 
-    setDefaultRegistry.mutate(
-      { id, registry },
-      {
-        onSuccess: () => {
-          // Update registries to reflect new default
-          // This will trigger a refetch automatically
-        }
-      }
-    )
+    setDefaultRegistry.mutate({ id, registry })
   }, [registries, setDefaultRegistry])
 
   // Computed values
@@ -108,11 +79,6 @@ export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStat
     registries,
     isLoading,
     isError,
-
-    // Search and filtering
-    searchQuery,
-    setSearchQuery,
-    filteredRegistries,
 
     // Actions
     handleDelete,

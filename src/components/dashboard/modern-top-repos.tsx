@@ -20,7 +20,7 @@ interface ModernTopReposProps {
 export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={`skeleton-${i}`}
@@ -52,7 +52,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
   const maxTags = repos[0]?.tagCount ?? 1
 
   return (
-    <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+    <div className="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
       {repos.map((repo, index) => {
         const barWidth = Math.max(4, Math.round((repo.tagCount / maxTags) * 100))
         return (
@@ -65,8 +65,8 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
             <div className={cn(
               "size-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0",
               index === 0 ? "bg-chart-3/10 text-chart-3" :
-                index === 1 ? "bg-muted-foreground/10 text-muted-foreground" :
-                  index === 2 ? "bg-muted-foreground/10 text-muted-foreground" :
+                index === 1 ? "bg-muted/80 text-foreground/70" :
+                  index === 2 ? "bg-chart-4/10 text-chart-4" :
                     "bg-muted text-muted-foreground"
             )}>
               {index + 1}

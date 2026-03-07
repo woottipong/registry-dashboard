@@ -256,8 +256,8 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           key={val}
                           htmlFor={`auth-${val}`}
                           className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${field.value === val
-                              ? "border-primary bg-primary/5 text-foreground"
-                              : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            ? "border-primary bg-primary/5 text-foreground"
+                            : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
                             }`}
                         >
                           <RadioGroupItem value={val} id={`auth-${val}`} className="shrink-0" />
@@ -330,9 +330,19 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
 
           {/* Footer actions */}
           <div className="flex items-center justify-between gap-3 border-t bg-muted/20 px-6 py-4">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            </div>
             <Button
               type="button"
               variant="outline"
