@@ -90,7 +90,7 @@ export function TagTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Tag
-            <ArrowUpDownIcon className="size-3.5" />
+            <ArrowUpDownIcon data-icon="inline-end" />
           </Button>
         ),
         cell: ({ row }) => (
@@ -120,7 +120,7 @@ export function TagTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Size
-            <ArrowUpDownIcon className="size-3.5" />
+            <ArrowUpDownIcon data-icon="inline-end" />
           </Button>
         ),
         cell: ({ row }) =>
@@ -141,7 +141,7 @@ export function TagTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Created
-            <ArrowUpDownIcon className="size-3.5" />
+            <ArrowUpDownIcon data-icon="inline-end" />
           </Button>
         ),
         cell: ({ row }) =>

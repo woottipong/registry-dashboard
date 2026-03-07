@@ -55,7 +55,7 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
       <CardHeader className="space-y-4 pb-4">
         <div className="flex flex-wrap gap-2">
           {repository.isOfficial && (
-            <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider">
+            <Badge variant="outline" className="text-chart-2 border-chart-2/30 bg-chart-2/10 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider">
               Official
             </Badge>
           )}

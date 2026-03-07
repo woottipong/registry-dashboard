@@ -7,6 +7,8 @@ import {
   PlusIcon,
   UploadIcon
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import type { ActivityItem } from "@/contexts/activity-context"
 
@@ -32,9 +34,9 @@ const ActivityIcons = {
 function getActivityColor(type: string) {
   switch (type) {
     case 'push':
-      return 'text-emerald-500 bg-emerald-500/10'
+      return 'text-chart-2 bg-chart-2/10'
     case 'pull':
-      return 'text-blue-500 bg-blue-500/10'
+      return 'text-chart-5 bg-chart-5/10'
     case 'delete':
       return 'text-destructive bg-destructive/10'
     case 'create':
@@ -55,7 +57,7 @@ export function ModernActivityItem({ activity }: ModernActivityItemProps) {
         "p-2 rounded-lg flex-shrink-0",
         iconColor
       )}>
-        <IconComponent className="w-4 h-4" />
+        <IconComponent className="size-4" />
       </div>
 
       {/* Activity content */}
@@ -101,14 +103,13 @@ export function ModernActivityFeed({
         {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
-            className="flex items-start gap-3 p-3 rounded-lg border border-border/50 animate-pulse"
-            style={{ animationDelay: `${index * 100}ms` }}
+            className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
           >
-            <div className="w-8 h-8 bg-muted rounded-lg flex-shrink-0" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-muted rounded w-32" />
-              <div className="h-3 bg-muted rounded w-48" />
-              <div className="h-3 bg-muted rounded w-24" />
+            <Skeleton className="size-8 rounded-lg shrink-0" />
+            <div className="flex-1 flex flex-col gap-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+              <Skeleton className="h-3 w-24" />
             </div>
           </div>
         ))}
@@ -120,7 +121,7 @@ export function ModernActivityFeed({
     return (
       <div className="flex flex-col gap-3 max-h-96 overflow-y-auto items-center justify-center">
         <div className="text-center py-8">
-          <ActivityIcon className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
+          <ActivityIcon className="size-8 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">No recent activity</p>
         </div>
       </div>
@@ -138,9 +139,9 @@ export function ModernActivityFeed({
 
       {activities.length > maxItems && (
         <div className="text-center pt-2">
-          <button className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
+          <Button variant="ghost" size="sm" className="text-xs text-primary">
             View all {activities.length} activities
-          </button>
+          </Button>
         </div>
       )}
     </div>

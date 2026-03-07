@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import {
   DatabaseIcon,
   FolderIcon,
@@ -65,17 +66,16 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     return (
       <ModernDashboardContainer>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <DatabaseIcon className="w-16 h-16 text-muted-foreground/40 mb-6" />
+          <DatabaseIcon className="size-16 text-muted-foreground/40 mb-6" />
           <h2 className="text-2xl font-bold text-foreground mb-3">Welcome to Registry Dashboard</h2>
           <p className="text-muted-foreground mb-8 max-w-md">
             Connect your first Docker registry to start monitoring and managing your container images.
           </p>
-          <Link
-            href="/registries/new"
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-          >
-            Connect First Registry
-          </Link>
+          <Button asChild size="lg">
+            <Link href="/registries/new">
+              Connect First Registry
+            </Link>
+          </Button>
         </div>
       </ModernDashboardContainer>
     )

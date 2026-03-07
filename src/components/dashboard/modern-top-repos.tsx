@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { FolderIcon, TagIcon } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 interface TopRepoItem {
@@ -23,15 +24,14 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={`skeleton-${i}`}
-            className="flex items-center gap-3 p-3 rounded-lg border border-border/50 animate-pulse"
-            style={{ animationDelay: `${i * 80}ms` }}
+            className="flex items-center gap-3 p-3 rounded-lg border border-border/50"
           >
-            <div className="w-6 h-6 bg-muted rounded-md flex-shrink-0" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-muted rounded w-40" />
-              <div className="h-1.5 bg-muted rounded-full w-full" />
+            <Skeleton className="size-6 rounded-md shrink-0" />
+            <div className="flex-1 flex flex-col gap-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-1.5 w-full rounded-full" />
             </div>
-            <div className="w-8 h-4 bg-muted rounded" />
+            <Skeleton className="h-4 w-8" />
           </div>
         ))}
       </div>
@@ -42,7 +42,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="text-center py-8">
-          <FolderIcon className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
+          <FolderIcon className="size-8 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">No repositories found</p>
         </div>
       </div>
@@ -63,11 +63,11 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
           >
             {/* Rank badge */}
             <div className={cn(
-              "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0",
-              index === 0 ? "bg-amber-500/10 text-amber-500" :
-              index === 1 ? "bg-slate-400/10 text-slate-400" :
-              index === 2 ? "bg-orange-600/10 text-orange-600" :
-              "bg-muted text-muted-foreground"
+              "size-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0",
+              index === 0 ? "bg-chart-3/10 text-chart-3" :
+                index === 1 ? "bg-muted-foreground/10 text-muted-foreground" :
+                  index === 2 ? "bg-muted-foreground/10 text-muted-foreground" :
+                    "bg-muted text-muted-foreground"
             )}>
               {index + 1}
             </div>
@@ -94,7 +94,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
 
             {/* Tag count */}
             <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground flex-shrink-0">
-              <TagIcon className="w-3 h-3" />
+              <TagIcon className="size-3" />
               {repo.tagCount}
             </div>
           </Link>

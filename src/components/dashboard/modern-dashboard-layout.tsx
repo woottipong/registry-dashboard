@@ -66,7 +66,7 @@ interface ModernDashboardContainerProps {
 export function ModernDashboardContainer({ children, className }: ModernDashboardContainerProps) {
   return (
     <div className={cn(
-      "space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-300",
+      "flex flex-col gap-8 max-w-[1600px] mx-auto animate-in fade-in duration-300",
       className
     )}>
       {children}
@@ -83,7 +83,7 @@ interface ModernDashboardHeaderProps {
 export function ModernDashboardHeader({ title, description, actions }: ModernDashboardHeaderProps) {
   return (
     <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight">
           {title}
         </h1>

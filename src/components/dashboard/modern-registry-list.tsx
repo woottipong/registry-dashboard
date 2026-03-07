@@ -2,6 +2,9 @@
 
 import { ServerIcon, ExternalLinkIcon } from "lucide-react"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -20,18 +23,18 @@ export function ModernRegistryCard({
 }: ModernRegistryCardProps) {
   if (isLoading) {
     return (
-      <div className="p-6 rounded-xl border border-border/50 bg-card animate-pulse">
+      <div className="p-6 rounded-xl border border-border/50 bg-card">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-muted rounded-xl" />
-          <div className="flex-1 space-y-3">
-            <div className="h-6 bg-muted rounded-lg w-32" />
-            <div className="h-4 bg-muted rounded w-48" />
+          <Skeleton className="size-12 rounded-xl" />
+          <div className="flex-1 flex flex-col gap-3">
+            <Skeleton className="h-6 w-32 rounded-lg" />
+            <Skeleton className="h-4 w-48" />
             <div className="flex gap-4">
-              <div className="h-4 bg-muted rounded w-16" />
-              <div className="h-4 bg-muted rounded w-16" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-16" />
             </div>
           </div>
-          <div className="w-20 h-8 bg-muted rounded-lg" />
+          <Skeleton className="w-20 h-8 rounded-lg" />
         </div>
       </div>
     )
@@ -43,7 +46,7 @@ export function ModernRegistryCard({
         {/* Registry icon with status indicator */}
         <div className="relative">
           <div className="p-3 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm group-hover:border-primary/20 group-hover:bg-primary/5 transition-all duration-300">
-            <ServerIcon className="w-6 h-6 text-primary" />
+            <ServerIcon className="size-6 text-primary" />
           </div>
           {registry.isDefault && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background shadow-sm" />
@@ -60,9 +63,9 @@ export function ModernRegistryCard({
               {registry.provider}
             </span>
             {registry.isDefault && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+              <Badge variant="outline" className="text-chart-3 border-chart-3/40 bg-chart-3/10 text-xs">
                 Default
-              </span>
+              </Badge>
             )}
           </div>
 
@@ -73,12 +76,12 @@ export function ModernRegistryCard({
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+              <div className="size-2 bg-chart-5 rounded-full" />
               <span className="text-muted-foreground">Repos:</span>
               <span className="font-medium text-foreground">{repoCount?.toLocaleString() ?? '...'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <div className="size-2 bg-chart-2 rounded-full" />
               <span className="text-muted-foreground">Tags:</span>
               <span className="font-medium text-foreground">
                 {tagCount !== undefined ? tagCount.toLocaleString() : '...'}
@@ -89,17 +92,12 @@ export function ModernRegistryCard({
 
         {/* Action button */}
         <div className="flex items-center">
-          <Link
-            href={`/repos?registry=${registry.id}`}
-            className={cn(
-              "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
-              "bg-primary text-primary-foreground hover:bg-primary/90",
-              "transition-colors duration-200"
-            )}
-          >
-            <ExternalLinkIcon className="w-4 h-4" />
-            Browse
-          </Link>
+          <Button asChild size="sm">
+            <Link href={`/repos?registry=${registry.id}`}>
+              <ExternalLinkIcon data-icon="inline-start" />
+              Browse
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
