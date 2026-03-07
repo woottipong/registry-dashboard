@@ -11,9 +11,14 @@ import { StatsGrid } from "@/components/dashboard/modern-stats-cards"
 import { ModernRegistryList } from "@/components/dashboard/modern-registry-list"
 import { ModernTopRepos } from "@/components/dashboard/modern-top-repos"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
+import type { RegistryConnection } from "@/types/registry"
 
-export function ModernDashboardClient() {
-  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData()
+interface ModernDashboardClientProps {
+  initialRegistries?: RegistryConnection[]
+}
+
+export function ModernDashboardClient({ initialRegistries }: ModernDashboardClientProps) {
+  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData({ initialRegistries })
 
   const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
 

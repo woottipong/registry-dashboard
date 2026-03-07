@@ -1,10 +1,4 @@
-export type RegistryProviderType =
-  | "generic"
-  | "dockerhub"
-  | "ghcr"
-  | "ecr"
-  | "gcr"
-  | "acr"
+export type RegistryProviderType = "generic" | "dockerhub"
 
 export type RegistryAuthType = "none" | "basic" | "bearer"
 
@@ -34,6 +28,8 @@ export interface RegistryConnection {
   provider: RegistryProviderType
   authType: RegistryAuthType
   credentials?: RegistryCredentials
+  // Set by the API when credentials are present but not returned (server-side only)
+  hasCredentials?: boolean
   namespace?: string
   isDefault?: boolean
   capabilities?: ProviderCapabilities

@@ -1,59 +1,25 @@
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 import { ModernDashboardClient } from "./modern-dashboard-client"
 import { listRegistries } from "@/lib/registry-store"
 import { createProvider } from "@/lib/providers"
+import type { RegistryConnection } from "@/types/registry"
 
 export const metadata = {
   title: "Dashboard | Registry UI",
   description: "Overview of your Docker registries and repositories",
 }
 
-export default async function DashboardPage() {
-  const queryClient = new QueryClient()
-
-  // 1. Fetch registries directly from the store
-  const registries = listRegistries().map((registry) => ({
-    ...registry,
+// Strip credentials before sending to the client component.
+function sanitize(registry: RegistryConnection): RegistryConnection {
+  const { credentials, ...rest } = registry
+  return {
+    ...rest,
+    hasCredentials: !!(credentials?.password || credentials?.token),
     capabilities: createProvider(registry).capabilities(),
-  }))
+  }
+}
 
-  // 2. Prefetch the registries query
-  await queryClient.prefetchQuery({
-    queryKey: ["registries"],
-    queryFn: () => registries,
-  })
+export default async function DashboardPage() {
+  const initialRegistries = listRegistries().map(sanitize)
 
-  // 3. Prefetch the repositories for each registry in parallel
-  // Note: we're only prefetching the first page, same as the client
-  await Promise.all(
-    registries.map((registry) => {
-      const provider = createProvider(registry)
-      return queryClient.prefetchQuery({
-        queryKey: ["repositories", registry.id, 1, 50, ""],
-        queryFn: async () => {
-          try {
-            const result = await provider.listRepositories({ perPage: 50 })
-            // Re-map it to match API response format (simulating fetchRepositories)
-            return {
-              items: result.items,
-              meta: {
-                page: result.page,
-                perPage: result.perPage,
-                total: result.total ?? 0,
-              },
-            }
-          } catch (error) {
-            console.error(`Failed to prefetch repositories for ${registry.id}:`, error)
-            return { items: [], meta: undefined }
-          }
-        },
-      })
-    })
-  )
-
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ModernDashboardClient />
-    </HydrationBoundary>
-  )
+  return <ModernDashboardClient initialRegistries={initialRegistries} />
 }

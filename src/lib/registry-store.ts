@@ -23,7 +23,7 @@ const registryInputSchema = z.object({
       },
       { message: "Registry URL must use http:// or https://" },
     ),
-  provider: z.enum(["generic", "dockerhub", "ghcr", "ecr", "gcr", "acr"]).optional(),
+  provider: z.enum(["generic", "dockerhub"]).optional(),
   authType: z.enum(["none", "basic", "bearer"]).default("none"),
   credentials: z
     .object({

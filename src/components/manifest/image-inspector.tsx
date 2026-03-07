@@ -41,7 +41,7 @@ const ManifestViewer = dynamic(
   () => import("@/components/manifest/manifest-viewer").then((m) => m.ManifestViewer),
   { loading: () => <ManifestSkeleton /> },
 )
-import { formatBytes, formatDate, generatePullCommand, truncateDigest } from "@/lib/format"
+import { formatBytes, formatDate, generatePullCommand, registryHostFromUrl, truncateDigest } from "@/lib/format"
 import { useManifest } from "@/hooks/use-manifest"
 
 interface ImageInspectorProps {
@@ -49,6 +49,7 @@ interface ImageInspectorProps {
   repoName: string
   tag: string
   registryName?: string
+  registryUrl?: string
 }
 
 // Extract MetricCard component
@@ -82,14 +83,18 @@ ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'
 
 export { ImageInspectorWithBoundary as ImageInspector }
 
-function ImageInspector({ registryId, repoName, tag, registryName }: ImageInspectorProps) {
+function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }: ImageInspectorProps) {
   const router = useRouter()
   const { data, isLoading, isError, error } = useManifest(registryId, repoName, tag)
 
   // Memoize expensive computations
   const pullCommand = useMemo(() =>
-    generatePullCommand({ repository: repoName, tag }),
-    [repoName, tag]
+    generatePullCommand({
+      registry: registryUrl ? registryHostFromUrl(registryUrl) : undefined,
+      repository: repoName,
+      tag,
+    }),
+    [repoName, tag, registryUrl]
   )
 
   const truncatedDigest = useMemo(() =>

@@ -60,8 +60,8 @@ describe("createProvider()", () => {
     expect(provider).toBeInstanceOf(GenericProvider)
   })
 
-  it("returns GenericProvider for non-dockerhub provider types", () => {
-    const provider = createProvider({ ...BASE, provider: "ghcr" })
+  it("explicit 'generic' always returns GenericProvider", () => {
+    const provider = createProvider({ ...BASE, provider: "generic" })
     expect(provider).toBeInstanceOf(GenericProvider)
   })
 })

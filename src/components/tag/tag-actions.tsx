@@ -1,11 +1,11 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { EyeIcon, Trash2Icon } from "lucide-react"
+import { CopyIcon, EyeIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { generatePullCommand } from "@/lib/format"
+import { generatePullCommand, registryHostFromUrl } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
 interface TagActionsProps {
@@ -13,6 +13,7 @@ interface TagActionsProps {
   repoName: string
   tag: Tag
   canDelete: boolean
+  registryUrl?: string
   onDeleteClick: (tag: Tag) => void
 }
 
@@ -21,12 +22,17 @@ export function TagActions({
   repoName,
   tag,
   canDelete,
+  registryUrl,
   onDeleteClick,
 }: TagActionsProps) {
   const router = useRouter()
 
   function copyPullCommand() {
-    const cmd = generatePullCommand({ repository: repoName, tag: tag.name })
+    const cmd = generatePullCommand({
+      registry: registryUrl ? registryHostFromUrl(registryUrl) : undefined,
+      repository: repoName,
+      tag: tag.name,
+    })
     void navigator.clipboard.writeText(cmd)
     toast.success("Pull command copied to clipboard")
   }
@@ -37,23 +43,8 @@ export function TagActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-8" onClick={copyPullCommand}>
+              <CopyIcon className="size-3.5" />
               <span className="sr-only">Copy pull command</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-3.5"
-              >
-                <path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1" />
-                <polyline points="16 11 12 15 8 11" />
-                <line x1="12" x2="12" y1="15" y2="3" />
-              </svg>
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy pull command</TooltipContent>

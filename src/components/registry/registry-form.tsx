@@ -25,7 +25,7 @@ import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   url: z.string().url("URL is invalid"),
-  provider: z.enum(["generic", "dockerhub", "ghcr", "ecr", "gcr", "acr"]),
+  provider: z.enum(["generic", "dockerhub"]),
   authType: z.enum(["none", "basic", "bearer"]),
   username: z.string().optional(),
   password: z.string().optional(),
@@ -204,10 +204,6 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                       <SelectContent>
                         <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
                         <SelectItem value="dockerhub">Docker Hub</SelectItem>
-                        <SelectItem value="ghcr" disabled>GitHub Container Registry (Soon)</SelectItem>
-                        <SelectItem value="ecr" disabled>Amazon ECR (Soon)</SelectItem>
-                        <SelectItem value="gcr" disabled>Google Container Registry (Soon)</SelectItem>
-                        <SelectItem value="acr" disabled>Azure Container Registry (Soon)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="text-[11px]">Determines available features.</FormDescription>

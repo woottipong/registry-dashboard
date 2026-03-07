@@ -31,6 +31,7 @@ interface TagTableProps {
   tags: Tag[]
   canDelete: boolean
   isLoading?: boolean
+  registryUrl?: string
   onDeleteClick: (tag: Tag) => void
   onBulkDeleteClick: (tags: Tag[]) => void
 }
@@ -41,6 +42,7 @@ export function TagTable({
   tags,
   canDelete,
   isLoading,
+  registryUrl,
   onDeleteClick,
   onBulkDeleteClick,
 }: TagTableProps) {
@@ -167,12 +169,13 @@ export function TagTable({
             repoName={repoName}
             tag={row.original}
             canDelete={canDelete}
+            registryUrl={registryUrl}
             onDeleteClick={onDeleteClick}
           />
         ),
       },
     ],
-    [registryId, repoName, canDelete, onDeleteClick],
+    [registryId, repoName, canDelete, registryUrl, onDeleteClick],
   )
 
   const table = useReactTable({

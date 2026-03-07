@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         GIT_SHA: ${GIT_SHA:-local}
-    image: spinsoft-transcription/registry-dashboard-ui:beta-1
+    image: registry.rtt.in.th/spinsoft-transcription/registry-dashboard-ui:beta-1
     container_name: registry-dashboard-ui
     restart: unless-stopped
     ports:

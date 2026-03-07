@@ -70,6 +70,26 @@ export function truncateDigest(digest: string, keep = 4): string {
   return `${algorithm}:${hash.slice(0, keep)}...`
 }
 
+/**
+ * Extracts the host[:port] portion from a registry URL for use in docker pull commands.
+ * Returns undefined for Docker Hub URLs (no prefix needed).
+ */
+export function registryHostFromUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname) return undefined
+    const isDockerHub =
+      parsed.hostname.includes("docker.io") || parsed.hostname.includes("hub.docker.com")
+    if (isDockerHub) return undefined
+    const isDefaultPort =
+      (parsed.protocol === "https:" && (parsed.port === "" || parsed.port === "443")) ||
+      (parsed.protocol === "http:" && (parsed.port === "" || parsed.port === "80"))
+    return isDefaultPort ? parsed.hostname : `${parsed.hostname}:${parsed.port}`
+  } catch {
+    return undefined
+  }
+}
+
 interface PullCommandParams {
   registry?: string
   repository: string

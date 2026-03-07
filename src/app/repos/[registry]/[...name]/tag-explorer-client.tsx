@@ -146,6 +146,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         repoName={repoName}
         tag={selectedTag}
         registryName={registryQuery.data?.name}
+        registryUrl={registryQuery.data?.url}
       />
     )
   }
@@ -234,6 +235,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
           tags={filteredTags}
           canDelete={canDelete}
           isLoading={tagsQuery.isLoading}
+          registryUrl={registryQuery.data?.url}
           onDeleteClick={handleDeleteClick}
           onBulkDeleteClick={handleBulkDeleteClick}
         />
