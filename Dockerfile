@@ -22,26 +22,21 @@ ENV SESSION_SECRET="build-time-placeholder-secret-min-32-chars!"
 ENV APP_PASSWORD="buildtime"
 
 RUN --mount=type=cache,target=/app/.next/cache \
-    bun run build
+    bun run build \
+    && mkdir -p /app/data
 
-# Stage 3: Production runner (minimal node image — bun not needed at runtime)
-FROM node:24-alpine AS runner
+# Stage 3: Production runner — distroless for minimal size and attack surface
+# nonroot variant runs as uid 65532 by default (no shell, no package manager)
+FROM gcr.io/distroless/nodejs22-debian12:nonroot AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache wget
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-
-USER nextjs
+COPY --from=builder --chown=65532:65532 /app/public ./public
+COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
+COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
+COPY --from=builder --chown=65532:65532 /app/data ./data
 
 VOLUME ["/app/data"]
 
@@ -55,7 +50,9 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# Exec form required — distroless has no shell
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -q --spider http://localhost:3000/api/health || exit 1
+  CMD ["node", "-e", "require('http').get('http://localhost:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
 
-CMD ["node", "server.js"]
+# distroless/nodejs entrypoint is `node` — CMD provides the script argument
+CMD ["server.js"]

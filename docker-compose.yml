@@ -7,6 +7,7 @@ services:
         GIT_SHA: ${GIT_SHA:-local}
     image: registry.rtt.in.th/spinsoft-transcription/registry-dashboard-ui:beta-1
     container_name: registry-dashboard-ui
+    platform: linux/amd64
     restart: unless-stopped
     ports:
       - "${UI_PORT:-3000}:3000"
