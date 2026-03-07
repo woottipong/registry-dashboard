@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { formatBytes, truncateDigest } from "@/lib/format"
 import type { ManifestBlobReference } from "@/types/manifest"
 
@@ -8,8 +9,8 @@ interface LayerListProps {
 }
 
 export function LayerList({ layers }: LayerListProps) {
-  const totalSize = layers.reduce((sum, layer) => sum + layer.size, 0)
-  const maxSize = Math.max(...layers.map((l) => l.size), 1)
+  const totalSize = useMemo(() => layers.reduce((sum, layer) => sum + layer.size, 0), [layers])
+  const maxSize = useMemo(() => Math.max(...layers.map((l) => l.size), 1), [layers])
 
   return (
     <div className="space-y-1">

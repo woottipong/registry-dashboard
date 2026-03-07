@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   ActivityIcon,
   DownloadIcon,
@@ -13,7 +12,6 @@ import type { ActivityItem } from "@/contexts/activity-context"
 
 interface ModernActivityItemProps {
   activity: ActivityItem
-  delay?: number
 }
 
 interface ModernActivityFeedProps {
@@ -34,33 +32,24 @@ const ActivityIcons = {
 function getActivityColor(type: string) {
   switch (type) {
     case 'push':
-      return 'text-emerald-600 bg-emerald-100'
+      return 'text-emerald-500 bg-emerald-500/10'
     case 'pull':
-      return 'text-blue-600 bg-blue-100'
+      return 'text-blue-500 bg-blue-500/10'
     case 'delete':
-      return 'text-red-600 bg-red-100'
+      return 'text-destructive bg-destructive/10'
     case 'create':
       return 'text-primary bg-primary/10'
     default:
-      return 'text-muted-foreground bg-muted'
+      return 'text-muted-foreground bg-muted/50'
   }
 }
 
-export function ModernActivityItem({ activity, delay = 0 }: ModernActivityItemProps) {
+export function ModernActivityItem({ activity }: ModernActivityItemProps) {
   const iconColor = getActivityColor(activity.type)
   const IconComponent = ActivityIcons[activity.type as keyof typeof ActivityIcons] || ActivityIcons.default
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{
-        duration: 0.3,
-        ease: [0.16, 1, 0.3, 1] as const,
-        delay: delay / 1000
-      }}
-      className="flex items-start gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
-    >
+    <div className="flex items-start gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
       {/* Activity icon */}
       <div className={cn(
         "p-2 rounded-lg flex-shrink-0",
@@ -95,7 +84,7 @@ export function ModernActivityItem({ activity, delay = 0 }: ModernActivityItemPr
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -108,7 +97,7 @@ export function ModernActivityFeed({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 p-4 max-h-96 overflow-y-auto">
+      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
         {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
@@ -129,7 +118,7 @@ export function ModernActivityFeed({
 
   if (displayActivities.length === 0) {
     return (
-      <div className="flex flex-col gap-3 p-4 max-h-96 overflow-y-auto flex items-center justify-center">
+      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto items-center justify-center">
         <div className="text-center py-8">
           <ActivityIcon className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">No recent activity</p>
@@ -139,12 +128,11 @@ export function ModernActivityFeed({
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4 max-h-96 overflow-y-auto">
+    <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
       {displayActivities.map((activity, index) => (
         <ModernActivityItem
           key={`${activity.id}-${activity.timestamp}`}
           activity={activity}
-          delay={index * 50}
         />
       ))}
 

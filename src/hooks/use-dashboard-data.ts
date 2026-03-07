@@ -33,26 +33,37 @@ export function useDashboardData() {
   const registriesQuery = useRegistries()
   const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
 
-  // Fetch repositories with pagination and lazy loading
-  const repoQueryConfigs = useMemo(() => {
-    return memoizedRegistries.map((registry) => ({
-      queryKey: DASHBOARD_QUERY_KEYS.REPOSITORIES(
-        registry.id,
-        1,
-        DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE,
-        ""
-      ),
-      queryFn: () => fetchRepositories(registry.id, {
-        perPage: DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE
-      }),
-      staleTime: STALE_TIME_REPOSITORIES,
-      enabled: memoizedRegistries.length > 0, // Only fetch when registries are loaded
-    }))
-  }, [memoizedRegistries])
+  // Eager registries load immediately; deferred wait until eager ones complete
+  const eagerRegistries = useMemo(
+    () => memoizedRegistries.slice(0, DASHBOARD_CONFIG.EAGER_REGISTRY_COUNT),
+    [memoizedRegistries]
+  )
+  const deferredRegistries = useMemo(
+    () => memoizedRegistries.slice(DASHBOARD_CONFIG.EAGER_REGISTRY_COUNT),
+    [memoizedRegistries]
+  )
 
-  const repoQueries = useQueries({
-    queries: repoQueryConfigs,
+  const eagerQueries = useQueries({
+    queries: eagerRegistries.map((registry) => ({
+      queryKey: DASHBOARD_QUERY_KEYS.REPOSITORIES(registry.id, 1, DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE, ""),
+      queryFn: () => fetchRepositories(registry.id, { perPage: DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE }),
+      staleTime: STALE_TIME_REPOSITORIES,
+      enabled: memoizedRegistries.length > 0,
+    })),
   })
+
+  const allEagerDone = eagerQueries.length === 0 || eagerQueries.every((q) => !q.isLoading)
+
+  const deferredQueries = useQueries({
+    queries: deferredRegistries.map((registry) => ({
+      queryKey: DASHBOARD_QUERY_KEYS.REPOSITORIES(registry.id, 1, DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE, ""),
+      queryFn: () => fetchRepositories(registry.id, { perPage: DASHBOARD_CONFIG.REPOSITORIES_PAGE_SIZE }),
+      staleTime: STALE_TIME_REPOSITORIES,
+      enabled: allEagerDone,
+    })),
+  })
+
+  const repoQueries = [...eagerQueries, ...deferredQueries]
 
   const isLoadingRegistries = registriesQuery.isLoading
   const isLoadingRepos = repoQueries.some((q) => q.isLoading)

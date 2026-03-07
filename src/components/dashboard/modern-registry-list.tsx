@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ServerIcon, ExternalLinkIcon } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -21,7 +20,7 @@ export function ModernRegistryCard({
 }: ModernRegistryCardProps) {
   if (isLoading) {
     return (
-      <div className="group relative p-6 rounded-xl border border-border/50 bg-gradient-to-r from-card/80 to-card/40 backdrop-blur-sm animate-pulse">
+      <div className="p-6 rounded-xl border border-border/50 bg-card animate-pulse">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-muted rounded-xl" />
           <div className="flex-1 space-y-3">
@@ -39,19 +38,8 @@ export function ModernRegistryCard({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{
-        duration: 0.3,
-        ease: [0.16, 1, 0.3, 1] as const
-      }}
-      className="group relative p-6 rounded-xl border border-border/50 bg-gradient-to-r from-card/80 to-card/40 backdrop-blur-sm transition-all duration-300 hover:border-primary/20 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/5"
-    >
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-xl pointer-events-none" />
-
-      <div className="relative flex items-start gap-4">
+    <div className="group relative p-6 rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/20 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/5">
+      <div className="flex items-start gap-4">
         {/* Registry icon with status indicator */}
         <div className="relative">
           <div className="p-3 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm group-hover:border-primary/20 group-hover:bg-primary/5 transition-all duration-300">
@@ -101,27 +89,20 @@ export function ModernRegistryCard({
 
         {/* Action button */}
         <div className="flex items-center">
-          <Link href={`/repos?registry=${registry.id}`}>
-            <motion.span
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={cn(
-                "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90",
-                "transition-all duration-300 shadow-sm hover:shadow-md"
-              )}
-            >
-              <ExternalLinkIcon className="w-4 h-4" />
-              Browse
-            </motion.span>
+          <Link
+            href={`/repos?registry=${registry.id}`}
+            className={cn(
+              "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
+              "bg-primary text-primary-foreground hover:bg-primary/90",
+              "transition-colors duration-200"
+            )}
+          >
+            <ExternalLinkIcon className="w-4 h-4" />
+            Browse
           </Link>
         </div>
       </div>
-
-      {/* Decorative accent line */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-r-full" />
-    </motion.div>
+    </div>
   )
 }
 
@@ -140,7 +121,7 @@ export function ModernRegistryList({
 }: ModernRegistryListProps) {
   if (!isLoading && registries.length === 0) {
     return (
-      <div className="flex flex-col gap-4 p-6 min-h-[320px] flex items-center justify-center">
+      <div className="flex flex-col gap-4 min-h-[320px] items-center justify-center">
         <div className="text-center py-12">
           <ServerIcon className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No registries connected</h3>
@@ -151,7 +132,7 @@ export function ModernRegistryList({
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6 min-h-[320px]">
+    <div className="flex flex-col gap-4 min-h-[320px]">
       {isLoading ? (
         // Loading skeletons
         Array.from({ length: 3 }).map((_, index) => (

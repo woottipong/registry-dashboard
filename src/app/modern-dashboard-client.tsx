@@ -1,52 +1,38 @@
 "use client"
 
-import { motion } from "framer-motion"
+import Link from "next/link"
 import {
   DatabaseIcon,
   FolderIcon,
   TagIcon,
-  HardDriveIcon,
-  ActivityIcon
 } from "lucide-react"
 import { ModernDashboardContainer, ModernDashboardHeader, ModernDashboardSection, ModernDashboardGrid } from "@/components/dashboard/modern-dashboard-layout"
 import { StatsGrid } from "@/components/dashboard/modern-stats-cards"
 import { ModernRegistryList } from "@/components/dashboard/modern-registry-list"
-import { ModernActivityFeed } from "@/components/dashboard/modern-activity-feed"
+import { ModernTopRepos } from "@/components/dashboard/modern-top-repos"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
-import { useActivity } from "@/contexts/activity-context"
 
 export function ModernDashboardClient() {
   const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData()
-  const { activities } = useActivity()
 
-  const { totalRepositories, totalTags, totalSizeBytes, chartData, registriesWithStats } = dashboardData
+  const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
 
-  // Prepare stats for the modern stats grid
   const stats = [
     {
       title: "Registries",
       value: registries.length,
       icon: DatabaseIcon,
-      trend: { value: 12, isPositive: true }
     },
     {
       title: "Repositories",
       value: totalRepositories,
       icon: FolderIcon,
-      trend: { value: 8, isPositive: true }
     },
     {
       title: "Tags",
       value: totalTags,
       icon: TagIcon,
-      trend: { value: 5, isPositive: false }
     },
-    {
-      title: "Storage",
-      value: `${(totalSizeBytes / (1024 * 1024 * 1024)).toFixed(1)}GB`,
-      icon: HardDriveIcon,
-      trend: { value: 3, isPositive: true }
-    }
   ]
 
   // Prepare registry counts
@@ -60,6 +46,16 @@ export function ModernDashboardClient() {
     return acc
   }, {} as Record<string, number>)
 
+  const registryNames = registriesWithStats.reduce((acc, reg) => {
+    acc[reg.id] = reg.name
+    return acc
+  }, {} as Record<string, string>)
+
+  const topRepos = chartData.map((repo) => ({
+    ...repo,
+    registryName: registryNames[repo.registryId],
+  }))
+
   if (!isLoadingRegistries && registries.length === 0) {
     return (
       <ModernDashboardContainer>
@@ -69,13 +65,12 @@ export function ModernDashboardClient() {
           <p className="text-muted-foreground mb-8 max-w-md">
             Connect your first Docker registry to start monitoring and managing your container images.
           </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Link
+            href="/registries/new"
             className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
             Connect First Registry
-          </motion.button>
+          </Link>
         </div>
       </ModernDashboardContainer>
     )
@@ -89,9 +84,7 @@ export function ModernDashboardClient() {
       />
 
       {/* Stats Overview */}
-      <ModernDashboardSection title="Overview">
-        <StatsGrid stats={stats} isLoading={isLoadingRegistries} />
-      </ModernDashboardSection>
+      <StatsGrid stats={stats} isLoading={isLoadingRegistries} />
 
       {/* Main Content Grid */}
       <ModernDashboardGrid>
@@ -100,6 +93,7 @@ export function ModernDashboardClient() {
           title="Active Connections"
           description="Connected registries and their status"
           icon={DatabaseIcon}
+          className="rounded-2xl border border-border/50 bg-card/30 p-6"
         >
           <ModernRegistryList
             registries={registries}
@@ -109,16 +103,16 @@ export function ModernDashboardClient() {
           />
         </ModernDashboardSection>
 
-        {/* Recent Activity */}
+        {/* Top Repositories */}
         <ModernDashboardSection
-          title="Recent Activity"
-          description="Latest registry operations and events"
-          icon={ActivityIcon}
+          title="Top Repositories"
+          description="Repositories with the most tags"
+          icon={FolderIcon}
+          className="rounded-2xl border border-border/50 bg-card/30 p-6"
         >
-          <ModernActivityFeed
-            activities={activities}
-            isLoading={isLoadingRegistries}
-            maxItems={8}
+          <ModernTopRepos
+            repos={topRepos}
+            isLoading={isLoadingRegistries || isLoadingRepos}
           />
         </ModernDashboardSection>
       </ModernDashboardGrid>

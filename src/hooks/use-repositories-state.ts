@@ -56,22 +56,22 @@ export function useRepositoriesState({ initialRegistry, initialRegistries }: Use
     return initialRegistry
   }, [registryParam, initialRegistry])
 
-  // Repository queries
+  const isSearchMode = debouncedSearch.trim().length > 0
+
+  // Repository queries — mutually exclusive: only one fires at a time
   const repositoriesQuery = useRepositoriesQuery(selectedRegistry, {
     page: REPOSITORY_CONFIG.DEFAULT_PAGE,
     perPage: REPOSITORY_CONFIG.DEFAULT_PAGE_SIZE,
-    search: debouncedSearch || undefined,
+    enabled: !isSearchMode,
   })
 
+  // searchQuery already gates itself with enabled: Boolean(registryId && query.trim().length > 0)
   const searchQuery = useSearchRepositories(selectedRegistry, debouncedSearch)
 
   // Active result based on search state
   const activeResult = useMemo(() => {
-    if (debouncedSearch.trim().length > 0) {
-      return searchQuery.data
-    }
-    return repositoriesQuery.data
-  }, [repositoriesQuery.data, searchQuery.data, debouncedSearch])
+    return isSearchMode ? searchQuery.data : repositoriesQuery.data
+  }, [repositoriesQuery.data, searchQuery.data, isSearchMode])
 
   // Actions
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,15 +93,16 @@ export function useRepositoriesState({ initialRegistry, initialRegistries }: Use
   }, [])
 
   const refetch = useCallback(() => {
-    repositoriesQuery.refetch()
-    if (debouncedSearch.trim().length > 0) {
+    if (isSearchMode) {
       searchQuery.refetch()
+    } else {
+      repositoriesQuery.refetch()
     }
-  }, [repositoriesQuery, searchQuery, debouncedSearch])
+  }, [repositoriesQuery, searchQuery, isSearchMode])
 
-  // Computed values
-  const isLoading = repositoriesQuery.isLoading || searchQuery.isLoading
-  const isError = repositoriesQuery.isError || searchQuery.isError
+  // Computed values — only check the active query
+  const isLoading = isSearchMode ? searchQuery.isLoading : repositoriesQuery.isLoading
+  const isError = isSearchMode ? searchQuery.isError : repositoriesQuery.isError
   const repositories = activeResult?.items ?? []
   const hasSearch = search.trim().length > 0
   const isEmpty = repositories.length === 0 && !isLoading

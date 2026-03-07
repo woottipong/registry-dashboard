@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface ModernDashboardSectionProps {
@@ -19,19 +18,7 @@ export function ModernDashboardSection({
   icon: Icon
 }: ModernDashboardSectionProps) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.3,
-        ease: [0.16, 1, 0.3, 1] as const
-      }}
-      className={cn(
-        "relative",
-        className
-      )}
-    >
-      {/* Section header */}
+    <section className={cn("relative", className)}>
       {(title || description) && (
         <div className="flex items-center gap-3 mb-6">
           {Icon && (
@@ -48,11 +35,10 @@ export function ModernDashboardSection({
         </div>
       )}
 
-      {/* Section content */}
       <div className="relative">
         {children}
       </div>
-    </motion.section>
+    </section>
   )
 }
 
@@ -80,15 +66,9 @@ interface ModernDashboardContainerProps {
 export function ModernDashboardContainer({ children, className }: ModernDashboardContainerProps) {
   return (
     <div className={cn(
-      "space-y-8 max-w-7xl mx-auto px-6 py-8",
+      "space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-300",
       className
     )}>
-      {/* Decorative background elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-accent/5 to-transparent rounded-full blur-3xl" />
-      </div>
-
       {children}
     </div>
   )
@@ -102,17 +82,9 @@ interface ModernDashboardHeaderProps {
 
 export function ModernDashboardHeader({ title, description, actions }: ModernDashboardHeaderProps) {
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.15,
-        ease: [0.16, 1, 0.3, 1] as const
-      }}
-      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2"
-    >
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+    <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">
           {title}
         </h1>
         {description && (
@@ -125,6 +97,6 @@ export function ModernDashboardHeader({ title, description, actions }: ModernDas
           {actions}
         </div>
       )}
-    </motion.header>
+    </header>
   )
 }

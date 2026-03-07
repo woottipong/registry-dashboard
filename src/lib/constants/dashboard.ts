@@ -3,7 +3,9 @@ export const DASHBOARD_CONFIG = {
   // Data fetching limits
   MAX_CHART_ITEMS: 10,
   MAX_ACTIVITIES: 50,
-  REPOSITORIES_PAGE_SIZE: 20,
+  REPOSITORIES_PAGE_SIZE: 1000,
+  // First N registries load immediately; the rest wait until those complete
+  EAGER_REGISTRY_COUNT: 3,
 
   // UI layout
   CONTAINER_MAX_WIDTH: 'max-w-[1200px]',

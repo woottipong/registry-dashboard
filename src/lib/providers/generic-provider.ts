@@ -43,34 +43,18 @@ export class GenericProvider implements RegistryProvider {
   }
 
   async listNamespaces(): Promise<Namespace[]> {
-    // Fetch catalog names only — no tag count fetches — very fast
+    // Single catalog request — derive namespaces from repo path prefixes, no N+1 tag fetches
     const allRepoNames = await this.fetchAllCatalogNames()
 
-    // Fetch tag counts in parallel to get accurate per-namespace counts
-    const results = await Promise.all(
-      allRepoNames.map(async (repoName) => {
-        try {
-          const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
-          const tags = tagsResponse.tags ?? []
-          if (tags.length === 0) return null
-          return repoName
-        } catch {
-          return null
-        }
-      })
-    )
-
-    const activeRepoNames = results.filter((n): n is string => n !== null)
-
-    const namespaceCounts = new Map<string, number>()
-    for (const repoName of activeRepoNames) {
-      const namespace = repoName.includes("/")
+    const countMap = new Map<string, number>()
+    for (const repoName of allRepoNames) {
+      const ns = repoName.includes("/")
         ? repoName.split("/").slice(0, -1).join("/")
         : ""
-      namespaceCounts.set(namespace, (namespaceCounts.get(namespace) ?? 0) + 1)
+      countMap.set(ns, (countMap.get(ns) ?? 0) + 1)
     }
 
-    return Array.from(namespaceCounts.entries())
+    return Array.from(countMap.entries())
       .map(([name, repositoryCount]) => ({ name, repositoryCount }))
       .sort((a, b) => a.name.localeCompare(b.name))
   }

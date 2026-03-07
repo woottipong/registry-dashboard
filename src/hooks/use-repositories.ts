@@ -12,6 +12,7 @@ export interface RepositoryQueryOptions {
   perPage?: number
   search?: string
   namespace?: string
+  enabled?: boolean
 }
 
 export interface RepositoryQueryResult {
@@ -74,11 +75,12 @@ export function useRepositories(
   registryId: string,
   options: RepositoryQueryOptions = {},
 ) {
+  const { enabled: callerEnabled = true, ...fetchOptions } = options
   return useQuery({
-    queryKey: queryKeys.repositories.byRegistry(registryId, options.page ?? 1, options.perPage ?? 25, options.search ?? "", options.namespace ?? ""),
-    enabled: Boolean(registryId) && options.namespace !== undefined,
+    queryKey: queryKeys.repositories.byRegistry(registryId, fetchOptions.page ?? 1, fetchOptions.perPage ?? 25, fetchOptions.search ?? "", fetchOptions.namespace ?? ""),
+    enabled: callerEnabled && Boolean(registryId) && fetchOptions.namespace !== undefined,
     staleTime: STALE_TIME_REPOSITORIES,
-    queryFn: () => fetchRepositories(registryId, options),
+    queryFn: () => fetchRepositories(registryId, fetchOptions),
   })
 }
 

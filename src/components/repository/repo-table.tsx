@@ -1,8 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { BoxIcon, ChevronRightIcon, TagsIcon } from "lucide-react"
+import { useDebounce } from "@/hooks/use-debounce"
+import { STALE_TIME_TAGS } from "@/lib/query-client"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -13,11 +16,15 @@ interface RepoTableProps {
 export function RepoTable({ registryId, repositories }: RepoTableProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [hoveredRepo, setHoveredRepo] = useState<Repository | null>(null)
+  const debouncedHoveredRepo = useDebounce(hoveredRepo, 200)
 
-  const prefetchTags = (repo: Repository) => {
+  useEffect(() => {
+    if (!debouncedHoveredRepo) return
+    const repo = debouncedHoveredRepo
     queryClient.prefetchQuery({
       queryKey: ["tags", registryId, repo.fullName],
-      staleTime: 30 * 1000,
+      staleTime: STALE_TIME_TAGS,
       queryFn: async () => {
         const encodedRepoPath = repo.fullName
           .split("/")
@@ -34,7 +41,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
         return { items: payload.data, meta: payload.meta }
       },
     })
-  }
+  }, [debouncedHoveredRepo, registryId, queryClient])
 
   return (
     <div className="divide-y divide-border/40">
@@ -44,7 +51,8 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
           type="button"
           className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors text-left group"
           onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
-          onMouseEnter={() => prefetchTags(repo)}
+          onMouseEnter={() => setHoveredRepo(repo)}
+          onMouseLeave={() => setHoveredRepo(null)}
         >
           {/* Icon */}
           <div className="flex-shrink-0 size-8 rounded-lg bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
