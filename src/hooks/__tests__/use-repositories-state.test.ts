@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { useRepositoriesState } from '@/hooks/use-repositories-state'
 import { useRegistries } from '@/hooks/use-registries'
 import { useRepositories, useSearchRepositories } from '@/hooks/use-repositories'
@@ -13,17 +13,16 @@ const mockUseRegistries = vi.mocked(useRegistries)
 const mockUseRepositories = vi.mocked(useRepositories)
 const mockUseSearchRepositories = vi.mocked(useSearchRepositories)
 
-// Mock Next.js router
-const mockPush = vi.fn()
-const mockUseRouter = vi.fn(() => ({
-  push: mockPush,
-}))
-
-const mockUsePathname = vi.fn(() => '/repos')
-const mockUseSearchParams = vi.fn(() => ({
-  get: vi.fn(),
-  toString: vi.fn(() => ''),
-}))
+// Mock Next.js router — use vi.hoisted so variables are available inside vi.mock factory
+const { mockPush, mockUseRouter, mockUsePathname, mockUseSearchParams } = vi.hoisted(() => {
+  const mockPush = vi.fn()
+  return {
+    mockPush,
+    mockUseRouter: vi.fn(() => ({ push: mockPush })),
+    mockUsePathname: vi.fn(() => '/repos'),
+    mockUseSearchParams: vi.fn(() => ({ get: vi.fn(), toString: vi.fn(() => '') })),
+  }
+})
 
 vi.mock('next/navigation', () => ({
   useRouter: mockUseRouter,
@@ -90,39 +89,46 @@ describe('useRepositoriesState', () => {
   })
 
   it('should handle search input changes', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRepositoriesState({ initialRegistry, initialRegistries })
     )
 
-    result.current.handleSearchChange({
-      target: { value: 'test' }
-    } as React.ChangeEvent<HTMLInputElement>)
+    // 1. Trigger search — this re-renders and registers the debounce useEffect timer
+    await act(async () => {
+      result.current.handleSearchChange({
+        target: { value: 'test' }
+      } as React.ChangeEvent<HTMLInputElement>)
+    })
 
     expect(result.current.search).toBe('test')
     expect(result.current.hasSearch).toBe(true)
 
-    // Wait for debounce
-    vi.advanceTimersByTime(300)
-
-    await waitFor(() => {
-      expect(result.current.debouncedSearch).toBe('test')
+    // 2. Fire the debounce timer and let React process the resulting state update
+    await act(async () => {
+      vi.advanceTimersByTime(300)
     })
+
+    expect(result.current.debouncedSearch).toBe('test')
   })
 
   it('should clear search', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRepositoriesState({ initialRegistry, initialRegistries })
     )
 
     // Set search first
-    result.current.handleSearchChange({
-      target: { value: 'test' }
-    } as React.ChangeEvent<HTMLInputElement>)
+    act(() => {
+      result.current.handleSearchChange({
+        target: { value: 'test' }
+      } as React.ChangeEvent<HTMLInputElement>)
+    })
 
     expect(result.current.search).toBe('test')
 
     // Clear search
-    result.current.clearSearch()
+    act(() => {
+      result.current.clearSearch()
+    })
 
     expect(result.current.search).toBe('')
     expect(result.current.hasSearch).toBe(false)
@@ -140,7 +146,7 @@ describe('useRepositoriesState', () => {
 
   it('should use search results when searching', async () => {
     const searchResults = { items: [{ name: 'search-result' }] }
-    
+
     mockUseSearchRepositories.mockReturnValue({
       data: searchResults,
       isLoading: false,
@@ -148,21 +154,24 @@ describe('useRepositoriesState', () => {
       refetch: vi.fn(),
     } as unknown as ReturnType<typeof useSearchRepositories>)
 
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRepositoriesState({ initialRegistry, initialRegistries })
     )
 
-    // Trigger search
-    result.current.handleSearchChange({
-      target: { value: 'test' }
-    } as React.ChangeEvent<HTMLInputElement>)
-
-    // Wait for debounce
-    vi.advanceTimersByTime(300)
-
-    await waitFor(() => {
-      expect(result.current.repositories).toEqual(searchResults.items)
+    // Trigger search — registers the debounce useEffect timer
+    await act(async () => {
+      result.current.handleSearchChange({
+        target: { value: 'test' }
+      } as React.ChangeEvent<HTMLInputElement>)
     })
+
+    // Fire the debounce timer and flush the resulting state update
+    await act(async () => {
+      vi.advanceTimersByTime(300)
+    })
+
+    expect(result.current.debouncedSearch).toBe('test')
+    expect(result.current.repositories).toEqual(searchResults.items)
   })
 
   it('should use regular results when not searching', () => {
@@ -213,10 +222,10 @@ describe('useRepositoriesState', () => {
     expect(result.current.hasError).toBe(true)
   })
 
-  it('should call refetch on both queries', () => {
+  it('should call refetch on both queries', async () => {
     const mockRefetch = vi.fn()
     const mockSearchRefetch = vi.fn()
-    
+
     mockUseRepositories.mockReturnValue({
       data: { items: [] },
       isLoading: false,
@@ -231,7 +240,7 @@ describe('useRepositoriesState', () => {
       refetch: mockSearchRefetch,
     } as unknown as ReturnType<typeof useSearchRepositories>)
 
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRepositoriesState({ initialRegistry, initialRegistries })
     )
 
@@ -240,12 +249,15 @@ describe('useRepositoriesState', () => {
     expect(mockRefetch).toHaveBeenCalled()
     expect(mockSearchRefetch).not.toHaveBeenCalled() // Should not call search refetch when no search
 
-    // Set search and try again
-    result.current.handleSearchChange({
-      target: { value: 'test' }
-    } as React.ChangeEvent<HTMLInputElement>)
-
-    vi.advanceTimersByTime(300)
+    // Set search: trigger change, then advance debounce timer
+    await act(async () => {
+      result.current.handleSearchChange({
+        target: { value: 'test' }
+      } as React.ChangeEvent<HTMLInputElement>)
+    })
+    await act(async () => {
+      vi.advanceTimersByTime(300)
+    })
 
     result.current.refetch()
 

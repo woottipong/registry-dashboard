@@ -8,20 +8,26 @@ import {
 } from '@/components/registry/registry-ui-components'
 import type { RegistryConnection } from '@/types/registry'
 
-// Mock lucide-react icons used by the components
+// Mock lucide-react — inline all icons so there are no hoisting issues
 vi.mock('lucide-react', () => ({
   PlusIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="plus-icon" className={className as string} {...props} />,
   AlertTriangleIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="alert-icon" className={className as string} {...props} />,
+  AlertCircleIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="alert-circle-icon" className={className as string} {...props} />,
   RefreshCwIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="refresh-icon" className={className as string} {...props} />,
   ServerIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="server-icon" className={className as string} {...props} />,
+  BoxIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="box-icon" className={className as string} {...props} />,
   MoreHorizontalIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="more-icon" className={className as string} {...props} />,
   PencilIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="pencil-icon" className={className as string} {...props} />,
   StarIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="star-icon" className={className as string} {...props} />,
   Trash2Icon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="trash-icon" className={className as string} {...props} />,
   ExternalLinkIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="external-link-icon" className={className as string} {...props} />,
+  ArrowRightIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="arrow-right-icon" className={className as string} {...props} />,
   CheckCircle2Icon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="check-icon" className={className as string} {...props} />,
   XCircleIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="x-circle-icon" className={className as string} {...props} />,
   LoaderIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="loader-icon" className={className as string} {...props} />,
+  LockOpenIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="lock-open-icon" className={className as string} {...props} />,
+  LockIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="lock-icon" className={className as string} {...props} />,
+  KeyRoundIcon: ({ className, ...props }: Record<string, unknown>) => <div data-testid="key-round-icon" className={className as string} {...props} />,
 }))
 
 describe('ModernRegistryCard', () => {
@@ -61,12 +67,11 @@ describe('ModernRegistryCard', () => {
     expect(screen.getByText('Default')).toBeInTheDocument()
   })
 
-  it('should render capability badges', () => {
+  it('should render auth type label', () => {
     render(<ModernRegistryCard {...defaultProps} />)
 
-    expect(screen.getByText('generic')).toBeInTheDocument()
-    expect(screen.getByText('Delete')).toBeInTheDocument()
-    expect(screen.getByText('Search')).toBeInTheDocument()
+    // authType 'none' renders "Anonymous" label
+    expect(screen.getByText('Anonymous')).toBeInTheDocument()
   })
 
   it('should render connected status with latency', () => {
@@ -84,7 +89,7 @@ describe('ModernRegistryCard', () => {
 
     render(<ModernRegistryCard {...defaultProps} registry={registryWithRateLimit} />)
 
-    expect(screen.getByText('Rate limit usage')).toBeInTheDocument()
+    expect(screen.getByText('API quota remaining')).toBeInTheDocument()
     expect(screen.getByText('30%')).toBeInTheDocument()
   })
 

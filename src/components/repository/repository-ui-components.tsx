@@ -89,7 +89,6 @@ export function RegistrySelector({
         <Button
           variant="ghost"
           size="sm"
-          asChild
           className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border/50 ml-1 flex items-center gap-2"
         >
           <PlusIcon className="size-3.5" />
