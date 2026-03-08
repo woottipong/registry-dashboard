@@ -1,10 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Container/box icon with dark background -->
-  <rect width="32" height="32" rx="8" fill="#0f172a"/>
-  <!-- Box outline -->
-  <path d="M6 12l10-6 10 6v8l-10 6-10-6z" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
-  <!-- Top lid -->
-  <path d="M6 12l10 6 10-6" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round"/>
-  <!-- Center line -->
-  <path d="M16 18v8" stroke="#38bdf8" stroke-width="1.5"/>
+  <!-- Top face (lit) -->
+  <path d="M16 6 L25 11 L16 16 L8 11 Z" fill="#7DD3FC"/>
+  <!-- Left face -->
+  <path d="M8 11 L8 21 L16 26 L16 16 Z" fill="#0EA5E9"/>
+  <!-- Right face (shadow) -->
+  <path d="M16 16 L16 26 L25 21 L25 11 Z" fill="#0369A1"/>
 </svg>

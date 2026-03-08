@@ -40,12 +40,7 @@ function SidebarBody() {
   return (
     <div className="flex h-full flex-col bg-sidebar/50 backdrop-blur-xl">
       <div className="p-6 flex items-center gap-3">
-        <div className="relative">
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary to-accent opacity-75 blur-[2px]" />
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-sidebar border border-border">
-            <ServerIcon className="size-4 text-primary" />
-          </div>
-        </div>
+        <img src="/logo.svg" alt="Registry" className="h-10 w-10 rounded-xl" />
         <div>
           <h2 className="font-bold text-sm tracking-tight">Registry Center</h2>
           <div className="flex items-center gap-1.5">

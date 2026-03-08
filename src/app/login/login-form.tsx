@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertCircleIcon, EyeIcon, EyeOffIcon, Loader2Icon, HexagonIcon } from "lucide-react"
+import { AlertCircleIcon, EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 
 export function LoginForm() {
   const [username, setUsername] = useState("")
@@ -47,8 +47,7 @@ export function LoginForm() {
       {/* Header */}
       <div className="text-center relative z-20">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl mb-6 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent"></div>
-          <HexagonIcon className="w-7 h-7 text-indigo-400 relative z-10 group-hover:scale-110 transition-transform duration-500" strokeWidth={1.5} />
+          <img src="/logo.svg" alt="Registry Dashboard" className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
         </div>
         <h1 className="text-[28px] font-semibold text-white mb-2 tracking-tight">
           Registry Dashboard

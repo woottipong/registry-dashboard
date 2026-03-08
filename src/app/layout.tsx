@@ -34,11 +34,8 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/apple-touch-icon.png",
+    icon: { url: "/icon.svg", type: "image/svg+xml" },
+    shortcut: "/icon.svg",
   },
 }
 
