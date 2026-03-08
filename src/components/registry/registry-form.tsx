@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { ApiResponse } from "@/types/api"
+import { useAddRegistry, usePingRegistry, useUpdateRegistry } from "@/hooks/use-registries"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
 const schema = z.object({
@@ -42,8 +42,9 @@ interface RegistryFormProps {
 
 export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [testing, setTesting] = useState(false)
+  const addRegistry = useAddRegistry()
+  const updateRegistry = useUpdateRegistry()
+  const pingRegistry = usePingRegistry(initialValue?.id ?? "")
 
   const form = useForm<FormState>({
     resolver: zodResolver(schema),
@@ -74,9 +75,9 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
     }
   }
 
-  const onSubmit = async (data: FormState) => {
-    setLoading(true)
+  const loading = addRegistry.isPending || updateRegistry.isPending
 
+  const onSubmit = (data: FormState) => {
     const payload = {
       name: data.name,
       url: data.url,
@@ -86,60 +87,37 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
         data.authType === "none"
           ? undefined
           : {
-            username: data.username || undefined,
-            password: data.password || undefined,
-            token: data.token || undefined,
-          },
+              username: data.username || undefined,
+              password: data.password || undefined,
+              token: data.token || undefined,
+            },
       namespace: data.namespace || undefined,
     }
 
-    const endpoint = mode === "create" ? "/api/v1/registries" : `/api/v1/registries/${initialValue?.id}`
-    const method = mode === "create" ? "POST" : "PUT"
-
-    try {
-      const response = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify(payload),
-      })
-
-      const result = (await response.json()) as ApiResponse<RegistryConnection>
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error?.message ?? "Request failed")
-      }
-
-      toast.success(mode === "create" ? "Registry created" : "Registry updated")
+    const onSuccess = () => {
+      toast.success(mode === "create" ? "Registry added" : "Registry updated")
       router.push("/registries")
-      router.refresh()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to save registry")
-    } finally {
-      setLoading(false)
+    }
+    const onError = (error: Error) => {
+      toast.error(error.message ?? "Unable to save registry")
+    }
+
+    if (mode === "create") {
+      addRegistry.mutate(payload, { onSuccess, onError })
+    } else if (initialValue?.id) {
+      updateRegistry.mutate({ id: initialValue.id, payload }, { onSuccess, onError })
     }
   }
 
-  const testConnection = async () => {
-    if (!initialValue?.id) {
+  const testConnection = () => {
+    if (!canPing) {
       toast.info("Save the registry first, then run connection test")
       return
     }
-
-    setTesting(true)
-    try {
-      const response = await fetch(`/api/v1/registries/${initialValue.id}/ping`)
-      const result = (await response.json()) as ApiResponse<{ status: "ok" | "error"; latencyMs: number }>
-
-      if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.error?.message ?? "Connection test failed")
-      }
-
-      toast.success(`Connected (${result.data.latencyMs}ms)`)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Connection test failed")
-    } finally {
-      setTesting(false)
-    }
+    pingRegistry.mutate(undefined, {
+      onSuccess: (data) => toast.success(`Connected (${data.latencyMs}ms)`),
+      onError: (error) => toast.error(error.message ?? "Connection test failed"),
+    })
   }
 
   return (
@@ -347,9 +325,9 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               type="button"
               variant="outline"
               onClick={testConnection}
-              disabled={testing || !canPing}
+              disabled={pingRegistry.isPending || !canPing}
             >
-              {testing ? "Testing…" : "Test Connection"}
+              {pingRegistry.isPending ? "Testing…" : "Test Connection"}
             </Button>
           </div>
         </form>

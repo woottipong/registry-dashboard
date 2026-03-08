@@ -21,6 +21,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SESSION_SECRET="build-time-placeholder-secret-min-32-chars!"
 ENV APP_PASSWORD="buildtime"
 
+ARG APP_VERSION=dev
+ENV NEXT_PUBLIC_APP_VERSION=$APP_VERSION
+
 RUN --mount=type=cache,target=/app/.next/cache \
     bun run build \
     && mkdir -p /app/data

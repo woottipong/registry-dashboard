@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   env: {
-    NEXT_PUBLIC_APP_VERSION: getGitVersion(),
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || getGitVersion(),
   },
 
   turbopack: {
