@@ -42,10 +42,10 @@ function SidebarBody() {
       <div className="p-6 flex items-center gap-3">
         <img src="/logo.svg" alt="Registry" className="h-10 w-10 rounded-xl" />
         <div>
-          <h2 className="font-bold text-sm tracking-tight">Registry Center</h2>
+          <h2 className="font-bold text-sm tracking-tight">Registry Dashboard</h2>
           <div className="flex items-center gap-1.5">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Online</span>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Connected</span>
           </div>
         </div>
       </div>
@@ -132,6 +132,12 @@ function SidebarBody() {
         </div>
       </div>
 
+      <div className="mt-auto px-6 py-4 border-t border-border/50 flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground/40">Registry Dashboard</span>
+        <span className="text-[10px] text-muted-foreground/30 font-mono tabular-nums">
+          {process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
+        </span>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,15 @@
 import type { NextConfig } from "next"
+import { execSync } from "child_process"
+
+function getGitVersion(): string {
+  try {
+    return execSync("git describe --tags --abbrev=0", { stdio: ["pipe", "pipe", "pipe"] })
+      .toString()
+      .trim()
+  } catch {
+    return "dev"
+  }
+}
 
 const CSP = [
   "default-src 'self'",
@@ -25,6 +36,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+
+  env: {
+    NEXT_PUBLIC_APP_VERSION: getGitVersion(),
+  },
 
   turbopack: {
     root: __dirname,

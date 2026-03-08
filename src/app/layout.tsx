@@ -20,16 +20,16 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Registry Dashboard",
-    template: "%s | Registry Dashboard",
+    template: "%s — Registry Dashboard",
   },
   description:
-    "A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries.",
+    "Self-hosted dashboard for managing Docker container images across multiple registries.",
   keywords: ["docker", "registry", "container", "images", "dashboard", "self-hosted", "devops"],
   authors: [{ name: "Registry Dashboard" }],
   robots: { index: false, follow: false },
   openGraph: {
     title: "Registry Dashboard",
-    description: "Browse and manage Docker container images across multiple registries.",
+    description: "Self-hosted dashboard for managing Docker container images across multiple registries.",
     type: "website",
     locale: "en_US",
   },

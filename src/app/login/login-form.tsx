@@ -53,7 +53,7 @@ export function LoginForm() {
           Registry Dashboard
         </h1>
         <p className="text-slate-400 text-sm tracking-wide">
-          Secure access to your container environment
+          Sign in to manage your container registries
         </p>
       </div>
 
