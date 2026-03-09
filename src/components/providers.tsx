@@ -23,7 +23,6 @@ export function Providers({ children }: ProvidersProps) {
       attribute="class"
       defaultTheme="dark"
       enableSystem
-      disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
         {children}

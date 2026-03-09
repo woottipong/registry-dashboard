@@ -3,6 +3,7 @@
 import { Suspense } from "react"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
+import { ThemeBackdrop } from "@/components/layout/theme-toggle"
 import { Topbar } from "@/components/layout/topbar"
 import { useUiStore } from "@/stores/ui-store"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -38,14 +39,21 @@ export function AppShell({ children }: AppShellProps) {
 
   // Don't render the shell for login page
   if (pathname === "/login") {
-    return <main className="min-h-screen bg-background text-foreground">{children}</main>
+    return (
+      <main className="relative isolate min-h-screen bg-background text-foreground transition-colors duration-700">
+        <ThemeBackdrop />
+        <div className="relative z-10 min-h-screen">{children}</div>
+      </main>
+    )
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="relative isolate flex min-h-screen bg-background text-foreground transition-colors duration-700">
+      <ThemeBackdrop />
+
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
-      <div className="flex min-w-0 flex-1 flex-col lg:ml-60">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:ml-60">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
         <main className="flex-1 p-4 lg:px-8 lg:py-6">{children}</main>
       </div>

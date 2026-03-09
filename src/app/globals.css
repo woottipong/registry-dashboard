@@ -59,13 +59,14 @@
   --radius-card: 1.5rem;
   --radius-input: 0.75rem;
   --radius-modal: 1.5rem;
+  color-scheme: light;
 
   /* Light Theme: Indigo Frost — subtle lavender tint for depth */
-  --background: #f5f4fb;
-  --foreground: #09090b;
-  --card: #ffffff;
+  --background: #eeebef;
+  --foreground: #121218;
+  --card: #f8f6f8;
   --card-foreground: #09090b;
-  --popover: #ffffff;
+  --popover: #f8f6f8;
   --popover-foreground: #09090b;
 
   /* Primary: Vibrant Indigo */
@@ -73,15 +74,15 @@
   --primary-foreground: #ffffff;
 
   /* Secondary: Lavender wash */
-  --secondary: #eeecfb;
+  --secondary: #e6e0ea;
   --secondary-foreground: #3730a3;
 
   /* Muted */
-  --muted: #f0eef9;
-  --muted-foreground: #6b6b80;
+  --muted: #e5e1e8;
+  --muted-foreground: #666575;
 
   /* Accent: clear indigo tint for hover states */
-  --accent: #e8e6f8;
+  --accent: #dfdbe8;
   --accent-foreground: #4f46e5;
 
   /* Destructive */
@@ -89,8 +90,8 @@
   --destructive-foreground: #fafafa;
 
   /* Borders and Rings: indigo-tinted */
-  --border: #dddaf0;
-  --input: #dddaf0;
+  --border: #d4cfd8;
+  --input: #d4cfd8;
   --ring: #6366f1;
 
   /* Charts: distinct hues — no purple overlap with primary */
@@ -101,23 +102,24 @@
   --chart-5: #06b6d4;
 
   /* Sidebar: lavender panel — clearly distinct from white cards */
-  --sidebar: #ede9f8;
+  --sidebar: #e4dde7;
   --sidebar-foreground: #18181b;
   --sidebar-primary: #6366f1;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e0dbf5;
+  --sidebar-accent: #dad2df;
   --sidebar-accent-foreground: #3730a3;
-  --sidebar-border: #d6d1ee;
+  --sidebar-border: #ccc4d0;
   --sidebar-ring: #6366f1;
 }
 
 .dark {
   /* Dark Theme: Midnight Blue / Luxury Dark */
-  --background: #0b0b13;
-  --foreground: #f8f8fd;
-  --card: #12121e;
+  color-scheme: dark;
+  --background: #06070b;
+  --foreground: #eef1f9;
+  --card: #0c1018;
   --card-foreground: #f8f8fd;
-  --popover: #12121e;
+  --popover: #0c1018;
   --popover-foreground: #f8f8fd;
 
   /* Primary: Neon Indigo */
@@ -125,15 +127,15 @@
   --primary-foreground: #ffffff;
 
   /* Secondary: Deep Navy */
-  --secondary: #1d1d2f;
+  --secondary: #111725;
   --secondary-foreground: #f8f8fd;
 
   /* Muted */
-  --muted: #1d1d2f;
-  --muted-foreground: #a1a1aa;
+  --muted: #0f1622;
+  --muted-foreground: #9299a8;
 
   /* Accent: Deep Indigo */
-  --accent: #232339;
+  --accent: #141d2d;
   --accent-foreground: #c7d2fe;
 
   /* Destructive */
@@ -141,8 +143,8 @@
   --destructive-foreground: #fecaca;
 
   /* Borders and Rings: Subtle Slate */
-  --border: #24243b;
-  --input: #24243b;
+  --border: #1b2432;
+  --input: #1b2432;
   --ring: #818cf8;
 
   /* Charts */
@@ -153,23 +155,31 @@
   --chart-5: #2dd4bf;
 
   /* Sidebar: Obsidian Glass */
-  --sidebar: #0b0b13;
+  --sidebar: #05070c;
   --sidebar-foreground: #f8f8fd;
   --sidebar-primary: #818cf8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1d1d2f;
+  --sidebar-accent: #0f1622;
   --sidebar-accent-foreground: #f8f8fd;
-  --sidebar-border: #24243b;
+  --sidebar-border: #18202d;
   --sidebar-ring: #818cf8;
 }
 
 @layer base {
+  html {
+    background-color: var(--background);
+    transition: background-color 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
 
   body {
     @apply bg-background text-foreground selection:bg-foreground/10;
+    transition:
+      background-color 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 450ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
