@@ -115,7 +115,7 @@ describe("fetchRepositories", () => {
   it("throws error message from response when present", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ errors: [{ message: "Not found" }] }),
+      json: () => Promise.resolve({ success: false, data: null, error: { message: "Not found" } }),
     }) as typeof fetch
 
     await expect(fetchRepositories(REGISTRY_ID, {})).rejects.toThrow("Not found")

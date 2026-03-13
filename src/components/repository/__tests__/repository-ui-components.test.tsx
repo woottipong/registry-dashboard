@@ -136,16 +136,16 @@ describe('RepositoryLoading', () => {
   it('should render skeleton items', () => {
     const { container } = render(<RepositoryLoading count={3} />)
 
-    const skeletons = container.querySelectorAll('.animate-pulse')
-    expect(skeletons.length).toBeGreaterThan(0)
+    const skeletons = container.querySelectorAll('.border-b')
+    expect(skeletons.length).toBe(3)
   })
 
   it('should render default count when not specified', () => {
     const { container } = render(<RepositoryLoading />)
 
-    // 8 rows × 6 animate-pulse divs per row = 48
-    const skeletonElements = container.querySelectorAll('.animate-pulse')
-    expect(skeletonElements.length).toBe(48)
+    // 8 rows by default
+    const skeletonRows = container.querySelectorAll('.border-b')
+    expect(skeletonRows.length).toBe(8)
   })
 })
 

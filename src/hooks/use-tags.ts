@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
 import { encodeRepoPath } from "@/lib/utils"
+import { assertApiSuccess } from "@/lib/error-handling"
 import { queryKeys } from "@/lib/constants/query-keys"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Tag } from "@/types/registry"
@@ -25,27 +26,20 @@ export function useTags(registryId: string, repoName: string, page = 1, perPage 
         { cache: "no-store" }
       )
 
-      const data = await response.json()
+      const payload = (await response.json()) as ApiResponse<Tag[]>
 
-      if (response.ok && data.success && Array.isArray(data.data)) {
-        const tags: Tag[] = data.data
-        const meta: PaginationMeta = data.meta ?? {
-          page,
-          perPage,
-          total: tags.length,
-          totalPages: 1,
-        }
-        return { items: tags, meta }
+      if (!response.ok || !payload.success || !Array.isArray(payload.data)) {
+        throw new Error(payload.error?.message ?? "Unable to fetch tags")
       }
 
-      if (data.errors?.[0]) {
-        throw new Error(data.errors[0].message || "Unable to fetch tags")
+      const items = payload.data
+      const meta: PaginationMeta = payload.meta ?? {
+        page,
+        perPage,
+        total: items.length,
+        totalPages: 1,
       }
-      if (data.error?.message) {
-        throw new Error(data.error.message)
-      }
-
-      throw new Error("Unable to fetch tags")
+      return { items, meta }
     },
   })
 }
@@ -74,16 +68,13 @@ export function useDeleteTags() {
           `/api/v1/registries/${registryId}/manifests/${encodedRepoPath}/${encodedDigest}`,
           { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
         )
-        const payload = (await response.json()) as ApiResponse<null>
-        if (!response.ok || !payload.success) {
-          throw new Error(payload.error?.message ?? `Unable to delete ${digest}`)
-        }
+        await assertApiSuccess<null>(response)
       }
 
       return { registryId, repoName }
     },
     onMutate: async ({ registryId, repoName, digests }) => {
-      const queryKeyPrefix = ["tags", registryId, repoName] as const
+      const queryKeyPrefix = queryKeys.tags.prefix(registryId, repoName)
       await queryClient.cancelQueries({ queryKey: queryKeyPrefix })
       const previousEntries = queryClient.getQueriesData<TagsResult>({ queryKey: queryKeyPrefix })
       const digestSet = new Set(digests)
@@ -99,7 +90,7 @@ export function useDeleteTags() {
       }
     },
     onSettled: async (_data, _error, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["tags", variables.registryId, variables.repoName] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.prefix(variables.registryId, variables.repoName) })
     },
   })
 }
@@ -124,29 +115,17 @@ export function useDeleteTag() {
         { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
       )
 
-      const payload = (await response.json()) as ApiResponse<null>
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error?.message ?? "Unable to delete tag")
-      }
-
+      await assertApiSuccess<null>(response)
       return { registryId, repoName }
     },
     onMutate: async ({ registryId, repoName, digest }) => {
-      // Use prefix so cancel/update applies to ALL pages, not just page 1
-      const queryKeyPrefix = ["tags", registryId, repoName] as const
-
+      const queryKeyPrefix = queryKeys.tags.prefix(registryId, repoName)
       await queryClient.cancelQueries({ queryKey: queryKeyPrefix })
-
-      // Snapshot every matching cache entry for rollback
       const previousEntries = queryClient.getQueriesData<TagsResult>({ queryKey: queryKeyPrefix })
-
-      // Optimistically remove the deleted tag from all pages
       queryClient.setQueriesData<TagsResult>({ queryKey: queryKeyPrefix }, (old) => {
         if (!old) return old
         return { ...old, items: old.items.filter((tag) => tag.digest !== digest) }
       })
-
       return { previousEntries }
     },
     onError: (_error, _variables, context) => {
@@ -158,7 +137,7 @@ export function useDeleteTag() {
     },
     onSettled: async (_data, _error, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["tags", variables.registryId, variables.repoName],
+        queryKey: queryKeys.tags.prefix(variables.registryId, variables.repoName),
       })
     },
   })

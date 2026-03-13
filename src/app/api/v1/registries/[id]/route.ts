@@ -1,25 +1,15 @@
 import { NextResponse } from "next/server"
-import { createProvider } from "@/lib/providers"
 import {
   deleteRegistry,
   getRegistry,
   parseRegistryInput,
   updateRegistry,
 } from "@/lib/registry-store"
+import { sanitizeRegistry } from "@/lib/registry-sanitizer"
 import type { ApiResponse } from "@/types/api"
-import type { RegistryConnection } from "@/types/registry"
 
 interface RouteContext {
   params: Promise<{ id: string }>
-}
-
-function sanitize(registry: RegistryConnection) {
-  const { credentials, ...rest } = registry
-  return {
-    ...rest,
-    hasCredentials: !!(credentials?.password || credentials?.token),
-    capabilities: createProvider(registry).capabilities(),
-  }
 }
 
 export async function GET(_request: Request, context: RouteContext) {
@@ -39,9 +29,9 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json(response, { status: 404 })
   }
 
-  const response: ApiResponse<ReturnType<typeof sanitize>> = {
+  const response: ApiResponse<ReturnType<typeof sanitizeRegistry>> = {
     success: true,
-    data: sanitize(registry),
+    data: sanitizeRegistry(registry),
     error: null,
   }
 
@@ -69,9 +59,9 @@ export async function PUT(request: Request, context: RouteContext) {
       return NextResponse.json(response, { status: 404 })
     }
 
-    const response: ApiResponse<ReturnType<typeof sanitize>> = {
+    const response: ApiResponse<ReturnType<typeof sanitizeRegistry>> = {
       success: true,
-      data: sanitize(updated),
+      data: sanitizeRegistry(updated),
       error: null,
     }
 

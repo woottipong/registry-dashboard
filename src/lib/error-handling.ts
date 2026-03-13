@@ -149,7 +149,7 @@ export function handleApiError(error: unknown, context?: string): AppError {
 export async function assertApiSuccess<T>(response: Response): Promise<T> {
   const payload = (await response.json()) as ApiResponse<T>
 
-  if (!response.ok || !payload.success || payload.data === null) {
+  if (!response.ok || !payload.success) {
     throw new Error(payload.error?.message ?? "Request failed")
   }
 

@@ -70,10 +70,6 @@ function writeStore(activities: ActivityItem[]): void {
   atomicWrite(storePath, JSON.stringify(activities, null, 2))
 }
 
-export function parseActivityInput(payload: unknown): ActivityInput {
-  return activityInputSchema.parse(payload)
-}
-
 export function listActivities(options: { limit?: number; registry?: string } = {}): ActivityItem[] {
   const { limit = 50, registry } = options
   let activities = readStore()
@@ -116,37 +112,4 @@ export function createActivity(payload: ActivityInput): ActivityItem {
 
 export function clearActivities(): void {
   writeStore([])
-}
-
-export function getActivityStats(): {
-  totalActivities: number
-  activitiesByType: Record<string, number>
-  activitiesByRegistry: Record<string, number>
-  recentActivityCount: number
-} {
-  const activities = readStore()
-  const now = new Date()
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-
-  const stats = {
-    totalActivities: activities.length,
-    activitiesByType: {} as Record<string, number>,
-    activitiesByRegistry: {} as Record<string, number>,
-    recentActivityCount: 0,
-  }
-
-  activities.forEach(activity => {
-    // Count by type
-    stats.activitiesByType[activity.type] = (stats.activitiesByType[activity.type] || 0) + 1
-
-    // Count by registry
-    stats.activitiesByRegistry[activity.registry] = (stats.activitiesByRegistry[activity.registry] || 0) + 1
-
-    // Count recent activities (last 24 hours)
-    if (activity.timestamp >= oneDayAgo) {
-      stats.recentActivityCount++
-    }
-  })
-
-  return stats
 }

@@ -38,6 +38,10 @@ export const queryKeys = {
     tags: {
         byRepo: (registryId: string, repoName: string, page = 1, perPage = 50) =>
             ["tags", registryId, repoName, page, perPage] as const,
+
+        /** Prefix key — handy for `invalidateQueries` / `cancelQueries` */
+        prefix: (registryId: string, repoName: string) =>
+            ["tags", registryId, repoName] as const,
     },
 
     // ── Manifests ───────────────────────────────────────────────

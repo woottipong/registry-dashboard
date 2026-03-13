@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query
 import { RepositoriesClient } from "./repos-client"
 import { listRegistries } from "@/lib/registry-store"
 import { createProvider } from "@/lib/providers"
+import { queryKeys } from "@/lib/constants/query-keys"
 
 export const metadata = {
   title: "Repositories | Registry UI",
@@ -24,7 +25,7 @@ export default async function RepositoriesPage({
   }))
 
   await queryClient.prefetchQuery({
-    queryKey: ["registries"],
+    queryKey: queryKeys.registries.all,
     queryFn: () => registries,
   })
 

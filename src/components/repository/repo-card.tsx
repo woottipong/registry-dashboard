@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { TagsIcon } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/lib/constants/query-keys"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,7 +20,7 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
 
   const handleMouseEnter = () => {
     queryClient.prefetchQuery({
-      queryKey: ["tags", registryId, repository.fullName],
+      queryKey: queryKeys.tags.prefix(registryId, repository.fullName),
       staleTime: 30 * 1000,
       queryFn: async () => {
         const encodedRepoPath = repository.fullName

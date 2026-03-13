@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { encodeRepoPath } from "@/lib/utils"
+import { assertApiSuccess } from "@/lib/error-handling"
 import { queryKeys } from "@/lib/constants/query-keys"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
 import type { Repository } from "@/types/registry"
@@ -43,29 +44,20 @@ export async function fetchRepositories(
     { cache: "default" }
   )
 
-  if (response.ok) {
-    const data = await response.json()
+  const payload = (await response.json()) as ApiResponse<Repository[]>
 
-    // ApiResponse<Repository[]> format: { success, data: Repository[], meta?: PaginationMeta }
-    if (data.success && Array.isArray(data.data)) {
-      const items: Repository[] = data.data
-      const meta: PaginationMeta = data.meta ?? {
-        page: options.page || 1,
-        perPage: options.perPage || items.length,
-        total: items.length,
-        totalPages: 1,
-      }
-      return { items, meta }
-    }
+  if (!response.ok || !payload.success || !Array.isArray(payload.data)) {
+    throw new Error(payload.error?.message ?? "Unable to fetch repositories")
   }
 
-  // Handle errors
-  const errorData = await response.json().catch(() => ({}))
-  if (errorData.errors?.[0]) {
-    throw new Error(errorData.errors[0].message || "Unable to fetch repositories")
+  const items = payload.data
+  const meta: PaginationMeta = payload.meta ?? {
+    page: options.page || 1,
+    perPage: options.perPage || items.length,
+    total: items.length,
+    totalPages: 1,
   }
-
-  throw new Error("Unable to fetch repositories")
+  return { items, meta }
 }
 
 export function useRepositories(
@@ -86,7 +78,7 @@ export function useSearchRepositories(registryId: string, query: string) {
     queryKey: queryKeys.repositories.search(registryId, query),
     enabled: Boolean(registryId && query.trim().length > 0),
     staleTime: STALE_TIME_REPOSITORIES,
-    queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 100 }), // Increased from 25 to 100
+    queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 100 }),
   })
 }
 
@@ -102,12 +94,7 @@ export function useDeleteRepository() {
         { method: "DELETE", headers: { "X-Requested-With": "XMLHttpRequest" } },
       )
 
-      const payload = (await response.json()) as ApiResponse<null>
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error?.message ?? "Unable to delete repository")
-      }
-
+      await assertApiSuccess<null>(response)
       return { registryId, repositoryName }
     },
     onSuccess: async ({ registryId }) => {

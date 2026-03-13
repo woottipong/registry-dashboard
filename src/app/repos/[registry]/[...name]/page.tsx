@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query
 import { TagExplorerClient } from "./tag-explorer-client"
 import { listRegistries } from "@/lib/registry-store"
 import { createProvider } from "@/lib/providers"
+import { queryKeys } from "@/lib/constants/query-keys"
 
 export const metadata = {
   title: "Tag Explorer | Registry UI",
@@ -27,14 +28,14 @@ export default async function TagExplorerPage({ params }: TagExplorerPageProps) 
       capabilities: createProvider(registry).capabilities(),
     }
     await queryClient.prefetchQuery({
-      queryKey: ["registries", registryId],
+      queryKey: queryKeys.registries.byId(registryId),
       queryFn: () => registryWithCaps,
     })
 
     // 2. Prefetch tags for this repository
     const provider = createProvider(registry)
     await queryClient.prefetchQuery({
-      queryKey: ["tags", registryId, repoName, 1, 100],
+      queryKey: queryKeys.tags.byRepo(registryId, repoName, 1, 100),
       queryFn: async () => {
         try {
           const result = await provider.listTags(repoName, { perPage: 100, page: 1 })

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
+import { assertApiSuccess } from "@/lib/error-handling"
 import { queryKeys } from "@/lib/constants/query-keys"
 import type { Namespace } from "@/types/registry"
 
@@ -10,13 +11,13 @@ async function fetchNamespaces(registryId: string): Promise<Namespace[]> {
     cache: "default",
   })
 
-  const data = await response.json()
+  const data = await assertApiSuccess<Namespace[]>(response)
 
-  if (response.ok && data.success && Array.isArray(data.data)) {
-    return data.data as Namespace[]
+  if (!Array.isArray(data)) {
+    throw new Error("Unable to fetch namespaces")
   }
 
-  throw new Error(data.error?.message ?? data.errors?.[0]?.message ?? "Unable to fetch namespaces")
+  return data
 }
 
 export function useNamespaces(registryId: string) {

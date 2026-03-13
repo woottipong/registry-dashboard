@@ -107,7 +107,7 @@ describe("useNamespaces", () => {
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect((result.current.error as Error).message).toContain("Unable to fetch namespaces")
+    expect((result.current.error as Error).message).toContain("Request failed")
   })
 
   it("throws when response is ok but success is false", async () => {

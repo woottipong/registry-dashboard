@@ -1,28 +1,16 @@
 import { NextResponse } from "next/server"
-import { createProvider } from "@/lib/providers"
 import {
   createRegistry,
   listRegistries,
   parseRegistryInput,
 } from "@/lib/registry-store"
+import { sanitizeRegistry } from "@/lib/registry-sanitizer"
 import type { ApiResponse } from "@/types/api"
-import type { RegistryConnection } from "@/types/registry"
-
-// Strip credential values before sending to the client — authType and
-// hasCredentials are enough for the UI; actual secrets must stay server-side.
-function sanitize(registry: RegistryConnection) {
-  const { credentials, ...rest } = registry
-  return {
-    ...rest,
-    hasCredentials: !!(credentials?.password || credentials?.token),
-    capabilities: createProvider(registry).capabilities(),
-  }
-}
 
 export async function GET() {
-  const registries = listRegistries().map(sanitize)
+  const registries = listRegistries().map(sanitizeRegistry)
 
-  const response: ApiResponse<ReturnType<typeof sanitize>[]> = {
+  const response: ApiResponse<ReturnType<typeof sanitizeRegistry>[]> = {
     success: true,
     data: registries,
     error: null,
@@ -41,9 +29,9 @@ export async function POST(request: Request) {
     const payload = parseRegistryInput(body)
     const created = createRegistry(payload)
 
-    const response: ApiResponse<ReturnType<typeof sanitize>> = {
+    const response: ApiResponse<ReturnType<typeof sanitizeRegistry>> = {
       success: true,
-      data: sanitize(created),
+      data: sanitizeRegistry(created),
       error: null,
     }
 

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { BoxIcon, ChevronRightIcon, TagsIcon } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
+import { queryKeys } from "@/lib/constants/query-keys"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -23,7 +24,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
     if (!debouncedHoveredRepo) return
     const repo = debouncedHoveredRepo
     queryClient.prefetchQuery({
-      queryKey: ["tags", registryId, repo.fullName],
+      queryKey: queryKeys.tags.prefix(registryId, repo.fullName),
       staleTime: STALE_TIME_TAGS,
       queryFn: async () => {
         const encodedRepoPath = repo.fullName

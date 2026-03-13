@@ -154,13 +154,14 @@ describe("assertApiSuccess", () => {
     await expect(assertApiSuccess(mockResponse)).rejects.toThrow("Forbidden")
   })
 
-  it("throws when data is null", async () => {
+  it("returns null when data is null but success is true", async () => {
     const mockResponse = {
       ok: true,
       json: () => Promise.resolve({ success: true, data: null, error: null }),
     } as unknown as Response
 
-    await expect(assertApiSuccess(mockResponse)).rejects.toThrow("Request failed")
+    const result = await assertApiSuccess<null>(mockResponse)
+    expect(result).toBeNull()
   })
 
   it("throws generic message when no error message provided", async () => {
