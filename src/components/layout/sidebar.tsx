@@ -38,7 +38,7 @@ function SidebarBody() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-sidebar/50 backdrop-blur-xl">
+    <div className="flex h-full flex-col bg-sidebar">
       <div className="p-6 flex items-center gap-3">
         <img src="/logo.svg" alt="Registry" className="h-10 w-10 rounded-xl" />
         <div>

@@ -33,7 +33,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/60 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 h-16 border-b border-border bg-sidebar">
       <div className="flex h-full items-center justify-between px-6 lg:px-8">
         <div className="flex items-center gap-4">
           <Button

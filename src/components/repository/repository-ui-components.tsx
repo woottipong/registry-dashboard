@@ -28,7 +28,7 @@ export function RepositorySearch({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="h-12 pl-11 bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all disabled:opacity-50"
+        className="h-12 pl-11 bg-card border-border focus:border-primary rounded-2xl transition-all disabled:opacity-50"
         placeholder={placeholder}
         aria-label="Search repositories"
       />
@@ -60,7 +60,7 @@ export function RegistrySelector({
 }: RegistrySelectorProps) {
   return (
     <div className="flex overflow-x-auto pb-2 sm:pb-0 scrollbar-none gap-2 min-w-0">
-      <div className="flex bg-card/30 p-1 rounded-2xl border border-border/50">
+      <div className="flex bg-muted p-1 rounded-2xl border border-border">
         {registries.map((registry) => {
           const isActive = selectedRegistry === registry.id
           return (
@@ -72,7 +72,7 @@ export function RegistrySelector({
                 "px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer",
                 isActive
                   ? "bg-primary text-white shadow-lg shadow-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5",
+                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
               aria-label={`Select ${registry.name} registry`}
@@ -80,7 +80,7 @@ export function RegistrySelector({
             >
               <div className={cn(
                 "size-2 rounded-full",
-                isActive ? "bg-white animate-pulse" : "bg-muted-foreground/30"
+                isActive ? "bg-white" : "bg-muted-foreground/30"
               )} />
               {registry.name}
             </button>
@@ -89,7 +89,7 @@ export function RegistrySelector({
         <Button
           variant="ghost"
           size="sm"
-          className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border/50 ml-1 flex items-center gap-2"
+          className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border ml-1 flex items-center gap-2"
         >
           <PlusIcon className="size-3.5" />
           <span>Connect</span>
@@ -106,22 +106,22 @@ interface RepositoryLoadingProps {
 export function RepositoryLoading({ count = 8 }: RepositoryLoadingProps) {
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="rounded-lg border border-border/50 bg-card/40 backdrop-blur-xl shadow-sm">
+      <div className="rounded-lg border border-border bg-card shadow-sm">
         <div className="p-6">
           <div className="space-y-4">
             {Array.from({ length: count }).map((_, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0">
+              <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="h-8 w-8 rounded-lg bg-muted/50 animate-pulse" />
+                  <div className="h-8 w-8 rounded-lg bg-muted" />
                   <div className="space-y-1 flex-1">
-                    <div className="h-4 w-32 bg-muted/50 rounded animate-pulse" />
-                    <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+                    <div className="h-4 w-32 bg-muted rounded" />
+                    <div className="h-3 w-24 bg-muted/60 rounded" />
                   </div>
                 </div>
                 <div className="flex items-center gap-6 text-sm">
-                  <div className="h-4 w-12 bg-muted/50 rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-muted/50 rounded animate-pulse" />
-                  <div className="h-6 w-16 bg-muted/50 rounded animate-pulse" />
+                  <div className="h-4 w-12 bg-muted rounded" />
+                  <div className="h-4 w-16 bg-muted rounded" />
+                  <div className="h-6 w-16 bg-muted rounded" />
                 </div>
               </div>
             ))}
@@ -139,7 +139,7 @@ interface RepositoryErrorProps {
 
 export function RepositoryError({ onRetry, message }: RepositoryErrorProps) {
   return (
-    <div className="rounded-3xl border border-destructive/50 bg-destructive/5 p-20 text-center animate-in fade-in duration-300">
+    <div className="rounded-3xl border border-destructive bg-destructive/10 p-20 text-center animate-in fade-in duration-300">
       <div className="mx-auto w-16 h-16 rounded-3xl bg-destructive/10 flex items-center justify-center mb-6">
         <AlertTriangleIcon className="w-8 h-8 text-destructive" />
       </div>
@@ -163,14 +163,14 @@ interface RepositoryEmptyProps {
 export function RepositoryEmpty({ hasSearch, onConnectRegistry }: RepositoryEmptyProps) {
   if (hasSearch) {
     return (
-      <div className="rounded-3xl border border-dashed border-border/50 bg-card/20 p-20 text-center animate-in fade-in duration-300">
+      <div className="rounded-3xl border border-dashed border-border bg-card p-20 text-center animate-in fade-in duration-300">
         <p className="text-muted-foreground">No repositories found matching your search.</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-3xl border border-dashed border-border/50 bg-card/20 p-20 text-center backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="rounded-3xl border border-dashed border-border bg-card p-20 text-center backdrop-blur-sm animate-in fade-in duration-300">
       <div className="mx-auto w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
         <PlusIcon className="size-8 text-primary" />
       </div>

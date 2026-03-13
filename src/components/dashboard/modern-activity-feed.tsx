@@ -51,7 +51,7 @@ export function ModernActivityItem({ activity }: ModernActivityItemProps) {
   const IconComponent = ActivityIcons[activity.type as keyof typeof ActivityIcons] || ActivityIcons.default
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
+    <div className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors">
       {/* Activity icon */}
       <div className={cn(
         "p-2 rounded-lg flex-shrink-0",
@@ -103,7 +103,7 @@ export function ModernActivityFeed({
         {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
-            className="flex items-start gap-3 p-3 rounded-lg border border-border/50"
+            className="flex items-start gap-3 p-3 rounded-lg border border-border"
           >
             <Skeleton className="size-8 rounded-lg shrink-0" />
             <div className="flex-1 flex flex-col gap-2">

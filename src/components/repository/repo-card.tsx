@@ -45,13 +45,9 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
 
   return (
     <Card
-      className="group relative flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl"
+      className="group relative flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden bg-card rounded-3xl"
       onMouseEnter={handleMouseEnter}
     >
-      <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="size-2 rounded-full bg-primary animate-ping" />
-      </div>
-
       <CardHeader className="space-y-4 pb-4">
         <div className="flex flex-wrap gap-2">
           {repository.isOfficial && (

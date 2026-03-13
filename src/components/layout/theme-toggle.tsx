@@ -4,7 +4,6 @@ import { motion, useReducedMotion } from "framer-motion"
 import { useTheme } from "next-themes"
 import { useMounted } from "@/hooks/use-mounted"
 import { cn } from "@/lib/utils"
-import { useUiStore } from "@/stores/ui-store"
 
 interface ThemeToggleProps {
     className?: string
@@ -29,19 +28,24 @@ const toggleStars = [
     { left: "82%", top: "42%", size: 4, delay: 0.55 },
 ]
 
-const backdropStars = [
-    { left: "9%", top: "14%", size: 5, delay: 0.1 },
-    { left: "18%", top: "32%", size: 3, delay: 0.7 },
-    { left: "31%", top: "18%", size: 4, delay: 1.1 },
-    { left: "47%", top: "10%", size: 3, delay: 0.5 },
-    { left: "59%", top: "26%", size: 4, delay: 1.6 },
-    { left: "70%", top: "16%", size: 5, delay: 0.2 },
-    { left: "82%", top: "22%", size: 3, delay: 0.95 },
-    { left: "90%", top: "12%", size: 4, delay: 1.35 },
-]
 
-function Star({ left, top, size, delay, subtle = false }: { left: string; top: string; size: number; delay: number; subtle?: boolean }) {
+function Star({
+    left,
+    top,
+    size,
+    delay,
+    subtle = false,
+    visible = true,
+}: {
+    left: string
+    top: string
+    size: number
+    delay: number
+    subtle?: boolean
+    visible?: boolean
+}) {
     const prefersReducedMotion = useReducedMotion()
+    const shouldAnimate = !prefersReducedMotion && visible
 
     return (
         <motion.span
@@ -53,8 +57,8 @@ function Star({ left, top, size, delay, subtle = false }: { left: string; top: s
                 height: size,
                 boxShadow: subtle ? "0 0 10px rgba(255,255,255,0.35)" : "0 0 14px rgba(255,255,255,0.55)",
             }}
-            animate={prefersReducedMotion ? undefined : { opacity: [0.4, 1, 0.55], scale: [1, 1.35, 1] }}
-            transition={prefersReducedMotion ? undefined : { duration: 2.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay }}
+            animate={shouldAnimate ? { opacity: [0.4, 1, 0.55], scale: [1, 1.35, 1] } : undefined}
+            transition={shouldAnimate ? { duration: 2.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay } : undefined}
         />
     )
 }
@@ -155,7 +159,7 @@ function ThemeScene({ isDark }: { isDark: boolean }) {
                 transition={{ duration: 0.45, ease: "easeOut" }}
             >
                 {toggleStars.map((star) => (
-                    <Star key={`${star.left}-${star.top}`} {...star} />
+                    <Star key={`${star.left}-${star.top}`} {...star} visible={isDark} />
                 ))}
             </motion.div>
         </>
@@ -166,13 +170,21 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     const mounted = useMounted()
     const prefersReducedMotion = useReducedMotion()
     const { resolvedTheme, setTheme } = useTheme()
-    const setThemePreference = useUiStore((state) => state.setTheme)
-    const isDark = mounted ? resolvedTheme === "dark" : true
+    const isDark = resolvedTheme === "dark"
 
     const handleToggle = () => {
-        const nextTheme = isDark ? "light" : "dark"
-        setTheme(nextTheme)
-        setThemePreference(nextTheme)
+        setTheme(isDark ? "light" : "dark")
+    }
+
+    if (!mounted) {
+        return (
+            <div
+                className={cn(
+                    "relative inline-flex h-9 w-[4.9rem] shrink-0 rounded-full border border-white/30 bg-white/10 dark:border-white/10 dark:bg-white/[0.03]",
+                    className,
+                )}
+            />
+        )
     }
 
     return (
@@ -227,7 +239,9 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
 export function ThemeBackdrop({ className }: ThemeBackdropProps) {
     const mounted = useMounted()
     const { resolvedTheme } = useTheme()
-    const isDark = mounted ? resolvedTheme === "dark" : true
+    const isDark = resolvedTheme === "dark"
+
+    if (!mounted) return null
 
     return (
         <div aria-hidden="true" className={cn("pointer-events-none fixed inset-0 z-0 overflow-hidden", className)}>
@@ -238,10 +252,6 @@ export function ThemeBackdrop({ className }: ThemeBackdropProps) {
             >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,236,163,0.85),_transparent_28%),linear-gradient(180deg,_#cfeeff_0%,_#e8f7ff_42%,_#f6f4fb_100%)]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(227,211,164,0.42),_transparent_24%),linear-gradient(180deg,_#d8e7f0_0%,_#e7eef3_42%,_#ece8ee_100%)]" />
-                <div className="absolute inset-x-0 top-[-18%] h-[48%] bg-[radial-gradient(circle_at_center,_rgba(222,190,111,0.18),_transparent_58%)] blur-3xl" />
-                <div className="absolute left-[-8%] top-[16%] h-40 w-40 rounded-full bg-white/28 blur-3xl" />
-                <div className="absolute right-[8%] top-[22%] h-52 w-52 rounded-full bg-[#dbc59b]/18 blur-3xl" />
-                <div className="absolute bottom-[10%] left-[12%] h-24 w-56 rounded-full bg-white/18 blur-2xl" />
             </motion.div>
 
             <motion.div
@@ -250,12 +260,6 @@ export function ThemeBackdrop({ className }: ThemeBackdropProps) {
                 transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(57,79,171,0.16),_transparent_24%),linear-gradient(180deg,_#040811_0%,_#060c18_38%,_#04060b_100%)]" />
-                <div className="absolute left-[8%] top-[12%] h-56 w-56 rounded-full bg-[#152755]/22 blur-3xl" />
-                <div className="absolute right-[-4%] top-[8%] h-72 w-72 rounded-full bg-[#1a2862]/16 blur-3xl" />
-                <div className="absolute bottom-[-10%] left-[20%] h-64 w-64 rounded-full bg-[#101739]/24 blur-3xl" />
-                {backdropStars.map((star) => (
-                    <Star key={`backdrop-${star.left}-${star.top}`} {...star} subtle />
-                ))}
             </motion.div>
         </div>
     )

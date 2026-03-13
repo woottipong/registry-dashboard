@@ -16,7 +16,7 @@ interface AppShellProps {
 function SidebarWrapper({ mobileOpen, onMobileOpenChange }: { mobileOpen?: boolean; onMobileOpenChange?: (open: boolean) => void }) {
   return (
     <Suspense fallback={
-      <div className="w-60 h-full bg-sidebar/50 border-r border-border p-4 space-y-4">
+      <div className="w-60 h-full bg-sidebar border-r border-border p-4 space-y-4">
         <Skeleton className="h-8 w-32" />
         <div className="space-y-2">
           <Skeleton className="h-6 w-full" />

@@ -19,7 +19,7 @@ interface ModernChartProps {
 export function ModernChart({ data, isLoading, title = "Top Repositories by Tags" }: ModernChartProps) {
   if (isLoading) {
     return (
-      <div className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6 animate-pulse">
+      <div className="h-80 w-full bg-card rounded-2xl border border-border p-6">
         <div className="h-6 bg-muted rounded w-48 mb-6" />
         <div className="h-64 bg-muted rounded-lg" />
       </div>
@@ -28,7 +28,7 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
 
   if (data.length === 0) {
     return (
-      <div className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6">
+      <div className="h-80 w-full bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <TrendingUpIcon className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
@@ -47,7 +47,7 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
         duration: 0.3,
         ease: [0.16, 1, 0.3, 1] as const
       }}
-      className="h-80 w-full bg-gradient-to-br from-card/90 to-card/50 rounded-2xl border border-border/50 p-6"
+      className="h-80 w-full bg-card rounded-2xl border border-border p-6"
     >
       {/* Chart header */}
       <div className="flex items-center justify-between mb-6">
@@ -100,8 +100,7 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
               fontSize: '12px',
-              backdropFilter: 'blur(8px)',
-            }}
+              }}
             labelStyle={{ fontWeight: 600, color: '#111827' }}
             formatter={(value) => [`${value ?? 0} tags`, 'Count']}
           />

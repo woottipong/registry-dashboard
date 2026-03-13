@@ -64,9 +64,9 @@
   /* Light Theme: Indigo Frost — subtle lavender tint for depth */
   --background: #eeebef;
   --foreground: #121218;
-  --card: #f8f6f8;
+  --card: #ffffff;
   --card-foreground: #09090b;
-  --popover: #f8f6f8;
+  --popover: #ffffff;
   --popover-foreground: #09090b;
 
   /* Primary: Vibrant Indigo */
@@ -79,7 +79,7 @@
 
   /* Muted */
   --muted: #e5e1e8;
-  --muted-foreground: #666575;
+  --muted-foreground: #52505f;
 
   /* Accent: clear indigo tint for hover states */
   --accent: #dfdbe8;
@@ -90,8 +90,8 @@
   --destructive-foreground: #fafafa;
 
   /* Borders and Rings: indigo-tinted */
-  --border: #d4cfd8;
-  --input: #d4cfd8;
+  --border: #bfb9c9;
+  --input: #bfb9c9;
   --ring: #6366f1;
 
   /* Charts: distinct hues — no purple overlap with primary */
@@ -101,25 +101,25 @@
   --chart-4: #ec4899;
   --chart-5: #06b6d4;
 
-  /* Sidebar: lavender panel — clearly distinct from white cards */
-  --sidebar: #e4dde7;
+  /* Sidebar: clean white panel */
+  --sidebar: #f4f2f8;
   --sidebar-foreground: #18181b;
   --sidebar-primary: #6366f1;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #dad2df;
+  --sidebar-accent: #ebe7f4;
   --sidebar-accent-foreground: #3730a3;
-  --sidebar-border: #ccc4d0;
+  --sidebar-border: #ddd8e8;
   --sidebar-ring: #6366f1;
 }
 
 .dark {
   /* Dark Theme: Midnight Blue / Luxury Dark */
   color-scheme: dark;
-  --background: #06070b;
+  --background: #05060a;
   --foreground: #eef1f9;
-  --card: #0c1018;
+  --card: #0d2040;
   --card-foreground: #f8f8fd;
-  --popover: #0c1018;
+  --popover: #0d2040;
   --popover-foreground: #f8f8fd;
 
   /* Primary: Neon Indigo */
@@ -127,24 +127,24 @@
   --primary-foreground: #ffffff;
 
   /* Secondary: Deep Navy */
-  --secondary: #111725;
+  --secondary: #0e2240;
   --secondary-foreground: #f8f8fd;
 
   /* Muted */
-  --muted: #0f1622;
-  --muted-foreground: #9299a8;
+  --muted: #0e2240;
+  --muted-foreground: #9daabf;
 
   /* Accent: Deep Indigo */
-  --accent: #141d2d;
+  --accent: #112649;
   --accent-foreground: #c7d2fe;
 
   /* Destructive */
-  --destructive: #7f1d1d;
-  --destructive-foreground: #fecaca;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
-  /* Borders and Rings: Subtle Slate */
-  --border: #1b2432;
-  --input: #1b2432;
+  /* Borders and Rings: Indigo-tinted */
+  --border: #204878;
+  --input: #204878;
   --ring: #818cf8;
 
   /* Charts */
@@ -155,13 +155,13 @@
   --chart-5: #2dd4bf;
 
   /* Sidebar: Obsidian Glass */
-  --sidebar: #05070c;
+  --sidebar: #04060a;
   --sidebar-foreground: #f8f8fd;
   --sidebar-primary: #818cf8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0f1622;
+  --sidebar-accent: #0d1e38;
   --sidebar-accent-foreground: #f8f8fd;
-  --sidebar-border: #18202d;
+  --sidebar-border: #172e48;
   --sidebar-ring: #818cf8;
 }
 

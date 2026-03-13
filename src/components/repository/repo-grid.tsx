@@ -14,7 +14,7 @@ export function RepoGrid({ registryId, repositories, isLoading = false }: RepoGr
     return (
       <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="h-64 animate-pulse rounded-3xl border border-border/50 bg-card/50 shadow-sm" />
+          <div key={index} className="h-64 rounded-3xl border border-border bg-card shadow-sm" />
         ))}
       </div>
     )

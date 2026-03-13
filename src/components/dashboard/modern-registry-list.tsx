@@ -23,7 +23,7 @@ export function ModernRegistryCard({
 }: ModernRegistryCardProps) {
   if (isLoading) {
     return (
-      <div className="p-6 rounded-xl border border-border/50 bg-card">
+      <div className="p-6 rounded-xl border border-border bg-card">
         <div className="flex items-start gap-4">
           <Skeleton className="size-12 rounded-xl" />
           <div className="flex-1 flex flex-col gap-3">
@@ -48,12 +48,12 @@ export function ModernRegistryCard({
   const providerLabel = registry.provider === "dockerhub" ? "Docker Hub" : "Generic"
 
   return (
-    <div className="group relative p-6 rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/20 hover:shadow-md hover:shadow-primary/5">
+    <div className="group relative p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/20 hover:shadow-md hover:shadow-primary/5">
       <div className="flex items-start gap-4">
         {/* Registry icon with status indicator */}
         <div className="relative">
           <div className={cn(
-            "p-3 rounded-xl border border-border/50 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/20",
+            "p-3 rounded-xl border border-border transition-all duration-300 group-hover:border-primary/20",
             providerBg
           )}>
             <ProviderIcon className={cn("size-6", providerIconColor)} />

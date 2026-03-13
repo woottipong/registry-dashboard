@@ -209,7 +209,7 @@ export function TagTable({
 
   return (
     <div className="space-y-2">
-      <div className="rounded-md border border-border">
+      <div className="rounded-lg border border-border overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -240,7 +240,7 @@ export function TagTable({
               {table.getRowModel().rows.map((row) => (
                 <motion.tr
                   key={row.original.name}
-                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  className="border-b transition-colors hover:bg-muted/60 data-[state=selected]:bg-primary/10"
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
                   layout

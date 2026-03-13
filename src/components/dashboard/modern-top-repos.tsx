@@ -24,7 +24,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={`skeleton-${i}`}
-            className="flex items-center gap-3 p-3 rounded-lg border border-border/50"
+            className="flex items-center gap-3 p-3 rounded-lg border border-border"
           >
             <Skeleton className="size-6 rounded-md shrink-0" />
             <div className="flex-1 flex flex-col gap-2">
@@ -59,7 +59,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
           <Link
             key={`${repo.registryId}-${repo.name}`}
             href={`/repos/${repo.registryId}/${repo.name}`}
-            className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 hover:border-primary/20 transition-colors group"
+            className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/20 transition-colors group"
           >
             {/* Rank badge */}
             <div className={cn(
@@ -86,7 +86,7 @@ export function ModernTopRepos({ repos, isLoading }: ModernTopReposProps) {
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-primary/40 rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>

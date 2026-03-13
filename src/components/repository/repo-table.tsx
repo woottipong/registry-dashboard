@@ -44,7 +44,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   }, [debouncedHoveredRepo, registryId, queryClient])
 
   return (
-    <ul className="divide-y divide-border/40" role="list">
+    <ul className="divide-y divide-border" role="list">
       {repositories.map((repo) => (
         <li key={repo.fullName}>
         <button
