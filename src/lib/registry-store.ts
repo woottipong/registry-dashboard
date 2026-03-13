@@ -34,6 +34,25 @@ const registryInputSchema = z.object({
     .optional(),
   namespace: z.string().optional(),
   isDefault: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  if (data.authType === "basic") {
+    if (!data.credentials?.username || !data.credentials?.password) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Basic auth requires username and password",
+        path: ["credentials"],
+      })
+    }
+  }
+  if (data.authType === "bearer") {
+    if (!data.credentials?.token && !data.credentials?.password) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Bearer auth requires a token or password",
+        path: ["credentials"],
+      })
+    }
+  }
 })
 
 export type RegistryInput = z.infer<typeof registryInputSchema>

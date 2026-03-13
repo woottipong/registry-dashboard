@@ -20,13 +20,41 @@ export default async function middleware(request: NextRequest) {
         { status: 403 },
       )
     }
+
+    // Secondary CSRF defense: validate Origin header matches our host
+    const origin = request.headers.get("origin")
+    const host = request.headers.get("host")
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host
+        if (originHost !== host) {
+          return NextResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: "FORBIDDEN", message: "CSRF check failed: origin mismatch" },
+            },
+            { status: 403 },
+          )
+        }
+      } catch {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            error: { code: "FORBIDDEN", message: "CSRF check failed: invalid origin" },
+          },
+          { status: 403 },
+        )
+      }
+    }
   }
 
   // Allow access to these paths without authentication
+  // Note: /api/auth/logout is NOT public — it requires a valid session
   const publicPaths = [
     "/login",
     "/api/auth/login",
-    "/api/auth/logout",
     "/api/health",
     "/_next",
     "/favicon.ico",

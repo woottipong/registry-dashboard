@@ -42,6 +42,7 @@ export function decryptCredential(encoded: string): string {
     // Plain-text fallback / migration path — our format always has exactly two ":"
     const parts = encoded.split(SEP)
     if (parts.length !== 3) {
+        console.warn("[crypto] Detected unencrypted credential — it will be re-encrypted on next save")
         return encoded
     }
 

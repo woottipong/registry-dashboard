@@ -134,15 +134,22 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   const handleBulkDeleteConfirm = useCallback(() => {
     const snapshot = [...tagsToDelete]
+    const deletedNames = new Set(snapshot.map((t: Tag) => t.name))
     const digests = snapshot.map((t: Tag) => t.digest).filter(Boolean)
     deleteTags.mutate(
       { registryId, repoName, digests },
       {
         onSuccess: () => {
           setTagsToDelete([])
-          setRowSelection({})
+          // Only clear row selection for deleted tags, not any newly selected ones
+          setRowSelection(prev => {
+            const next: Record<string, boolean> = {}
+            for (const [key, val] of Object.entries(prev)) {
+              if (!deletedNames.has(key)) next[key] = val
+            }
+            return next
+          })
 
-          // Track bulk delete activity
           addActivity({
             type: 'delete',
             repository: repoName,

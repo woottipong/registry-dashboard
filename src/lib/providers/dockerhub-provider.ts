@@ -396,10 +396,7 @@ export class DockerHubProvider implements RegistryProvider {
     const errorMessage = error instanceof Error ? error.message : 'Unknown authentication error'
 
     console.error("[DockerHubProvider] Authentication failed:", {
-      username: this.connection.credentials?.username,
-      url: this.config.baseUrl,
       error: errorMessage,
-      timestamp: new Date().toISOString(),
     })
 
     throw new Error(

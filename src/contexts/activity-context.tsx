@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 
 export interface ActivityItem {
   id: string
@@ -76,18 +76,20 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activities])
 
+  const optimisticIdCounter = useRef(0)
+
   const addActivity = useCallback(async (activityData: Omit<ActivityItem, 'id' | 'timestamp'>) => {
-    // Optimistically add to local state first
+    // Use a monotonic counter to guarantee unique optimistic IDs
+    const optimisticId = `temp-${Date.now()}-${++optimisticIdCounter.current}`
     const optimisticActivity: ActivityItem = {
       ...activityData,
-      id: `temp-${Date.now()}`,
+      id: optimisticId,
       timestamp: new Date()
     }
 
     setActivities(prev => [optimisticActivity, ...prev.slice(0, 49)])
 
     try {
-      // Send to server
       const response = await fetch('/api/v1/activities', {
         method: 'POST',
         headers: {
@@ -97,22 +99,24 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(activityData),
       })
 
+      if (!response.ok) {
+        console.warn('Failed to save activity to server:', response.status)
+        return
+      }
+
       const result = await response.json()
 
       if (result.success) {
-        // Replace optimistic activity with server response
         setActivities(prev =>
           prev.map(activity =>
-            activity.id === optimisticActivity.id ? result.data : activity
+            activity.id === optimisticId ? result.data : activity
           )
         )
       } else {
         console.warn('Failed to save activity to server:', result.error)
-        // Keep optimistic activity if server fails
       }
     } catch (error) {
       console.warn('Failed to send activity to server:', error)
-      // Keep optimistic activity if network fails
     }
   }, [])
 

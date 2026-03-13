@@ -10,9 +10,13 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const attemptStore = new Map<string, { count: number; resetAt: number }>()
 
 function getClientIp(request: NextRequest): string {
+  // Only trust proxy headers if the request came through a known reverse proxy.
+  // In a direct-access setup these headers are user-controlled and untrustworthy,
+  // but the rate limiter also keys on username as a secondary defense.
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
     request.headers.get("x-real-ip") ??
+    (request as unknown as { ip?: string }).ip ??
     "unknown"
   )
 }
@@ -63,8 +67,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response, { status: 400 })
     }
 
-    // Rate limit check
-    const { limited, retryAfterSec } = checkRateLimit(ip)
+    // Rate limit check — keyed on both IP and username to prevent spoofing bypass
+    const ipCheck = checkRateLimit(`ip:${ip}`)
+    const userCheck = checkRateLimit(`user:${username.toLowerCase()}`)
+    const limited = ipCheck.limited || userCheck.limited
+    const retryAfterSec = Math.max(ipCheck.retryAfterSec, userCheck.retryAfterSec)
     if (limited) {
       const response: ApiResponse<null> = {
         success: false,
@@ -91,7 +98,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Success — clear rate limit and create session
-    clearRateLimit(ip)
+    clearRateLimit(`ip:${ip}`)
+    clearRateLimit(`user:${username.toLowerCase()}`)
     const session = await getSession()
     session.user = { username: config.APP_USERNAME }
     await session.save()

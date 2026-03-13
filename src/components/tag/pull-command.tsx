@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { CheckIcon, ClipboardIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -12,11 +12,19 @@ interface PullCommandProps {
 
 export function PullCommand({ commands, className }: PullCommandProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   function copy(command: string, index: number) {
     void navigator.clipboard.writeText(command).then(() => {
       setCopiedIndex(index)
-      setTimeout(() => setCopiedIndex(null), 2000)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopiedIndex(null), 2000)
     })
   }
 

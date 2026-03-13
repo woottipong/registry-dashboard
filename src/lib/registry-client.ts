@@ -140,10 +140,14 @@ export class RegistryHttpClient {
         : error instanceof Error
           ? `${error.name}: ${error.message}${error.cause instanceof Error ? ` (cause: ${error.cause.message})` : ""}`
           : String(error)
-      console.error(`Registry HTTP request failed [${isAbort ? "TIMEOUT" : "ERROR"}]:`, {
-        url: fullUrl,
-        detail,
-      })
+      if (process.env.NODE_ENV === "development") {
+        console.error(`Registry HTTP request failed [${isAbort ? "TIMEOUT" : "ERROR"}]:`, {
+          url: fullUrl,
+          detail,
+        })
+      } else {
+        console.error(`Registry HTTP request failed [${isAbort ? "TIMEOUT" : "ERROR"}]:`, detail)
+      }
       if (isAbort) {
         throw new Error(`Registry request timed out after ${options.timeoutMs}ms (${fullUrl})`)
       }
@@ -189,6 +193,44 @@ export class RegistryHttpClient {
     return null
   }
 
+  /** Hostnames that must never receive credential-bearing token requests. */
+  private static readonly BLOCKED_TOKEN_HOSTS = new Set([
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+    "169.254.169.254",    // AWS/GCP metadata
+    "metadata.google.internal",
+  ])
+
+  /** Known, trusted token endpoints that are always allowed. */
+  private static readonly TRUSTED_TOKEN_HOSTS = new Set([
+    "auth.docker.io",
+    "ghcr.io",
+    "gcr.io",
+    "oauth2.googleapis.com",
+  ])
+
+  private validateTokenUrl(tokenUrl: URL): void {
+    const hostname = tokenUrl.hostname.toLowerCase()
+
+    if (RegistryHttpClient.BLOCKED_TOKEN_HOSTS.has(hostname)) {
+      throw new Error(`Token exchange blocked: ${hostname} is not an allowed token endpoint`)
+    }
+
+    // If the realm host matches the registry host, it's always allowed.
+    const registryHost = new URL(this.connection.url).hostname.toLowerCase()
+    if (hostname === registryHost) return
+
+    // Allow known auth providers unconditionally.
+    if (RegistryHttpClient.TRUSTED_TOKEN_HOSTS.has(hostname)) return
+
+    // For unknown hosts, only allow HTTPS to prevent credential leakage.
+    if (tokenUrl.protocol !== "https:") {
+      throw new Error(`Token exchange blocked: ${hostname} must use HTTPS`)
+    }
+  }
+
   private async handleAuthenticationChallenge(response: Response): Promise<void> {
     const challengeHeader = response.headers.get("www-authenticate")
 
@@ -204,6 +246,8 @@ export class RegistryHttpClient {
     const tokenUrl = new URL(challenge.realm)
     if (challenge.service) tokenUrl.searchParams.set("service", challenge.service)
     if (challenge.scope) tokenUrl.searchParams.set("scope", challenge.scope)
+
+    this.validateTokenUrl(tokenUrl)
 
     const tokenResponse = await fetch(tokenUrl, {
       headers: this.buildTokenHeaders(),

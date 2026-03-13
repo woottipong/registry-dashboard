@@ -17,7 +17,7 @@ services:
       DATA_DIR: /app/data
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
       APP_USERNAME: ${APP_USERNAME:-admin}
-      APP_PASSWORD: ${APP_PASSWORD:-admin123}
+      APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD must be set (min 8 chars)}
     volumes:
       - ui-data:/app/data
     networks:

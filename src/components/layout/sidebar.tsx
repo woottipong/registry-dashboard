@@ -43,8 +43,8 @@ function SidebarBody() {
         <img src="/logo.svg" alt="Registry" className="h-10 w-10 rounded-xl" />
         <div>
           <h2 className="font-bold text-sm tracking-tight">Registry Dashboard</h2>
-          <div className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="flex items-center gap-1.5" role="status" aria-label="System connected">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Connected</span>
           </div>
         </div>

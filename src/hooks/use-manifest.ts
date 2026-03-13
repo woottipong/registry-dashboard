@@ -21,8 +21,7 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
     queryKey: queryKeys.manifests.byRef(registryId, repoName, ref),
     enabled: Boolean(registryId && repoName && ref),
     staleTime: STALE_TIME_MANIFEST,
-    retry: false, // Disable retries completely to prevent infinite loops
-    retryDelay: 1,
+    retry: false,
     queryFn: async (): Promise<ManifestResult> => {
       const encodedRepoPath = encodeRepoPath(repoName)
       const encodedRef = encodeURIComponent(ref)

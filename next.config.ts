@@ -11,9 +11,13 @@ function getGitVersion(): string {
   }
 }
 
+const isDev = process.env.NODE_ENV === "development"
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval needed for Next.js dev HMR
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" // unsafe-eval needed for Next.js dev HMR
+    : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",

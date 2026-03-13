@@ -47,7 +47,11 @@ export async function GET(_request: Request, context: RouteContext) {
       error: null,
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "public, max-age=600, s-maxage=600, immutable",
+      },
+    })
   } catch (error) {
     const response: ApiResponse<null> = {
       success: false,
