@@ -130,7 +130,7 @@ export function ModernActivityFeed({
 
   return (
     <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
-      {displayActivities.map((activity, index) => (
+      {displayActivities.map((activity) => (
         <ModernActivityItem
           key={`${activity.id}-${activity.timestamp}`}
           activity={activity}

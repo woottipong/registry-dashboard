@@ -10,7 +10,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon, Trash2Icon } from "lucide-react"
+import { ArrowUpDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -193,10 +193,6 @@ export function TagTable({
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: canDelete,
   })
-
-  const selectedTags = table.getSelectedRowModel().rows.map((row) => row.original)
-  const hasSelection = selectedTags.length > 0
-
   if (isLoading) {
     return (
       <div className="space-y-2">

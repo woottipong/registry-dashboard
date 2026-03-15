@@ -283,7 +283,7 @@ export class DockerHubProvider implements RegistryProvider {
     )
   }
 
-  async deleteManifest(): Promise<void> {
+  async deleteManifest(_repo: string, _digest: string): Promise<void> {
     throw new UnsupportedError("Docker Hub does not support manifest deletion via API")
   }
 

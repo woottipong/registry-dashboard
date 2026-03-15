@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createActivity, listActivities } from "@/lib/activity-store"
+import type { ActivityInput } from "@/lib/activity-store"
 import type { ApiResponse } from "@/types/api"
 import type { ActivityItem } from "@/contexts/activity-context"
 
-const activitySchema = z.object({
+const activitySchema: z.ZodType<ActivityInput> = z.object({
   type: z.enum(['push', 'pull', 'delete', 'connect', 'view', 'inspect']),
   repository: z.string(),
   registry: z.string(),
