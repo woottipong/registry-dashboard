@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
+import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
 import type { ApiResponse } from "@/types/api"
 import type { Namespace } from "@/types/registry"
@@ -36,13 +37,13 @@ export async function GET(_request: Request, context: RouteContext) {
       headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=120" },
     })
   } catch (error) {
+    logApiError("GET /api/v1/registries/:id/namespaces", error, { registryId: id })
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "NAMESPACES_FETCH_FAILED",
         message: "Unable to fetch namespaces",
-        details: error instanceof Error ? error.message : String(error),
       },
     }
     return NextResponse.json(response, { status: 502 })

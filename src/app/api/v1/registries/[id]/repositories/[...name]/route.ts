@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
+import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
 import { listQuerySchema } from "@/lib/validators/query-schemas"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
@@ -88,13 +89,16 @@ export async function GET(request: Request, context: RouteContext) {
       },
     })
   } catch (error) {
+    logApiError("GET /api/v1/registries/:id/repositories/:name", error, {
+      registryId: id,
+      repositoryName,
+    })
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "TAGS_FETCH_FAILED",
         message: `Unable to fetch tags for ${repositoryName}`,
-        details: error instanceof Error ? error.message : String(error),
       },
     }
     return NextResponse.json(response, { status: 502 })
@@ -155,13 +159,16 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
     return NextResponse.json(response)
   } catch (error) {
+    logApiError("DELETE /api/v1/registries/:id/repositories/:name", error, {
+      registryId: id,
+      repositoryName,
+    })
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "REPOSITORY_DELETE_FAILED",
         message: `Unable to delete repository ${repositoryName}`,
-        details: error instanceof Error ? error.message : error,
       },
     }
     return NextResponse.json(response, { status: 502 })

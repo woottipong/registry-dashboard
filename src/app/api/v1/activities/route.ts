@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createActivity, listActivities } from "@/lib/activity-store"
+import { logApiError } from "@/lib/error-handling"
 import type { ActivityInput } from "@/lib/activity-store"
 import type { ApiResponse } from "@/types/api"
 import type { ActivityItem } from "@/contexts/activity-context"
@@ -29,13 +30,13 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response)
   } catch (error) {
+    logApiError("GET /api/v1/activities", error)
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "FETCH_ACTIVITIES_FAILED",
         message: "Failed to fetch activities",
-        details: error instanceof Error ? error.message : error,
       },
     }
 
@@ -58,13 +59,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response, { status: 201 })
   } catch (error) {
+    logApiError("POST /api/v1/activities", error)
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: error instanceof z.ZodError ? "INVALID_PAYLOAD" : "CREATE_ACTIVITY_FAILED",
         message: "Failed to create activity",
-        details: error instanceof Error ? error.message : error,
       },
     }
 

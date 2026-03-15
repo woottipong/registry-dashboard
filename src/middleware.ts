@@ -2,6 +2,59 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
 
 const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
+const DELETE_RATE_LIMIT_MAX = 20
+const DELETE_RATE_LIMIT_WINDOW_MS = 60 * 1000
+const deleteAttemptStore = new Map<string, { count: number; resetAt: number }>()
+type DeleteRateLimitScope = "manifest-delete" | "repository-delete"
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    request.headers.get("x-real-ip") ??
+    (request as unknown as { ip?: string }).ip ??
+    "unknown"
+  )
+}
+
+function isRateLimitedDeletePath(pathname: string): boolean {
+  return /^\/api\/v1\/registries\/[^/]+\/(?:manifests|repositories)\//.test(pathname)
+}
+
+function getDeleteRateLimitScope(pathname: string): DeleteRateLimitScope | null {
+  if (/^\/api\/v1\/registries\/[^/]+\/manifests\//.test(pathname)) {
+    return "manifest-delete"
+  }
+
+  if (/^\/api\/v1\/registries\/[^/]+\/repositories\//.test(pathname)) {
+    return "repository-delete"
+  }
+
+  return null
+}
+
+function checkDeleteRateLimit(key: string): { limited: boolean; retryAfterSec: number } {
+  const now = Date.now()
+
+  for (const [entryKey, entry] of deleteAttemptStore.entries()) {
+    if (now > entry.resetAt) {
+      deleteAttemptStore.delete(entryKey)
+    }
+  }
+
+  const entry = deleteAttemptStore.get(key)
+
+  if (!entry) {
+    deleteAttemptStore.set(key, { count: 1, resetAt: now + DELETE_RATE_LIMIT_WINDOW_MS })
+    return { limited: false, retryAfterSec: 0 }
+  }
+
+  if (entry.count >= DELETE_RATE_LIMIT_MAX) {
+    return { limited: true, retryAfterSec: Math.ceil((entry.resetAt - now) / 1000) }
+  }
+
+  entry.count += 1
+  return { limited: false, retryAfterSec: 0 }
+}
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -86,6 +139,34 @@ export default async function middleware(request: NextRequest) {
     // Redirect to login page
     const loginUrl = new URL("/login", request.url)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (request.method === "DELETE" && isRateLimitedDeletePath(pathname)) {
+    const ip = getClientIp(request)
+    const scope = getDeleteRateLimitScope(pathname)
+    if (!scope) {
+      return NextResponse.next()
+    }
+
+    const rateLimitKey = `${session.user.username}:${ip}:${scope}`
+    const { limited, retryAfterSec } = checkDeleteRateLimit(rateLimitKey)
+
+    if (limited) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: {
+            code: "RATE_LIMITED",
+            message: `Too many delete requests. Try again in ${retryAfterSec} seconds.`,
+          },
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(retryAfterSec) },
+        },
+      )
+    }
   }
 
   return NextResponse.next()

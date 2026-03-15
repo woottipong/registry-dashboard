@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
 import { getRegistry } from "@/lib/registry-store"
 import { createAppError } from "@/lib/error-handling"
+import { logApiError } from "@/lib/error-handling"
 import type { ApiResponse } from "@/types/api"
 import type { ImageManifest } from "@/types/manifest"
 
@@ -56,6 +57,7 @@ export async function GET(_request: Request, context: RouteContext) {
       },
     })
   } catch (error) {
+    logApiError("GET /api/v1/registries/:id/manifests/:path", error, { registryId: id })
     return NextResponse.json(
       {
         success: false,
@@ -63,7 +65,6 @@ export async function GET(_request: Request, context: RouteContext) {
         error: {
           code: "MANIFEST_FETCH_FAILED",
           message: "Unable to fetch manifest",
-          details: error instanceof Error ? error.message : error,
         },
       } satisfies ApiResponse<null>,
       { status: 502 },
@@ -136,6 +137,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       error: null,
     } satisfies ApiResponse<null>)
   } catch (error) {
+    logApiError("DELETE /api/v1/registries/:id/manifests/:path", error, { registryId: id })
     return NextResponse.json(
       {
         success: false,
@@ -143,7 +145,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
         error: {
           code: "MANIFEST_DELETE_FAILED",
           message: "Unable to delete manifest",
-          details: error instanceof Error ? error.message : error,
         },
       } satisfies ApiResponse<null>,
       { status: 502 },

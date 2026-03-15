@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
+import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
 import type { ApiResponse } from "@/types/api"
 
@@ -42,10 +43,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error("Registry ping failed:", {
-      registryId: id,
-      error: error instanceof Error ? error.message : error,
-    })
+    logApiError("GET /api/v1/registries/:id/ping", error, { registryId: id })
 
     const response: ApiResponse<null> = {
       success: false,
@@ -53,7 +51,6 @@ export async function GET(_request: Request, context: RouteContext) {
       error: {
         code: "PING_FAILED",
         message: "Unable to reach registry",
-        details: error instanceof Error ? error.message : error,
       },
     }
 

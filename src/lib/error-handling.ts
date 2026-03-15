@@ -81,6 +81,14 @@ export function normalizeError(error: unknown): AppError {
   return createAppError('UNKNOWN_ERROR', String(error))
 }
 
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return String(error)
+}
+
 /**
  * Check if an error is an AppError
  */
@@ -131,6 +139,13 @@ export function logError(error: AppError | unknown, context?: string): void {
   } else {
     console.info(logMessage, normalizedError)
   }
+}
+
+export function logApiError(context: string, error: unknown, metadata?: Record<string, unknown>): void {
+  console.error(`[${context}]`, {
+    ...metadata,
+    error: getErrorMessage(error),
+  })
 }
 
 /**

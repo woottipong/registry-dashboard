@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
+import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
 import type { ApiResponse } from "@/types/api"
 import type { ImageConfig } from "@/types/manifest"
@@ -53,13 +54,13 @@ export async function GET(_request: Request, context: RouteContext) {
       },
     })
   } catch (error) {
+    logApiError("GET /api/v1/registries/:id/blobs/:path", error, { registryId: id })
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "BLOB_FETCH_FAILED",
         message: "Unable to fetch config blob",
-        details: error instanceof Error ? error.message : error,
       },
     }
 
