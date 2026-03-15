@@ -172,7 +172,6 @@ describe("file I/O resilience", () => {
     // Create a valid registry to seed the store
     const reg = createRegistry(INPUT)
     const storePath = join(tmpDir, "registries.json")
-    const bakPath = `${storePath}.bak`
 
     // The atomicWrite function creates a .bak before overwriting
     // Simulate corruption by writing invalid JSON to the main file

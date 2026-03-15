@@ -72,6 +72,17 @@ export default async function middleware(request: NextRequest) {
   const session = await getSession()
 
   if (!session.user) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: { code: "UNAUTHENTICATED", message: "Not authenticated" },
+        },
+        { status: 401 },
+      )
+    }
+
     // Redirect to login page
     const loginUrl = new URL("/login", request.url)
     return NextResponse.redirect(loginUrl)

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { act, renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { useRepositoriesState } from '@/hooks/use-repositories-state'
 import { useRegistries } from '@/hooks/use-registries'
 import { useRepositories, useSearchRepositories } from '@/hooks/use-repositories'

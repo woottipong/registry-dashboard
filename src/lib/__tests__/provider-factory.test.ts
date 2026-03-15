@@ -41,7 +41,7 @@ describe("createProvider()", () => {
 
   it("auto-detects DockerHub case-insensitively", () => {
     const conn = { ...BASE, url: "https://REGISTRY-1.DOCKER.IO" } as RegistryConnection
-    // @ts-expect-error
+    // @ts-expect-error - provider is removed to exercise runtime URL-based auto-detection
     delete conn.provider
     const provider = createProvider(conn)
     expect(provider).toBeInstanceOf(DockerHubProvider)
@@ -49,7 +49,7 @@ describe("createProvider()", () => {
 
   it("defaults to GenericProvider for unknown URL when no provider set", () => {
     const conn = { ...BASE, url: "https://registry.mycompany.com" } as RegistryConnection
-    // @ts-expect-error
+    // @ts-expect-error - provider is removed to exercise runtime URL-based auto-detection
     delete conn.provider
     const provider = createProvider(conn)
     expect(provider).toBeInstanceOf(GenericProvider)

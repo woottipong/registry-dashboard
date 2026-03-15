@@ -148,4 +148,18 @@ describe("session authentication", () => {
     expect(res.status).toBe(307)
     expect(res.headers.get("location")).toContain("/login")
   })
+
+  it("unauthenticated request to protected API path returns 401 JSON", async () => {
+    vi.mocked(getSession).mockResolvedValueOnce({
+      user: undefined,
+      save: vi.fn(),
+    } as never)
+
+    const req = makeRequest("http://localhost/api/v1/registries", "GET")
+    const res = await middleware(req)
+
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body.error.code).toBe("UNAUTHENTICATED")
+  })
 })

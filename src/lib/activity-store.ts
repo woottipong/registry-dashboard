@@ -1,19 +1,16 @@
 import { randomUUID } from "crypto"
 import fs from "fs"
 import path from "path"
-import { z } from "zod"
 import { config } from "@/lib/config"
 import type { ActivityItem } from "@/contexts/activity-context"
 
-const activityInputSchema = z.object({
-  type: z.enum(['push', 'pull', 'delete', 'connect', 'view', 'inspect']),
-  repository: z.string(),
-  registry: z.string(),
-  tag: z.string().optional(),
-  user: z.string().optional(),
-})
-
-export type ActivityInput = z.infer<typeof activityInputSchema>
+export interface ActivityInput {
+  type: "push" | "pull" | "delete" | "connect" | "view" | "inspect"
+  repository: string
+  registry: string
+  tag?: string
+  user?: string
+}
 
 function getStorePath(): string {
   return path.join(config.DATA_DIR, "activities.json")
