@@ -194,4 +194,33 @@ describe("session authentication", () => {
     const body = await limitedRes.json()
     expect(body.error.code).toBe("RATE_LIMITED")
   })
+
+  it("tracks manifest and repository delete limits separately", async () => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      vi.mocked(getSession).mockResolvedValueOnce({
+        user: { username: "admin" },
+        save: vi.fn(),
+      } as never)
+
+      const manifestReq = makeRequest("http://localhost/api/v1/registries/reg-1/manifests/app/web/sha256:xyz", "DELETE", {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Real-IP": "198.51.100.11",
+      })
+      const manifestRes = await middleware(manifestReq)
+      expect(manifestRes.status).not.toBe(429)
+    }
+
+    vi.mocked(getSession).mockResolvedValueOnce({
+      user: { username: "admin" },
+      save: vi.fn(),
+    } as never)
+
+    const repositoryReq = makeRequest("http://localhost/api/v1/registries/reg-1/repositories/app/web", "DELETE", {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-Real-IP": "198.51.100.11",
+    })
+    const repositoryRes = await middleware(repositoryReq)
+
+    expect(repositoryRes.status).not.toBe(429)
+  })
 })

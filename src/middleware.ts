@@ -5,6 +5,7 @@ const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
 const DELETE_RATE_LIMIT_MAX = 20
 const DELETE_RATE_LIMIT_WINDOW_MS = 60 * 1000
 const deleteAttemptStore = new Map<string, { count: number; resetAt: number }>()
+type DeleteRateLimitScope = "manifest-delete" | "repository-delete"
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -17,6 +18,18 @@ function getClientIp(request: NextRequest): string {
 
 function isRateLimitedDeletePath(pathname: string): boolean {
   return /^\/api\/v1\/registries\/[^/]+\/(?:manifests|repositories)\//.test(pathname)
+}
+
+function getDeleteRateLimitScope(pathname: string): DeleteRateLimitScope | null {
+  if (/^\/api\/v1\/registries\/[^/]+\/manifests\//.test(pathname)) {
+    return "manifest-delete"
+  }
+
+  if (/^\/api\/v1\/registries\/[^/]+\/repositories\//.test(pathname)) {
+    return "repository-delete"
+  }
+
+  return null
 }
 
 function checkDeleteRateLimit(key: string): { limited: boolean; retryAfterSec: number } {
@@ -130,7 +143,12 @@ export default async function middleware(request: NextRequest) {
 
   if (request.method === "DELETE" && isRateLimitedDeletePath(pathname)) {
     const ip = getClientIp(request)
-    const rateLimitKey = `${session.user.username}:${ip}:${pathname.startsWith("/api/v1/registries/") ? "registry-delete" : "delete"}`
+    const scope = getDeleteRateLimitScope(pathname)
+    if (!scope) {
+      return NextResponse.next()
+    }
+
+    const rateLimitKey = `${session.user.username}:${ip}:${scope}`
     const { limited, retryAfterSec } = checkDeleteRateLimit(rateLimitKey)
 
     if (limited) {

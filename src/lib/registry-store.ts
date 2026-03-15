@@ -17,6 +17,8 @@ function isBlockedRegistryHostname(hostname: string): boolean {
     normalized.endsWith(".localhost") ||
     normalized === "0.0.0.0" ||
     normalized === "::" ||
+    // Docker resolves this alias to the host machine, so treating it as internal-only
+    // prevents the dashboard from proxying requests back into the host network.
     normalized === "host.docker.internal"
   ) {
     return true
