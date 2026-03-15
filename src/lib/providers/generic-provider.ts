@@ -1,4 +1,5 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
+import { z } from "zod"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
@@ -16,6 +17,20 @@ interface CatalogResponse {
 interface TagListResponse {
   name: string
   tags: string[] | null
+}
+
+const catalogResponseSchema = z.object({
+  repositories: z.array(z.string()).nullable().optional(),
+})
+
+const tagListResponseSchema = z.object({
+  name: z.string(),
+  tags: z.array(z.string()).nullable(),
+})
+
+function getMaxCatalogPages(): number {
+  const parsed = Number.parseInt(process.env.MAX_CATALOG_PAGES ?? "100", 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 100
 }
 
 export class GenericProvider implements RegistryProvider {
@@ -86,7 +101,9 @@ export class GenericProvider implements RegistryProvider {
       await Promise.all(
         pageNames.map(async (repoName) => {
           try {
-            const tagsResponse = await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`)
+            const tagsResponse = tagListResponseSchema.parse(
+              await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`),
+            )
             const tags = tagsResponse.tags ?? []
 
             // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
@@ -119,29 +136,47 @@ export class GenericProvider implements RegistryProvider {
     const allNames: string[] = []
     // Fetch in large batches to minimise round-trips
     const batchSize = 1000
+    const maxCatalogPages = getMaxCatalogPages()
     let url: string | null = `/v2/_catalog?n=${batchSize}`
+    let pageCount = 0
 
     while (url) {
+      if (pageCount >= maxCatalogPages) {
+        console.warn(`[GenericProvider] Catalog page cap reached for ${this.connection.url}`, {
+          maxPages: maxCatalogPages,
+        })
+        break
+      }
+
       const { body, linkHeader } = await this.client.requestWithHeaders<CatalogResponse>(url)
-      allNames.push(...(body.repositories ?? []))
+      const parsedBody = catalogResponseSchema.parse(body)
+      allNames.push(...(parsedBody.repositories ?? []))
       url = parseLinkNext(linkHeader)
+      pageCount += 1
     }
 
     return allNames
   }
 
   async listTags(repo: string, options: ListOptions = {}): Promise<PaginatedResult<Tag>> {
-    const response = await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`)
+    const response = tagListResponseSchema.parse(
+      await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`),
+    )
     const tagNames = response.tags ?? []
+    const page = options.page ?? 1
+    const perPage = options.perPage ?? 50
+    const start = (page - 1) * perPage
+    const pageTagNames = tagNames.slice(start, start + perPage)
 
     const resolvedTags = await Promise.all(
-      tagNames.map((tagName) => this.resolveTag(repo, tagName)),
+      pageTagNames.map((tagName) => this.resolveTag(repo, tagName)),
     )
 
     return {
       items: resolvedTags,
-      page: options.page ?? 1,
-      perPage: options.perPage ?? (resolvedTags.length || 50),
+      page,
+      perPage,
+      total: tagNames.length,
       nextCursor: null,
     }
   }

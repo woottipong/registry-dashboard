@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createProvider } from "@/lib/providers"
+import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
 import { listQuerySchema } from "@/lib/validators/query-schemas"
 import type { ApiResponse, PaginationMeta } from "@/types/api"
@@ -74,13 +75,13 @@ export async function GET(request: Request, context: RouteContext) {
       headers: { "Cache-Control": "s-maxage=30, stale-while-revalidate=60" },
     })
   } catch (error) {
+    logApiError("GET /api/v1/registries/:id/repositories", error, { registryId: id })
     const response: ApiResponse<null> = {
       success: false,
       data: null,
       error: {
         code: "REPOSITORIES_FETCH_FAILED",
         message: "Unable to fetch repositories",
-        details: error instanceof Error ? error.message : String(error),
       },
     }
     return NextResponse.json(response, { status: 502 })

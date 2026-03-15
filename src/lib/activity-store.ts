@@ -22,11 +22,11 @@ function ensureDataDir(): void {
 
 // Atomic write: back up the current file then swap in via rename (POSIX atomic)
 function atomicWrite(filePath: string, content: string): void {
+  const tmpPath = `${filePath}.tmp`
+  fs.writeFileSync(tmpPath, content, "utf-8")
   if (fs.existsSync(filePath)) {
     fs.copyFileSync(filePath, `${filePath}.bak`)
   }
-  const tmpPath = `${filePath}.tmp`
-  fs.writeFileSync(tmpPath, content, "utf-8")
   fs.renameSync(tmpPath, filePath)
 }
 

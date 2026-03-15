@@ -162,4 +162,36 @@ describe("session authentication", () => {
     const body = await res.json()
     expect(body.error.code).toBe("UNAUTHENTICATED")
   })
+
+  it("rate limits repeated DELETE requests to protected manifest endpoints", async () => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      vi.mocked(getSession).mockResolvedValueOnce({
+        user: { username: "admin" },
+        save: vi.fn(),
+      } as never)
+
+      const req = makeRequest("http://localhost/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Real-IP": "198.51.100.10",
+      })
+      const res = await middleware(req)
+      expect(res.status).not.toBe(429)
+    }
+
+    vi.mocked(getSession).mockResolvedValueOnce({
+      user: { username: "admin" },
+      save: vi.fn(),
+    } as never)
+
+    const limitedReq = makeRequest("http://localhost/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-Real-IP": "198.51.100.10",
+    })
+    const limitedRes = await middleware(limitedReq)
+
+    expect(limitedRes.status).toBe(429)
+    expect(limitedRes.headers.get("Retry-After")).toBeTruthy()
+    const body = await limitedRes.json()
+    expect(body.error.code).toBe("RATE_LIMITED")
+  })
 })

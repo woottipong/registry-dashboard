@@ -19,6 +19,7 @@ import {
   createRegistry,
   getRegistry,
   listRegistries,
+  parseRegistryInput,
   updateRegistry,
   deleteRegistry,
 } from "@/lib/registry-store"
@@ -86,6 +87,26 @@ describe("createRegistry()", () => {
     const loaded = getRegistry(reg.id)
     expect(loaded?.credentials?.username).toBe("user")
     expect(loaded?.credentials?.password).toBe("s3cr3t")
+  })
+})
+
+describe("parseRegistryInput()", () => {
+  it("rejects loopback registry URLs", () => {
+    expect(() =>
+      parseRegistryInput({
+        ...INPUT,
+        url: "http://localhost:5000",
+      }),
+    ).toThrow(/must not target loopback/i)
+  })
+
+  it("rejects RFC1918 registry URLs", () => {
+    expect(() =>
+      parseRegistryInput({
+        ...INPUT,
+        url: "http://192.168.1.10:5000",
+      }),
+    ).toThrow(/must not target loopback/i)
   })
 })
 

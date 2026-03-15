@@ -1,4 +1,5 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
+import { z } from "zod"
 import type { ImageConfig, ImageManifest, ManifestBlobReference } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
@@ -43,6 +44,41 @@ interface DockerHubTagResponse {
 interface DockerHubAuthResponse {
   token: string
 }
+
+const dockerHubRepoResultSchema = z.object({
+  name: z.string(),
+  namespace: z.string(),
+  description: z.string().optional(),
+  is_private: z.boolean().optional(),
+  is_official: z.boolean().optional(),
+  star_count: z.number().optional(),
+  pull_count: z.number().optional(),
+  last_updated: z.string().optional(),
+})
+
+const dockerHubRepoResponseSchema = z.object({
+  count: z.number(),
+  results: z.array(dockerHubRepoResultSchema),
+  next: z.string().nullable().optional(),
+})
+
+const dockerHubTagResponseSchema = z.object({
+  count: z.number(),
+  results: z.array(
+    z.object({
+      name: z.string(),
+      digest: z.string().optional(),
+      full_size: z.number().optional(),
+      last_updated: z.string().nullable().optional(),
+      images: z.array(z.object({ architecture: z.string().optional(), os: z.string().optional() })).optional(),
+    }),
+  ),
+  next: z.string().nullable().optional(),
+})
+
+const dockerHubAuthResponseSchema = z.object({
+  token: z.string().min(1),
+})
 
 export class DockerHubProvider implements RegistryProvider {
   readonly type = "dockerhub" as const
@@ -96,9 +132,11 @@ export class DockerHubProvider implements RegistryProvider {
         ? { Authorization: `JWT ${this.hubJwtToken}` }
         : {}
 
-      const response = await this.registryClient.request<DockerHubRepoResponse>(
-        `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page_size=1`,
-        { headers },
+      const response = dockerHubRepoResponseSchema.parse(
+        await this.registryClient.request<DockerHubRepoResponse>(
+          `${this.config.baseUrl}/${this.config.apiVersion}/repositories/${namespace}/?page_size=1`,
+          { headers },
+        ),
       )
 
       return [{ name: namespace, repositoryCount: response.count }]
@@ -126,7 +164,9 @@ export class DockerHubProvider implements RegistryProvider {
 
       while (nextUrl) {
         const url: string = nextUrl
-        const response: DockerHubRepoResponse = await this.registryClient.request<DockerHubRepoResponse>(url, { headers })
+        const response = dockerHubRepoResponseSchema.parse(
+          await this.registryClient.request<DockerHubRepoResponse>(url, { headers }),
+        )
         total = response.count
         allItems.push(...response.results.map((repo) => this.mapRepositoryResponse(repo)))
         nextUrl = response.next ?? null
@@ -153,9 +193,11 @@ export class DockerHubProvider implements RegistryProvider {
         headers.Authorization = `JWT ${this.hubJwtToken}`
       }
 
-      const response = await this.registryClient.request<DockerHubRepoResponse>(
-        `${this.config.baseUrl}/${this.config.apiVersion}/search/repositories/?query=${encodeURIComponent(query)}&page_size=${this.config.defaultPageSize}`,
-        { headers },
+      const response = dockerHubRepoResponseSchema.parse(
+        await this.registryClient.request<DockerHubRepoResponse>(
+          `${this.config.baseUrl}/${this.config.apiVersion}/search/repositories/?query=${encodeURIComponent(query)}&page_size=${this.config.defaultPageSize}`,
+          { headers },
+        ),
       )
 
       return {
@@ -196,9 +238,11 @@ export class DockerHubProvider implements RegistryProvider {
       headers.Authorization = `JWT ${this.hubJwtToken}`
     }
 
-    const response = await this.registryClient.request<DockerHubTagResponse>(
-      `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
-      { headers },
+    const response = dockerHubTagResponseSchema.parse(
+      await this.registryClient.request<DockerHubTagResponse>(
+        `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
+        { headers },
+      ),
     )
 
     return {
@@ -374,18 +418,20 @@ export class DockerHubProvider implements RegistryProvider {
    * Perform the actual authentication request
    */
   private async performAuthentication(): Promise<DockerHubAuthResponse> {
-    return this.registryClient.request<DockerHubAuthResponse>(
-      `${this.config.baseUrl}/${this.config.apiVersion}/users/login/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    return dockerHubAuthResponseSchema.parse(
+      await this.registryClient.request<DockerHubAuthResponse>(
+        `${this.config.baseUrl}/${this.config.apiVersion}/users/login/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: this.connection.credentials!.username,
+            password: this.connection.credentials!.password, // PAT or password
+          }),
         },
-        body: JSON.stringify({
-          username: this.connection.credentials!.username,
-          password: this.connection.credentials!.password, // PAT or password
-        }),
-      },
+      ),
     )
   }
 

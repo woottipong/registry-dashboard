@@ -304,6 +304,13 @@ describe("DockerHubProvider authentication", () => {
 
     await expect(provider.listNamespaces()).rejects.toThrow(/Docker Hub authentication failed/)
   })
+
+  it("rejects invalid authentication payloads", async () => {
+    globalThis.fetch = mockFetch({ token: "" })
+    const provider = new DockerHubProvider(CONNECTION_WITH_CREDS)
+
+    await expect(provider.listNamespaces()).rejects.toThrow(/Docker Hub authentication failed/)
+  })
 })
 
 // ── listRepositories ──────────────────────────────────────────────────────────
@@ -353,5 +360,16 @@ describe("DockerHubProvider.listRepositories()", () => {
 
     expect(result.items).toHaveLength(2)
     expect(result.total).toBe(2)
+  })
+
+  it("rejects invalid repository payloads", async () => {
+    globalThis.fetch = mockFetch({
+      count: "bad",
+      results: [],
+      next: null,
+    })
+
+    const provider = new DockerHubProvider(CONNECTION_NO_CREDS)
+    await expect(provider.listRepositories()).rejects.toThrow(/Failed to list repositories/)
   })
 })

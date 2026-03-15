@@ -299,6 +299,38 @@ describe("GenericProvider", () => {
       expect(result.items[0].size).toBe(0)
       expect(result.items[0].architecture).toBe("unknown")
     })
+
+    it("applies page and perPage to the returned tag list", async () => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const u = String(url)
+        if (u.includes("tags/list")) {
+          return Promise.resolve({
+            ok: true, status: 200, headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ name: "nginx", tags: ["v1", "v2", "v3"] })),
+          })
+        }
+        const tagName = u.split("/manifests/")[1]
+        return Promise.resolve({
+          ok: true, status: 200,
+          headers: new Headers({ "Docker-Content-Digest": `sha256:${tagName}` }),
+          text: () => Promise.resolve(JSON.stringify({
+            schemaVersion: 2,
+            mediaType: "application/vnd.docker.distribution.manifest.v2+json",
+            config: { mediaType: "application/vnd.docker.container.image.v1+json", size: 100, digest: "sha256:cfg" },
+            layers: [{ mediaType: "application/vnd.docker.image.rootfs.diff.tar.gzip", size: 200, digest: "sha256:l1" }],
+          })),
+        })
+      }) as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      const result = await provider.listTags("nginx", { page: 2, perPage: 2 })
+
+      expect(result.total).toBe(3)
+      expect(result.page).toBe(2)
+      expect(result.perPage).toBe(2)
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0].name).toBe("v3")
+    })
   })
 
   describe("listRepositories() — Link header pagination", () => {
@@ -336,6 +368,44 @@ describe("GenericProvider", () => {
       expect(result.items.map((r) => r.fullName)).toContain("repo-a")
       expect(result.items.map((r) => r.fullName)).toContain("repo-b")
       expect(callCount).toBe(2) // exactly 2 catalog fetches
+    })
+
+    it("caps catalog pagination to avoid unbounded fetch loops", async () => {
+      const previousCap = process.env.MAX_CATALOG_PAGES
+      process.env.MAX_CATALOG_PAGES = "2"
+
+      let catalogCalls = 0
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const u = String(url)
+        if (u.includes("_catalog")) {
+          catalogCalls += 1
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ link: `</v2/_catalog?last=${catalogCalls}&n=1000>; rel="next"` }),
+            text: () => Promise.resolve(JSON.stringify({ repositories: [`repo-${catalogCalls}`] })),
+          })
+        }
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: ["latest"] })),
+        })
+      }) as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      const namespaces = await provider.listNamespaces()
+
+      expect(catalogCalls).toBe(2)
+      expect(namespaces).toHaveLength(1)
+
+      if (previousCap === undefined) {
+        delete process.env.MAX_CATALOG_PAGES
+      } else {
+        process.env.MAX_CATALOG_PAGES = previousCap
+      }
     })
   })
 

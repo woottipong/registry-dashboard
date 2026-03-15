@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto"
 import fs from "fs"
+import { isIP } from "net"
 import path from "path"
 import { z } from "zod"
 import { config } from "@/lib/config"
@@ -7,6 +8,45 @@ import { decryptCredential, encryptCredential } from "@/lib/crypto"
 import type { RegistryConnection } from "@/types/registry"
 
 const ALLOWED_PROTOCOLS = new Set(["http:", "https:"])
+
+function isBlockedRegistryHostname(hostname: string): boolean {
+  const normalized = hostname.toLowerCase()
+
+  if (
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized === "0.0.0.0" ||
+    normalized === "::" ||
+    normalized === "host.docker.internal"
+  ) {
+    return true
+  }
+
+  if (isIP(normalized) === 4) {
+    const [a, b] = normalized.split(".").map(Number)
+
+    if (
+      a === 10 ||
+      a === 127 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    ) {
+      return true
+    }
+  }
+
+  if (isIP(normalized) === 6) {
+    return (
+      normalized === "::1" ||
+      normalized.startsWith("fe80:") ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd")
+    )
+  }
+
+  return false
+}
 
 const registryInputSchema = z.object({
   name: z.string().min(1),
@@ -53,6 +93,19 @@ const registryInputSchema = z.object({
       })
     }
   }
+
+  try {
+    const hostname = new URL(data.url).hostname
+    if (isBlockedRegistryHostname(hostname)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Registry URL must not target loopback, link-local, or private network addresses",
+        path: ["url"],
+      })
+    }
+  } catch {
+    // URL format is already validated above
+  }
 })
 
 export type RegistryInput = z.infer<typeof registryInputSchema>
@@ -69,11 +122,11 @@ function ensureDataDir(): void {
 // Atomic write: back up the current file then swap in via rename (POSIX atomic)
 // ---------------------------------------------------------------------------
 function atomicWrite(filePath: string, content: string): void {
+  const tmpPath = `${filePath}.tmp`
+  fs.writeFileSync(tmpPath, content, "utf-8")
   if (fs.existsSync(filePath)) {
     fs.copyFileSync(filePath, `${filePath}.bak`)
   }
-  const tmpPath = `${filePath}.tmp`
-  fs.writeFileSync(tmpPath, content, "utf-8")
   fs.renameSync(tmpPath, filePath)
 }
 
