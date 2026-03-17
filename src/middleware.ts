@@ -7,7 +7,17 @@ const DELETE_RATE_LIMIT_WINDOW_MS = 60 * 1000
 const PUBLIC_ROUTES = new Set(["/login", "/api/auth/login", "/api/health"])
 const PUBLIC_ROUTE_PREFIXES = ["/_next"]
 const PUBLIC_METADATA_PREFIXES = ["/icon", "/apple-icon"]
-const PUBLIC_FILE_PATTERN = /\/[^/]+\.[^/]+$/
+const PUBLIC_FILE_PATHS = new Set([
+  "/favicon.ico",
+  "/logo.svg",
+  "/icon.svg",
+  "/file.svg",
+  "/globe.svg",
+  "/next.svg",
+  "/vercel.svg",
+  "/window.svg",
+  "/manifest.webmanifest",
+])
 const deleteAttemptStore = new Map<string, { count: number; resetAt: number }>()
 type DeleteRateLimitScope = "manifest-delete" | "repository-delete"
 
@@ -70,8 +80,8 @@ function isPublicAssetPath(pathname: string): boolean {
   }
 
   return (
-    PUBLIC_METADATA_PREFIXES.some(prefix => matchesPathPrefix(pathname, prefix)) ||
-    PUBLIC_FILE_PATTERN.test(pathname)
+    PUBLIC_FILE_PATHS.has(pathname) ||
+    PUBLIC_METADATA_PREFIXES.some(prefix => matchesPathPrefix(pathname, prefix))
   )
 }
 

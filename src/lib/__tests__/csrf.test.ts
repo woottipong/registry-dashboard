@@ -158,6 +158,19 @@ describe("session authentication", () => {
     expect(res.headers.get("location")).toContain("/login")
   })
 
+  it("does not treat dotted protected routes as public assets", async () => {
+    getSessionMock.mockResolvedValueOnce({
+      user: undefined,
+      save: vi.fn(),
+    } as never)
+
+    const req = makeRequest("http://localhost/repos/docker.io/library/nginx.v1", "GET")
+    const res = await middleware(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get("location")).toContain("/login")
+  })
+
   it("unauthenticated request to protected API path returns 401 JSON", async () => {
     getSessionMock.mockResolvedValueOnce({
       user: undefined,

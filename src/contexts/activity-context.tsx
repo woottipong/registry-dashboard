@@ -77,12 +77,16 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
 
   // Save activities to localStorage as backup
   useEffect(() => {
+    if (isLoginPage) {
+      return
+    }
+
     try {
       localStorage.setItem('registry-activities', JSON.stringify(activities))
     } catch (error) {
       console.warn('Failed to save activities to localStorage:', error)
     }
-  }, [activities])
+  }, [activities, isLoginPage])
 
   const optimisticIdCounter = useRef(0)
 
