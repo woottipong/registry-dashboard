@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
       args:
         GIT_SHA: ${GIT_SHA:-local}
-        APP_VERSION: ${APP_VERSION:-v1.0.2}
-    image: registry.rtt.in.th/spinsoft-transcription/registry-dashboard-ui:v1.0.2
+        APP_VERSION: ${APP_VERSION:-v1.0.3}
+    image: registry.rtt.in.th/spinsoft-transcription/registry-dashboard-ui:v1.0.3
     container_name: registry-dashboard-ui
     platform: linux/amd64
     restart: unless-stopped
