@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import {
@@ -8,6 +9,8 @@ import {
   PlusIcon,
   ServerIcon,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
@@ -38,22 +41,19 @@ function SidebarBody() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-sidebar">
-      <div className="p-6 flex items-center gap-3">
-        <img src="/logo.svg" alt="Registry" className="h-10 w-10 rounded-xl" />
-        <div>
-          <h2 className="font-bold text-sm tracking-tight">Registry Dashboard</h2>
-          <div className="flex items-center gap-1.5" role="status" aria-label="System connected">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Connected</span>
-          </div>
+    <div className="flex h-full flex-col bg-sidebar/82 backdrop-blur-xl">
+      <div className="flex items-center gap-3 p-6">
+        <Image src="/logo.svg" alt="Registry" width={40} height={40} className="rounded-xl" />
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold tracking-tight">Registry Dashboard</h2>
+          <Badge variant="secondary" className="w-fit">Connected</Badge>
         </div>
       </div>
 
-      <div className="px-4 space-y-6 pt-2 pb-4">
-        <div>
-          <p className="px-2 mb-3 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em]">General</p>
-          <nav className="space-y-1">
+      <div className="flex flex-1 flex-col gap-6 px-4 pb-4">
+        <div className="flex flex-col gap-2">
+          <p className="px-2 text-xs font-medium text-muted-foreground">Navigation</p>
+          <nav className="flex flex-col gap-1">
             {NAV_LINKS.map(({ href, label, icon: Icon, exact }) => {
               const active = isActive(href, exact)
               return (
@@ -61,37 +61,39 @@ function SidebarBody() {
                   key={href}
                   href={href}
                   className={cn(
-                    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
+                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
                     active
-                      ? "text-primary bg-primary/10 border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
+                      ? "bg-accent/85 text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent/70 hover:text-foreground",
                   )}
                 >
-                  <Icon className={cn("size-4 shrink-0 transition-transform group-hover:scale-110 relative z-10", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                  <span className="relative z-10">{label}</span>
+                  <Icon className="size-4 shrink-0" />
+                  <span>{label}</span>
                 </Link>
               )
             })}
           </nav>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between px-2 mb-3">
-            <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em]">Registries</p>
+        <Separator />
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between px-2">
+            <p className="text-xs font-medium text-muted-foreground">Registries</p>
             <Link
               href="/registries/new"
-              className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               title="Add Registry"
             >
               <PlusIcon className="size-3.5" />
             </Link>
           </div>
 
-          <div className="space-y-1 max-h-[300px] overflow-y-auto">
+          <div className="flex max-h-[300px] flex-col gap-1 overflow-y-auto">
             {isMounted && isLoading ? (
-              <div className="space-y-2 px-2">
-                <Skeleton className="h-8 w-full rounded-lg bg-muted/50" />
-                <Skeleton className="h-8 w-3/4 rounded-lg bg-muted/50" />
+              <div className="flex flex-col gap-2 px-2">
+                <Skeleton className="h-8 w-full rounded-lg" />
+                <Skeleton className="h-8 w-3/4 rounded-lg" />
               </div>
             ) : isMounted && registries && registries.length > 0 ? (
               registries.map((registry: RegistryConnection) => {
@@ -100,31 +102,31 @@ function SidebarBody() {
                 return (
                   <Link
                     key={registry.id}
-                    href={`/repos?registry=${registry.id}`}
-                    className={cn(
-                      "group flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-200 cursor-pointer",
+                  href={`/repos?registry=${registry.id}`}
+                  className={cn(
+                      "flex items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors",
                       active
-                        ? "bg-primary/5 text-primary"
-                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                        ? "bg-accent/85 text-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
                     )}
                   >
                     <div className="flex items-center gap-2.5 truncate">
                       <div className={cn(
                         "flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold shrink-0",
-                        active ? "bg-primary text-white border-primary" : "bg-sidebar border-border group-hover:border-primary/50"
+                        active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
                       )}>
                         {registry.name.substring(0, 1).toUpperCase()}
                       </div>
                       <span className="truncate font-medium">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary/40 ring-4 ring-primary/5 shrink-0" />
+                      <Badge variant="outline">Default</Badge>
                     )}
                   </Link>
                 )
               })
             ) : isMounted ? (
-              <div className="px-3 py-2 text-xs text-muted-foreground/60 italic">
+              <div className="px-3 py-2 text-xs text-muted-foreground">
                 No registries yet
               </div>
             ) : null}
@@ -132,9 +134,9 @@ function SidebarBody() {
         </div>
       </div>
 
-      <div className="mt-auto px-6 py-4 border-t border-border/50 flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground/40">Registry Dashboard</span>
-        <span className="text-[10px] text-muted-foreground/30 font-mono tabular-nums">
+      <div className="mt-auto flex items-center justify-between border-t px-6 py-4 text-xs text-muted-foreground">
+        <span>Registry Dashboard</span>
+        <span className="font-mono tabular-nums">
           {process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
         </span>
       </div>

@@ -42,13 +42,13 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-border bg-sidebar">
-      <div className="flex h-full items-center justify-between px-6 lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/70 backdrop-blur-xl">
+      <div className="flex h-16 items-center justify-between px-6 lg:px-8">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-primary/5"
+            className="size-10 lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open menu"
           >
@@ -63,7 +63,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-8 w-[1px] bg-border mx-2" />
+          <div className="mx-2 h-8 w-px bg-border" />
 
           <ThemeToggle />
 
@@ -82,7 +82,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium leading-none">Admin User</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     Logged in
@@ -91,7 +91,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-                <LogOutIcon className="mr-2 h-4 w-4" />
+                <LogOutIcon data-icon="inline-start" />
                 <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
