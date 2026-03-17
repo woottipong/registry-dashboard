@@ -54,115 +54,81 @@
 }
 
 :root {
-  /* Premium UI Radii */
   --radius: 1rem;
   --radius-card: 1.5rem;
   --radius-input: 0.75rem;
   --radius-modal: 1.5rem;
   color-scheme: light;
 
-  /* Light Theme: Indigo Frost — subtle lavender tint for depth */
-  --background: #eeebef;
-  --foreground: #121218;
+  --background: #f4f7fb;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #09090b;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #09090b;
+  --popover-foreground: #0f172a;
 
-  /* Primary: Vibrant Indigo */
-  --primary: #6366f1;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-
-  /* Secondary: Lavender wash */
-  --secondary: #e6e0ea;
-  --secondary-foreground: #3730a3;
-
-  /* Muted */
-  --muted: #e5e1e8;
-  --muted-foreground: #52505f;
-
-  /* Accent: clear indigo tint for hover states */
-  --accent: #dfdbe8;
-  --accent-foreground: #4f46e5;
-
-  /* Destructive */
+  --secondary: #e8eef8;
+  --secondary-foreground: #1e3a8a;
+  --muted: #edf2f7;
+  --muted-foreground: #64748b;
+  --accent: #dbeafe;
+  --accent-foreground: #1d4ed8;
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
-
-  /* Borders and Rings: indigo-tinted */
-  --border: #bfb9c9;
-  --input: #bfb9c9;
-  --ring: #6366f1;
-
-  /* Charts: distinct hues — no purple overlap with primary */
-  --chart-1: #6366f1;
+  --border: #d9e2ec;
+  --input: #d9e2ec;
+  --ring: #60a5fa;
+  --chart-1: #2563eb;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
-  --chart-4: #ec4899;
-  --chart-5: #06b6d4;
-
-  /* Sidebar: clean white panel */
-  --sidebar: #f4f2f8;
-  --sidebar-foreground: #18181b;
-  --sidebar-primary: #6366f1;
+  --chart-4: #f97316;
+  --chart-5: #8b5cf6;
+  --sidebar: #f8fbff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ebe7f4;
-  --sidebar-accent-foreground: #3730a3;
-  --sidebar-border: #ddd8e8;
-  --sidebar-ring: #6366f1;
+  --sidebar-accent: #e0efff;
+  --sidebar-accent-foreground: #1d4ed8;
+  --sidebar-border: #dbe4ef;
+  --sidebar-ring: #60a5fa;
 }
 
 .dark {
-  /* Dark Theme: Midnight Blue / Luxury Dark */
   color-scheme: dark;
-  --background: #05060a;
-  --foreground: #eef1f9;
-  --card: #0d2040;
+  --background: #08111f;
+  --foreground: #e5edf8;
+  --card: #0d1726;
   --card-foreground: #f8f8fd;
-  --popover: #0d2040;
+  --popover: #0d1726;
   --popover-foreground: #f8f8fd;
-
-  /* Primary: Neon Indigo */
-  --primary: #818cf8;
+  --primary: #60a5fa;
   --primary-foreground: #ffffff;
-
-  /* Secondary: Deep Navy */
-  --secondary: #0e2240;
+  --secondary: #132235;
   --secondary-foreground: #f8f8fd;
-
-  /* Muted */
-  --muted: #0e2240;
-  --muted-foreground: #9daabf;
-
-  /* Accent: Deep Indigo */
-  --accent: #112649;
-  --accent-foreground: #c7d2fe;
-
-  /* Destructive */
+  --muted: #122033;
+  --muted-foreground: #9fb0c7;
+  --accent: #162943;
+  --accent-foreground: #bfdbfe;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-
-  /* Borders and Rings: Indigo-tinted */
-  --border: #204878;
-  --input: #204878;
-  --ring: #818cf8;
-
-  /* Charts */
-  --chart-1: #818cf8;
+  --border: #1f334d;
+  --input: #1f334d;
+  --ring: #60a5fa;
+  --chart-1: #60a5fa;
   --chart-2: #34d399;
   --chart-3: #fbbf24;
-  --chart-4: #f472b6;
-  --chart-5: #2dd4bf;
-
-  /* Sidebar: Obsidian Glass */
-  --sidebar: #04060a;
+  --chart-4: #fb7185;
+  --chart-5: #a78bfa;
+  --sidebar: #09121f;
   --sidebar-foreground: #f8f8fd;
-  --sidebar-primary: #818cf8;
+  --sidebar-primary: #60a5fa;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0d1e38;
+  --sidebar-accent: #13253b;
   --sidebar-accent-foreground: #f8f8fd;
-  --sidebar-border: #172e48;
-  --sidebar-ring: #818cf8;
+  --sidebar-border: #1b2e46;
+  --sidebar-ring: #60a5fa;
 }
 
 @layer base {
@@ -180,6 +146,18 @@
     transition:
       background-color 700ms cubic-bezier(0.22, 1, 0.36, 1),
       color 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 8%, transparent), transparent 30%),
+      radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 35%, transparent), transparent 24%);
+    opacity: 1;
   }
 }
 

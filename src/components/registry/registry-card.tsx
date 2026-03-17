@@ -5,22 +5,21 @@ import { useState } from "react"
 import { CheckIcon, PencilIcon, RefreshCwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ConnectionStatus } from "@/components/registry/connection-status"
-import { usePingRegistry, useDeleteRegistry } from "@/hooks/use-registries"
+import { usePingRegistry } from "@/hooks/use-registries"
 import type { RegistryConnection } from "@/types/registry"
 
 interface RegistryCardProps {
   registry: RegistryConnection
-  onDeleted: (id: string) => void
+  onDelete: (id: string) => void
   onSetDefault: (id: string) => void
 }
 
-export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCardProps) {
+export function RegistryCard({ registry, onDelete, onSetDefault }: RegistryCardProps) {
   const [checkedAt, setCheckedAt] = useState<string | null>(null)
   const ping = usePingRegistry(registry.id)
-  const deleteRegistry = useDeleteRegistry()
 
   const status = ping.data?.status === "ok" ? "connected" : ping.isError ? "error" : "checking"
   const latencyMs = ping.data?.latencyMs ?? null
@@ -35,16 +34,6 @@ export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCard
     })
   }
 
-  const handleDelete = () => {
-    deleteRegistry.mutate(registry.id, {
-      onSuccess: () => {
-        onDeleted(registry.id)
-        toast.success("Registry removed")
-      },
-      onError: (error) => toast.error(error.message),
-    })
-  }
-
   const rateLimitPercent =
     registry.rateLimit?.limit && registry.rateLimit.remaining !== null
       ? Math.max(0, Math.min(100, (registry.rateLimit.remaining / registry.rateLimit.limit) * 100))
@@ -52,11 +41,11 @@ export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCard
 
   return (
     <Card className="gap-4">
-      <CardHeader className="space-y-2">
+      <CardHeader className="gap-2">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle>{registry.name}</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">{registry.url}</p>
+            <CardDescription className="mt-1 text-xs">{registry.url}</CardDescription>
           </div>
           {registry.isDefault ? <Badge>Default</Badge> : null}
         </div>
@@ -64,7 +53,7 @@ export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCard
         <ConnectionStatus state={status} latencyMs={latencyMs} checkedAt={checkedAt} />
       </CardHeader>
 
-      <CardContent className="space-y-3 text-xs">
+      <CardContent className="flex flex-col gap-3 text-xs">
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{registry.provider}</Badge>
           {registry.capabilities?.canDelete ? <Badge variant="outline">Can Delete</Badge> : null}
@@ -73,7 +62,7 @@ export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCard
         </div>
 
         {typeof rateLimitPercent === "number" ? (
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <p className="text-muted-foreground">Rate limit usage</p>
             <div className="h-2 rounded-full bg-secondary">
               <div className="h-2 rounded-full bg-primary" style={{ width: `${rateLimitPercent}%` }} />
@@ -84,21 +73,21 @@ export function RegistryCard({ registry, onDeleted, onSetDefault }: RegistryCard
 
       <CardFooter className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={runPing}>
-          <RefreshCwIcon className="size-4" />
+          <RefreshCwIcon data-icon="inline-start" />
           Test
         </Button>
         <Button variant="outline" size="sm" asChild>
           <Link href={`/registries/${registry.id}/edit`}>
-            <PencilIcon className="size-4" />
+            <PencilIcon data-icon="inline-start" />
             Edit
           </Link>
         </Button>
         <Button variant="outline" size="sm" onClick={() => onSetDefault(registry.id)}>
-          <CheckIcon className="size-4" />
+          <CheckIcon data-icon="inline-start" />
           Default
         </Button>
-        <Button variant="destructive" size="sm" onClick={handleDelete}>
-          <Trash2Icon className="size-4" />
+        <Button variant="destructive" size="sm" onClick={() => onDelete(registry.id)}>
+          <Trash2Icon data-icon="inline-start" />
           Delete
         </Button>
       </CardFooter>

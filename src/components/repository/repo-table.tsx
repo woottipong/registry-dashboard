@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { BoxIcon, ChevronRightIcon, TagsIcon } from "lucide-react"
+import { BoxIcon, TagsIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useDebounce } from "@/hooks/use-debounce"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
 import { queryKeys } from "@/lib/constants/query-keys"
@@ -45,44 +54,49 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   }, [debouncedHoveredRepo, registryId, queryClient])
 
   return (
-    <ul className="divide-y divide-border" role="list">
-      {repositories.map((repo) => (
-        <li key={repo.fullName}>
-        <button
-          type="button"
-          className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors text-left group"
-          onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
-          onMouseEnter={() => setHoveredRepo(repo)}
-          onMouseLeave={() => setHoveredRepo(null)}
-        >
-          {/* Icon */}
-          <div className="flex-shrink-0 size-8 rounded-lg bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-            <BoxIcon className="size-4 text-primary/70" />
-          </div>
-
-          {/* Name */}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-              {repo.name}
-            </p>
-            {repo.fullName !== repo.name && (
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{repo.fullName}</p>
-            )}
-          </div>
-
-          {/* Tag count badge */}
-          {(repo.tagCount ?? 0) > 0 && (
-            <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-              <TagsIcon className="size-3" />
-              <span>{repo.tagCount} {repo.tagCount === 1 ? "tag" : "tags"}</span>
-            </div>
-          )}
-
-          {/* Arrow */}
-          <ChevronRightIcon className="flex-shrink-0 size-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-        </button>
-        </li>
-      ))}
-    </ul>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Repository</TableHead>
+          <TableHead className="hidden md:table-cell">Full name</TableHead>
+          <TableHead className="text-right">Tags</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {repositories.map((repo) => (
+          <TableRow
+            key={repo.fullName}
+            className="cursor-pointer"
+            onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
+            onMouseEnter={() => setHoveredRepo(repo)}
+            onMouseLeave={() => setHoveredRepo(null)}
+          >
+            <TableCell>
+              <div className="flex items-center gap-3">
+                <div className="flex size-8 items-center justify-center rounded-md bg-muted">
+                  <BoxIcon className="size-4 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block truncate font-medium">{repo.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground md:hidden">
+                    {repo.fullName}
+                  </span>
+                </div>
+              </div>
+            </TableCell>
+            <TableCell className="hidden text-muted-foreground md:table-cell">{repo.fullName}</TableCell>
+            <TableCell className="text-right">
+              <Badge variant="outline" className="justify-center whitespace-nowrap">
+                <TagsIcon />
+                <span className="hidden sm:inline">
+                  {(repo.tagCount ?? 0) === 1 ? "1 tag" : `${repo.tagCount ?? 0} tags`}
+                </span>
+                <span className="sm:hidden">{repo.tagCount ?? 0}</span>
+              </Badge>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }

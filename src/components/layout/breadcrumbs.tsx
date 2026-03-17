@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { ChevronRightIcon, HomeIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { useRegistries } from "@/hooks/use-registries"
 import { useMounted } from "@/hooks/use-mounted"
 
@@ -140,7 +141,7 @@ export function Breadcrumbs() {
     <nav aria-label="Breadcrumb" className="hidden items-center gap-1 text-sm md:flex">
       <Link
         href="/"
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
       >
         <HomeIcon className="size-4" />
         <span>Home</span>
@@ -150,13 +151,11 @@ export function Breadcrumbs() {
         <div key={`${item.href}-${i}`} className="inline-flex items-center gap-1">
           <ChevronRightIcon className="size-4 text-muted-foreground" />
           {item.isLast ? (
-            <span className="rounded-md px-2 py-1 font-medium text-foreground truncate max-w-[200px]">
-              {item.label}
-            </span>
+            <Badge variant="outline" className="max-w-[220px] truncate">{item.label}</Badge>
           ) : (
             <Link
               href={item.href}
-              className="rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer truncate max-w-[160px]"
+              className="max-w-[160px] truncate rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {item.label}
             </Link>
