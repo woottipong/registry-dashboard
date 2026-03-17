@@ -4,6 +4,10 @@ import { getSession } from "@/lib/session"
 const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
 const DELETE_RATE_LIMIT_MAX = 20
 const DELETE_RATE_LIMIT_WINDOW_MS = 60 * 1000
+const PUBLIC_ROUTES = new Set(["/login", "/api/auth/login", "/api/health"])
+const PUBLIC_ROUTE_PREFIXES = ["/_next"]
+const PUBLIC_METADATA_PREFIXES = ["/icon", "/apple-icon"]
+const PUBLIC_FILE_PATTERN = /\/[^/]+\.[^/]+$/
 const deleteAttemptStore = new Map<string, { count: number; resetAt: number }>()
 type DeleteRateLimitScope = "manifest-delete" | "repository-delete"
 
@@ -56,6 +60,29 @@ function checkDeleteRateLimit(key: string): { limited: boolean; retryAfterSec: n
   return { limited: false, retryAfterSec: 0 }
 }
 
+function matchesPathPrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
+function isPublicAssetPath(pathname: string): boolean {
+  if (pathname.startsWith("/api/")) {
+    return false
+  }
+
+  return (
+    PUBLIC_METADATA_PREFIXES.some(prefix => matchesPathPrefix(pathname, prefix)) ||
+    PUBLIC_FILE_PATTERN.test(pathname)
+  )
+}
+
+function isPublicPath(pathname: string): boolean {
+  return (
+    PUBLIC_ROUTES.has(pathname) ||
+    PUBLIC_ROUTE_PREFIXES.some(prefix => matchesPathPrefix(pathname, prefix)) ||
+    isPublicAssetPath(pathname)
+  )
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -103,21 +130,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // Allow access to these paths without authentication
-  // Note: /api/auth/logout is NOT public — it requires a valid session
-  const publicPaths = [
-    "/login",
-    "/api/auth/login",
-    "/api/health",
-    "/_next",
-    "/favicon.ico",
-    "/icon.svg",
-  ]
-  const isPublicPath = publicPaths.some(path =>
-    pathname === path || pathname.startsWith(path + "/")
-  )
-
-  if (isPublicPath) {
+  if (isPublicPath(pathname)) {
     return NextResponse.next()
   }
 
@@ -178,8 +191,7 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
      */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image).*)",
   ],
 }

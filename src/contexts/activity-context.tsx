@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { usePathname } from "next/navigation"
 
 export interface ActivityItem {
   id: string
@@ -26,9 +27,16 @@ const ActivityContext = createContext<ActivityContextType | undefined>(undefined
 export function ActivityProvider({ children }: { children: React.ReactNode }) {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const pathname = usePathname()
+  const isLoginPage = pathname === "/login"
 
   // Fetch activities from server on mount
   useEffect(() => {
+    if (isLoginPage) {
+      setIsLoading(false)
+      return
+    }
+
     const fetchActivities = async () => {
       try {
         const response = await fetch('/api/v1/activities?limit=50')
@@ -65,7 +73,7 @@ export function ActivityProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchActivities()
-  }, [])
+  }, [isLoginPage])
 
   // Save activities to localStorage as backup
   useEffect(() => {

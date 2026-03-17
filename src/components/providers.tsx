@@ -2,6 +2,7 @@
 
 import { QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
 import { useState } from "react"
 import { makeQueryClient } from "@/lib/query-client"
@@ -17,6 +18,8 @@ export function Providers({ children }: ProvidersProps) {
   // This avoids sharing state between requests in SSR
   const [queryClient] = useState(() => makeQueryClient())
   const isDevelopment = process.env.NODE_ENV === "development"
+  const pathname = usePathname()
+  const isLoginPage = pathname === "/login"
 
   return (
     <ThemeProvider
@@ -26,7 +29,7 @@ export function Providers({ children }: ProvidersProps) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
-        <CommandPalette />
+        {isLoginPage ? null : <CommandPalette />}
         <Toaster richColors closeButton />
         {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       </QueryClientProvider>

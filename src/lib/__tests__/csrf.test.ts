@@ -17,7 +17,6 @@ vi.mock("@/lib/session", () => ({
 }))
 
 import middleware from "@/middleware"
-// Static import picks up the mock — avoids loading real session/config via dynamic import
 import { getSession } from "@/lib/session"
 
 function makeRequest(
@@ -26,6 +25,10 @@ function makeRequest(
   headers: Record<string, string> = {},
 ): NextRequest {
   return new NextRequest(url, { method, headers })
+}
+
+const getSessionMock = getSession as unknown as {
+  mockResolvedValueOnce: (value: unknown) => void
 }
 
 describe("CSRF protection", () => {
@@ -112,19 +115,25 @@ describe("session authentication", () => {
     const publicPaths = [
       "http://localhost/login",
       "http://localhost/api/auth/login",
-      "http://localhost/api/auth/logout",
       "http://localhost/api/health",
+      "http://localhost/favicon.ico",
+      "http://localhost/icon",
+      "http://localhost/icon.svg",
+      "http://localhost/logo.svg",
+      "http://localhost/apple-icon",
+      "http://localhost/manifest.webmanifest",
     ]
 
     for (const url of publicPaths) {
       const req = makeRequest(url, "GET")
       const res = await middleware(req)
       expect(res.status).not.toBe(403)
+      expect(res.status).not.toBe(401)
     }
   })
 
   it("authenticated session allows access to protected paths", async () => {
-    vi.mocked(getSession).mockResolvedValueOnce({
+    getSessionMock.mockResolvedValueOnce({
       user: { username: "admin" },
       save: vi.fn(),
     } as never)
@@ -137,7 +146,7 @@ describe("session authentication", () => {
   })
 
   it("unauthenticated request to protected path redirects to /login", async () => {
-    vi.mocked(getSession).mockResolvedValueOnce({
+    getSessionMock.mockResolvedValueOnce({
       user: undefined,
       save: vi.fn(),
     } as never)
@@ -150,7 +159,7 @@ describe("session authentication", () => {
   })
 
   it("unauthenticated request to protected API path returns 401 JSON", async () => {
-    vi.mocked(getSession).mockResolvedValueOnce({
+    getSessionMock.mockResolvedValueOnce({
       user: undefined,
       save: vi.fn(),
     } as never)
@@ -165,7 +174,7 @@ describe("session authentication", () => {
 
   it("rate limits repeated DELETE requests to protected manifest endpoints", async () => {
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      vi.mocked(getSession).mockResolvedValueOnce({
+      getSessionMock.mockResolvedValueOnce({
         user: { username: "admin" },
         save: vi.fn(),
       } as never)
@@ -178,7 +187,7 @@ describe("session authentication", () => {
       expect(res.status).not.toBe(429)
     }
 
-    vi.mocked(getSession).mockResolvedValueOnce({
+    getSessionMock.mockResolvedValueOnce({
       user: { username: "admin" },
       save: vi.fn(),
     } as never)
@@ -197,7 +206,7 @@ describe("session authentication", () => {
 
   it("tracks manifest and repository delete limits separately", async () => {
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      vi.mocked(getSession).mockResolvedValueOnce({
+      getSessionMock.mockResolvedValueOnce({
         user: { username: "admin" },
         save: vi.fn(),
       } as never)
@@ -210,7 +219,7 @@ describe("session authentication", () => {
       expect(manifestRes.status).not.toBe(429)
     }
 
-    vi.mocked(getSession).mockResolvedValueOnce({
+    getSessionMock.mockResolvedValueOnce({
       user: { username: "admin" },
       save: vi.fn(),
     } as never)

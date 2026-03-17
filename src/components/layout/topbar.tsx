@@ -1,11 +1,12 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { MenuIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { logout } from "@/lib/logout"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,14 +22,22 @@ interface TopbarProps {
 
 export function Topbar({ onOpenSidebar }: TopbarProps) {
   const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
+    if (isLoggingOut) {
+      return
+    }
+
+    setIsLoggingOut(true)
+
     try {
-      await fetch("/api/auth/logout", { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest" } })
-      router.push("/login")
-      router.refresh()
-    } catch (error) {
-      console.error("Logout failed:", error)
+      await logout({
+        onLoggedOut: () => window.location.replace("/login"),
+        onFailedRefresh: () => router.refresh(),
+      })
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -81,9 +90,9 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
                 <LogOutIcon className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

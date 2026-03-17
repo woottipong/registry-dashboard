@@ -7,7 +7,7 @@ services:
     container_name: registry-dashboard-registry-dev
     restart: unless-stopped
     ports:
-      - "${REGISTRY_PORT:-5001}:5000"
+      - "${REGISTRY_PORT:-9001}:5000"
     environment:
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
       REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
@@ -29,7 +29,7 @@ services:
     command: sh -c "bun install && bun run dev"
     restart: unless-stopped
     ports:
-      - "${UI_PORT:-3000}:3000"
+      - "${UI_PORT:-9002}:3000"
     environment:
       NODE_ENV: development
       DATA_DIR: /app/data
