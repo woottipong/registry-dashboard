@@ -1,6 +1,6 @@
 # Registry Dashboard
 
-A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries. Supports Docker Hub, GHCR, Harbor, ECR, and vanilla Docker Registry V2.
+A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries. Currently implements Docker Hub and generic Docker Registry V2 flows, with additional providers planned.
 
 ## ✨ Features
 
@@ -11,6 +11,7 @@ A modern, self-hosted web dashboard for browsing and managing Docker container i
 - **📱 Mobile Responsive**: Optimized for desktop and mobile devices
 - **⚡ Fast & Lightweight**: Built with Next.js 16 and optimized for performance
 - **🔒 Secure**: Encrypted credential storage and secure API design
+- **🛡️ Hardened BFF**: Registry access stays behind server-side routes with session auth, CSRF checks, rate limiting, and runtime response validation
 
 ## Tech Stack
 
@@ -43,7 +44,6 @@ bun run build        # Production build
 bun run start        # Start production server
 bun run lint         # ESLint
 bun run lint:fix     # Auto-fix lint issues
-bun run format       # Prettier
 bun run typecheck    # tsc --noEmit
 bun test             # Unit tests (Vitest)
 bun run test:watch   # Unit tests in watch mode
@@ -64,10 +64,9 @@ bun run test:coverage
 # E2E tests
 bun run test:e2e
 
-# Linting & formatting
+# Linting
 bun run lint
 bun run lint:fix
-bun run format
 ```
 
 ### Contributing
@@ -76,7 +75,7 @@ bun run format
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make your changes and ensure tests pass
 4. Run linting: `bun run lint:fix`
-5. Format code: `bun run format`
+5. Run type checks: `bun run typecheck`
 6. Commit your changes: `git commit -m 'Add some feature'`
 7. Push to the branch: `git push origin feature/your-feature`
 8. Submit a pull request
@@ -85,7 +84,7 @@ bun run format
 
 - **API Design**: BFF (Backend for Frontend) pattern - browser never calls registry APIs directly
 - **State Management**: Server state with TanStack Query, client state with Zustand
-- **Security**: Credentials encrypted at rest, secure API routes with validation
+- **Security**: Credentials encrypted at rest, secure API routes with validation, internal-target registry URL blocking, and generic client-facing errors
 - **Performance**: Optimized with React Server Components, streaming, and caching
 
 ### Development (hot-reload, no build step)
@@ -165,15 +164,23 @@ Copy `.env.example` to `.env.local` (dev) or `.env` (Docker) and configure:
 | `DEFAULT_REGISTRY_NAME` | Display name for default registry | No |
 | `DEFAULT_REGISTRY_AUTH_TYPE` | `none` \| `basic` \| `bearer` | No |
 
+## Security Notes
+
+- Registry connections are validated before being saved and reject loopback, link-local, and private-network targets by default.
+- Registry credentials are stored encrypted at rest in `DATA_DIR`.
+- All registry traffic flows through Next.js API routes rather than the browser.
+- Destructive operations are protected by session auth, CSRF checks, and delete rate limiting.
+- External provider payloads are runtime-validated before being trusted by the app.
+
 ## Supported Registries
 
 | Registry | Browse | Search | Delete | Rate Limit | Status |
 |---|---|---|---|---|---|
 | Docker Registry V2 | ✅ | — | ✅ | — | **Implemented** |
 | Docker Hub | ✅ | ✅ | — | ✅ tracked | **Implemented** <br/>*Personal Access Tokens supported* |
-| GHCR | planned | — | planned | — | *Coming Soon* |
-| ECR | planned | — | planned | — | *Coming Soon* |
-| Harbor | planned | — | planned | — | *Coming Soon* |
+| GHCR | planned | — | planned | — | *Planned* |
+| ECR | planned | — | planned | — | *Planned* |
+| Harbor | planned | — | planned | — | *Planned* |
 
 ## Project Structure
 
@@ -187,3 +194,8 @@ src/
 ├── stores/           # Zustand stores (persisted)
 └── types/            # TypeScript type definitions
 ```
+
+## Repo Guidance
+
+- [CLAUDE.md](/Users/iwoody/Workspace/labs/registry_ui/CLAUDE.md): project architecture, route shapes, and implementation conventions
+- [AGENTS.md](/Users/iwoody/Workspace/labs/registry_ui/AGENTS.md): agent workflow for issues, branches, reviews, verification, and security guardrails
