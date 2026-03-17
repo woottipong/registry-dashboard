@@ -42,7 +42,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           </p>
         </div>
 
-        <Button onClick={handleAddRegistry}>
+        <Button onClick={handleAddRegistry} className="w-full sm:w-auto">
           <PlusIcon data-icon="inline-start" />
           Add Registry
         </Button>
@@ -63,7 +63,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             <CardDescription>Default registry</CardDescription>
             <CardTitle className="flex items-center gap-2 text-xl">
               <StarIcon className="size-5 text-muted-foreground" />
-              {defaultRegistry?.name ?? "Not set"}
+              <span className="truncate">{defaultRegistry?.name ?? "Not set"}</span>
             </CardTitle>
           </CardHeader>
         </Card>

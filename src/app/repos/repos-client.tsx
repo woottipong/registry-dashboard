@@ -142,7 +142,7 @@ export function RepositoriesClient({
     <section className="mx-auto flex max-w-6xl flex-col gap-6">
       <div className="flex flex-col gap-2">
         {selectedNamespace !== null ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button variant="ghost" size="sm" onClick={handleBackToNamespaces}>
               <ChevronLeftIcon data-icon="inline-start" />
               Namespaces
@@ -211,8 +211,9 @@ export function RepositoriesClient({
                 variant={selectedRegistry === registry.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleRegistryChange(registry.id)}
+                className="max-w-full"
               >
-                {registry.name}
+                <span className="truncate">{registry.name}</span>
               </Button>
             ))}
             <Button variant="outline" size="sm" asChild>
@@ -284,18 +285,18 @@ function NamespaceGrid({
               key={namespace.name}
               type="button"
               onClick={() => onSelect(namespace.name)}
-              className="flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/50"
+              className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/50 sm:gap-4 sm:px-6"
             >
               <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
                 <FolderIcon className="size-4 text-muted-foreground" />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{namespace.name}/</p>
               </div>
-              <Badge variant="outline">
+              <Badge variant="outline" className="shrink-0">
                 {namespace.repositoryCount} {namespace.repositoryCount === 1 ? "repo" : "repos"}
               </Badge>
-              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+              <ChevronRightIcon className="hidden size-4 shrink-0 text-muted-foreground sm:block" />
             </button>
           ))}
         </div>

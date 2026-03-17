@@ -58,7 +58,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead>Repository</TableHead>
-          <TableHead>Full name</TableHead>
+          <TableHead className="hidden md:table-cell">Full name</TableHead>
           <TableHead className="text-right">Tags</TableHead>
         </TableRow>
       </TableHeader>
@@ -76,14 +76,22 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                 <div className="flex size-8 items-center justify-center rounded-md bg-muted">
                   <BoxIcon className="size-4 text-muted-foreground" />
                 </div>
-                <span className="font-medium">{repo.name}</span>
+                <div className="min-w-0">
+                  <span className="block truncate font-medium">{repo.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground md:hidden">
+                    {repo.fullName}
+                  </span>
+                </div>
               </div>
             </TableCell>
-            <TableCell className="text-muted-foreground">{repo.fullName}</TableCell>
+            <TableCell className="hidden text-muted-foreground md:table-cell">{repo.fullName}</TableCell>
             <TableCell className="text-right">
-              <Badge variant="outline" className="justify-center">
+              <Badge variant="outline" className="justify-center whitespace-nowrap">
                 <TagsIcon />
-                {(repo.tagCount ?? 0) === 1 ? "1 tag" : `${repo.tagCount ?? 0} tags`}
+                <span className="hidden sm:inline">
+                  {(repo.tagCount ?? 0) === 1 ? "1 tag" : `${repo.tagCount ?? 0} tags`}
+                </span>
+                <span className="sm:hidden">{repo.tagCount ?? 0}</span>
               </Badge>
             </TableCell>
           </TableRow>

@@ -106,15 +106,15 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                   key={registry.id}
                   className="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
                 >
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{registry.name}</p>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate font-medium">{registry.name}</p>
                       {registry.isDefault ? <Badge>Default</Badge> : null}
                       <Badge variant="secondary">{registry.provider}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{registry.url}</p>
+                    <p className="truncate text-sm text-muted-foreground">{registry.url}</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 md:justify-end">
                     <Badge variant="outline">{registry.repoCount} repos</Badge>
                     <Badge variant="outline">{registry.tagCount} tags</Badge>
                   </div>
@@ -152,13 +152,15 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 return (
                   <div
                     key={`${repo.registryId}-${repo.name}`}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex flex-col gap-1">
-                      <p className="font-medium">{repo.name}</p>
-                      <p className="text-sm text-muted-foreground">{registry?.name ?? repo.registryId}</p>
+                    <div className="min-w-0 flex flex-col gap-1">
+                      <p className="truncate font-medium">{repo.name}</p>
+                      <p className="truncate text-sm text-muted-foreground">{registry?.name ?? repo.registryId}</p>
                     </div>
-                    <Badge variant="outline">{repo.tagCount} tags</Badge>
+                    <Badge variant="outline" className="w-fit">
+                      {repo.tagCount} tags
+                    </Badge>
                   </div>
                 )
               })
