@@ -7,20 +7,20 @@ import {
   ArrowLeftIcon,
   CalendarIcon,
   ClipboardIcon,
-  CodeIcon,
   CpuIcon,
   HardDriveIcon,
   HistoryIcon,
   LayersIcon,
   RefreshCwIcon,
   SettingsIcon,
-  TagIcon,
   TerminalIcon
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import dynamic from "next/dynamic"
 import { ManifestSkeleton } from "@/components/skeletons"
@@ -121,7 +121,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
+      <div className="mx-auto max-w-6xl space-y-8">
         <div className="animate-pulse">
           <div className="h-32 bg-muted/50 rounded-2xl mb-6"></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -137,167 +137,139 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   if (isError || !data) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="p-6 rounded-full bg-destructive/10 mb-6">
-          <AlertTriangleIcon className="size-12 text-destructive" />
-        </div>
-        <h3 className="text-xl font-semibold mb-2">Failed to Load Image</h3>
-        <p className="text-muted-foreground text-center max-w-md mb-6">
-          {error?.message ?? "Unable to fetch image manifest. Please try again."}
-        </p>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 size-4" />
-            Retry
-          </Button>
-          <Button variant="ghost" onClick={handleBack}>
-            Go Back
-          </Button>
-        </div>
-      </div>
+      <AppEmptyState
+        icon={<AlertTriangleIcon className="size-5" />}
+        title="Failed to load image"
+        description={error?.message ?? "Unable to fetch image manifest."}
+        action={
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              <RefreshCwIcon data-icon="inline-start" />
+              Retry
+            </Button>
+            <Button variant="ghost" onClick={handleBack}>Back</Button>
+          </div>
+        }
+        className="rounded-2xl bg-background/70"
+      />
     )
   }
 
   const { manifest, config } = data
 
   return (
-    <section className="space-y-6">
-      {/* Compact Hero Section */}
-      <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-primary/3 to-primary/10 border border-primary/20 p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <TagIcon className="size-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold">{repoName}</h1>
-                <p className="text-sm text-muted-foreground">Image Inspection</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="default" className="px-2 py-0.5 text-xs">
-                <TagIcon className="mr-1 size-3" />
-                {tag}
-              </Badge>
-              {registryName && (
-                <Badge variant="outline" className="text-xs">{registryName}</Badge>
-              )}
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CodeIcon className="size-3" />
-                <span className="font-mono">{truncatedDigest}</span>
-              </div>
-            </div>
+    <section className="mx-auto max-w-6xl space-y-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>{tag}</Badge>
+          {registryName ? <Badge variant="outline">{registryName}</Badge> : null}
+          <Badge variant="outline" className="font-mono">{truncatedDigest}</Badge>
+        </div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
+            <p className="text-sm text-muted-foreground">Image inspection.</p>
           </div>
-
-          <Button variant="outline" size="sm" onClick={handleBack} className="shrink-0">
-            <ArrowLeftIcon className="mr-1 size-3" />
+          <Button variant="outline" size="sm" onClick={handleBack} className="w-fit">
+            <ArrowLeftIcon data-icon="inline-start" />
             Back
           </Button>
         </div>
       </div>
 
-      {/* Compact Metrics Dashboard */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard
-          icon={CpuIcon}
-          label="PLATFORM"
-          value={platform}
-          iconColor="text-blue-500"
-        />
-        <MetricCard
-          icon={HardDriveIcon}
-          label="SIZE"
-          value={formatBytes(manifest.totalSize)}
-          iconColor="text-green-500"
-        />
-        <MetricCard
-          icon={LayersIcon}
-          label="LAYERS"
-          value={manifest.layers.length.toString()}
-          iconColor="text-purple-500"
-        />
-        <MetricCard
-          icon={CalendarIcon}
-          label="CREATED"
-          value={config?.created ? formatDate(config.created) : '—'}
-          iconColor="text-orange-500"
-        />
-      </div>
-
-      {/* Compact Pull Command */}
-      <div className="bg-muted/30 rounded-lg border p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <TerminalIcon className="size-3.5 text-muted-foreground" />
-            <span className="text-sm font-medium">Pull Command</span>
+      <Card className="overflow-hidden border-border/70">
+        <CardHeader className="gap-3 border-b pb-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <CardTitle>Image Summary</CardTitle>
+              <CardDescription>Manifest details and pull command.</CardDescription>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <MetricCard
+                icon={CpuIcon}
+                label="PLATFORM"
+                value={platform}
+                iconColor="text-blue-500"
+              />
+              <MetricCard
+                icon={HardDriveIcon}
+                label="SIZE"
+                value={formatBytes(manifest.totalSize)}
+                iconColor="text-green-500"
+              />
+              <MetricCard
+                icon={LayersIcon}
+                label="LAYERS"
+                value={manifest.layers.length.toString()}
+                iconColor="text-purple-500"
+              />
+              <MetricCard
+                icon={CalendarIcon}
+                label="CREATED"
+                value={config?.created ? formatDate(config.created) : '—'}
+                iconColor="text-orange-500"
+              />
+            </div>
           </div>
-          <Button size="sm" onClick={copyPullCommand} className="h-7 px-2">
-            <ClipboardIcon className="size-3" />
-          </Button>
-        </div>
-        <div className="bg-background rounded p-3 font-mono text-sm border overflow-x-auto">
-          {pullCommand}
-        </div>
-      </div>
-
-      {/* Compact Tabs */}
-      <Tabs defaultValue="layers" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-0.5 rounded-lg h-9">
-          <TabsTrigger value="layers" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
-            <LayersIcon className="size-3.5" />
-            <span className="hidden sm:inline">Layers</span>
-            <span className="sm:hidden ml-1">{manifest.layers.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="config" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
-            <SettingsIcon className="size-3.5" />
-            <span className="hidden sm:inline">Config</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
-            <HistoryIcon className="size-3.5" />
-            <span className="hidden sm:inline">History</span>
-          </TabsTrigger>
-          <TabsTrigger value="raw" className="rounded-md data-[state=active]:bg-background gap-1 text-xs h-7">
-            <CodeIcon className="size-3.5" />
-            <span className="hidden sm:inline">Raw</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="layers" className="mt-3">
-          <LayerList layers={manifest.layers} />
-        </TabsContent>
-
-        <TabsContent value="config" className="mt-3">
-          {config ? (
-            <ConfigInspector config={config} />
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <SettingsIcon className="size-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Config not available</p>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="rounded-lg border bg-background p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <TerminalIcon className="size-3.5 text-muted-foreground" />
+                <span className="text-sm font-medium">Pull Command</span>
               </div>
+              <Button size="sm" onClick={copyPullCommand} className="h-7 px-2">
+                <ClipboardIcon className="size-3" />
+              </Button>
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="history" className="mt-3">
-          {config?.history?.length ? (
-            <HistoryTimeline history={config.history} />
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <HistoryIcon className="size-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No history</p>
-              </div>
+            <div className="overflow-x-auto rounded border bg-muted/30 p-3 font-mono text-sm">
+              {pullCommand}
             </div>
-          )}
-        </TabsContent>
+          </div>
 
-        <TabsContent value="raw" className="mt-3">
-          <ManifestViewer manifest={manifest} />
-        </TabsContent>
-      </Tabs>
+          <Tabs defaultValue="layers" className="mt-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="layers">Layers</TabsTrigger>
+              <TabsTrigger value="config">Config</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="raw">Raw</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="layers" className="mt-3">
+              <LayerList layers={manifest.layers} />
+            </TabsContent>
+
+            <TabsContent value="config" className="mt-3">
+              {config ? (
+                <ConfigInspector config={config} />
+              ) : (
+                <AppEmptyState
+                  icon={<SettingsIcon className="size-5" />}
+                  title="Config not available"
+                  className="rounded-2xl bg-background/70"
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-3">
+              {config?.history?.length ? (
+                <HistoryTimeline history={config.history} />
+              ) : (
+                <AppEmptyState
+                  icon={<HistoryIcon className="size-5" />}
+                  title="No history"
+                  className="rounded-2xl bg-background/70"
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="raw" className="mt-3">
+              <ManifestViewer manifest={manifest} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </section>
   )
 }

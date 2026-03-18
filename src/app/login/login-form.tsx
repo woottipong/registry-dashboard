@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -43,11 +44,10 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      {/* Header */}
-      <div className="text-center relative z-20">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl mb-6 relative overflow-hidden group">
-          <img src="/logo.svg" alt="Registry Dashboard" className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
+    <div className="w-full max-w-md space-y-6">
+      <div className="text-center">
+        <div className="relative mb-5 inline-flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+          <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-cover" />
         </div>
         <h1 className="text-[28px] font-semibold text-white mb-2 tracking-tight">
           Registry Dashboard
@@ -57,10 +57,9 @@ export function LoginForm() {
         </p>
       </div>
 
-      {/* Login Form */}
-      <div className="relative z-20 bg-slate-900/40 backdrop-blur-3xl border border-slate-800/60 rounded-[24px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2.5">
+      <div className="relative rounded-[24px] border border-slate-800/60 bg-slate-950/45 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.2)] backdrop-blur-2xl">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
             <Label htmlFor="username" className="text-slate-400 font-medium text-[13px] ml-1">
               Username
             </Label>
@@ -77,11 +76,11 @@ export function LoginForm() {
             />
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <Label htmlFor="password" className="text-slate-400 font-medium text-[13px] ml-1">
               Password
             </Label>
-            <div className="relative group">
+            <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -109,16 +108,16 @@ export function LoginForm() {
             </div>
           </div>
 
-          {error && (
+          {error ? (
             <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-[14px] p-3">
               <AlertCircleIcon className="w-[18px] h-[18px] text-red-400 flex-shrink-0" />
               <p className="text-red-400 text-sm font-medium">{error}</p>
             </div>
-          )}
+          ) : null}
 
           <Button
             type="submit"
-            className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-[14px] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-600/20"
+            className="mt-2 h-11 w-full rounded-[14px] bg-indigo-600 font-medium text-white shadow-lg shadow-indigo-600/20 transition-all duration-300 hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoading}
           >
             {isLoading ? (

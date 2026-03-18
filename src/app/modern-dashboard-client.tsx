@@ -29,11 +29,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
   if (!isLoadingRegistries && registries.length === 0) {
     return (
-      <section className="mx-auto flex max-w-5xl flex-col gap-6">
+      <section className="mx-auto flex max-w-6xl flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Monitor and manage your connected registries.
+            Overview of your connected registries.
           </p>
         </div>
         <EmptyState
@@ -51,11 +51,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-6">
+    <section className="mx-auto flex max-w-6xl flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Overview of registries, repositories, and tags across your environment.
+          Registries, repositories, and tags at a glance.
         </p>
       </div>
 
@@ -63,36 +63,36 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         <StatCard
           title="Registries"
           value={registries.length}
-          description="Connected registry endpoints"
+          description="Connected endpoints"
           icon={<DatabaseIcon className="size-5 text-muted-foreground" />}
           isLoading={isLoadingRegistries}
         />
         <StatCard
           title="Repositories"
           value={totalRepositories}
-          description="Repositories discovered"
+          description="Repositories found"
           icon={<FolderIcon className="size-5 text-muted-foreground" />}
           isLoading={isLoadingRegistries || isLoadingRepos}
         />
         <StatCard
           title="Tags"
           value={totalTags}
-          description="Tags counted from loaded repositories"
+          description="Tags counted"
           icon={<TagIcon className="size-5 text-muted-foreground" />}
           isLoading={isLoadingRegistries || isLoadingRepos}
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader className="gap-1">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="overflow-hidden border-border/70">
+          <CardHeader className="gap-1 border-b pb-4">
             <CardTitle>Registry Summary</CardTitle>
-            <CardDescription>Status and inventory by connected registry.</CardDescription>
+            <CardDescription>Inventory by registry.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="flex flex-col gap-3 pt-4">
             {isLoadingRegistries ? (
               Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between rounded-lg border p-4">
+                <div key={index} className="flex items-center justify-between rounded-xl border p-4">
                   <div className="flex flex-col gap-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-48" />
@@ -102,9 +102,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               ))
             ) : (
               registriesWithStats.map((registry) => (
-                <div
+                <Link
                   key={registry.id}
-                  className="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
+                  href={`/repos?registry=${registry.id}`}
+                  className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/70 p-4 transition-colors hover:bg-muted/40 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="flex min-w-0 flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -118,21 +119,21 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     <Badge variant="outline">{registry.repoCount} repos</Badge>
                     <Badge variant="outline">{registry.tagCount} tags</Badge>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="gap-1">
+        <Card className="overflow-hidden border-border/70">
+          <CardHeader className="gap-1 border-b pb-4">
             <CardTitle>Top Repositories</CardTitle>
-            <CardDescription>Repositories with the highest tag counts.</CardDescription>
+            <CardDescription>Most-tagged repositories.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="flex flex-col gap-3 pt-4">
             {isLoadingRegistries || isLoadingRepos ? (
               Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+                <div key={index} className="flex items-center justify-between rounded-xl border p-3">
                   <div className="flex flex-col gap-2">
                     <Skeleton className="h-4 w-40" />
                     <Skeleton className="h-3 w-24" />
@@ -150,9 +151,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               chartData.map((repo) => {
                 const registry = registriesWithStats.find((item) => item.id === repo.registryId)
                 return (
-                  <div
+                  <Link
                     key={`${repo.registryId}-${repo.name}`}
-                    className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    href={`/repos/${repo.registryId}/${repo.name}`}
+                    className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/70 p-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0 flex flex-col gap-1">
                       <p className="truncate font-medium">{repo.name}</p>
@@ -161,7 +163,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     <Badge variant="outline" className="w-fit">
                       {repo.tagCount} tags
                     </Badge>
-                  </div>
+                  </Link>
                 )
               })
             )}
@@ -182,7 +184,7 @@ interface StatCardProps {
 
 function StatCard({ title, value, description, icon, isLoading }: StatCardProps) {
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/70">
       <CardHeader className="gap-1">
         <div className="flex items-center justify-between gap-3">
           <CardDescription>{title}</CardDescription>

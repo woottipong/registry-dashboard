@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, type Mock } from "vitest"
 import { NextRequest } from "next/server"
 
 // Must mock config before any module that imports it (session, middleware chain)
@@ -27,33 +27,62 @@ function makeRequest(
   return new NextRequest(url, { method, headers })
 }
 
-const getSessionMock = getSession as unknown as {
-  mockResolvedValueOnce: (value: unknown) => void
-}
+const getSessionMock = getSession as Mock
 
 describe("CSRF protection", () => {
   describe("mutating API endpoints (POST/PUT/DELETE/PATCH)", () => {
-    it("blocks POST without X-Requested-With header → 403", async () => {
-      const req = makeRequest("http://localhost/api/v1/registries", "POST")
+    it("allows POST when Origin matches the current host without X-Requested-With", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries", "POST", {
+        Origin: "http://localhost",
+      })
       const res = await middleware(req)
 
-      expect(res.status).toBe(403)
-      const body = await res.json()
-      expect(body.error.code).toBe("FORBIDDEN")
+      expect(res.status).not.toBe(403)
     })
 
-    it("blocks DELETE without X-Requested-With header → 403", async () => {
+    it("blocks DELETE when no CSRF headers are present", async () => {
       const req = makeRequest("http://localhost/api/v1/registries/abc", "DELETE")
       const res = await middleware(req)
 
       expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.message).toBe("CSRF check failed: no verifiable request metadata")
     })
 
-    it("blocks PUT without X-Requested-With header → 403", async () => {
-      const req = makeRequest("http://localhost/api/v1/registries/abc", "PUT")
+    it("allows DELETE for automation clients with X-Requested-With header", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries/abc", "DELETE", {
+        "X-Requested-With": "XMLHttpRequest",
+      })
       const res = await middleware(req)
 
-      expect(res.status).toBe(403)
+      expect(res.status).not.toBe(403)
+    })
+
+    it("allows PUT when Sec-Fetch-Site indicates same-origin", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries/abc", "PUT", {
+        "Sec-Fetch-Site": "same-origin",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).not.toBe(403)
+    })
+
+    it("allows PATCH when Sec-Fetch-Site indicates same-site", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries/abc", "PATCH", {
+        "Sec-Fetch-Site": "same-site",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).not.toBe(403)
+    })
+
+    it("allows POST when Sec-Fetch-Site is none", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries", "POST", {
+        "Sec-Fetch-Site": "none",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).not.toBe(403)
     })
 
     it("allows POST with X-Requested-With: XMLHttpRequest → passes CSRF", async () => {
@@ -62,17 +91,75 @@ describe("CSRF protection", () => {
       })
       const res = await middleware(req)
 
-      // Passes CSRF (200 or redirect — NOT 403)
       expect(res.status).not.toBe(403)
     })
 
-    it("blocks POST with wrong X-Requested-With value → 403", async () => {
+    it("blocks POST when Origin does not match host", async () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
-        "X-Requested-With": "fetch",
+        Origin: "https://attacker.example.com",
       })
       const res = await middleware(req)
 
       expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.message).toBe("CSRF check failed: origin mismatch")
+    })
+
+    it("blocks POST when Origin header is invalid", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries", "POST", {
+        Origin: "not a url",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.message).toBe("CSRF check failed: invalid origin")
+    })
+
+    it("allows DELETE when Origin matches X-Forwarded-Host behind a reverse proxy", async () => {
+      const req = makeRequest("http://localhost:3000/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+        Origin: "https://registry.example.com",
+        Host: "localhost:3000",
+        "X-Forwarded-Host": "registry.example.com",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).not.toBe(403)
+    })
+
+    it("uses the first X-Forwarded-Host value when proxy adds multiple hosts", async () => {
+      const req = makeRequest("http://localhost:3000/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+        Origin: "https://registry.example.com",
+        Host: "localhost:3000",
+        "X-Forwarded-Host": "registry.example.com, proxy.internal",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).not.toBe(403)
+    })
+
+    it("blocks DELETE when Origin does not match X-Forwarded-Host behind a reverse proxy", async () => {
+      const req = makeRequest("http://localhost:3000/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+        Origin: "https://attacker.example.com",
+        Host: "localhost:3000",
+        "X-Forwarded-Host": "registry.example.com",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.message).toBe("CSRF check failed: origin mismatch")
+    })
+
+    it("blocks DELETE when Sec-Fetch-Site is cross-site", async () => {
+      const req = makeRequest("http://localhost/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
+        "Sec-Fetch-Site": "cross-site",
+      })
+      const res = await middleware(req)
+
+      expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.message).toBe("CSRF check failed: cross-site request blocked")
     })
   })
 

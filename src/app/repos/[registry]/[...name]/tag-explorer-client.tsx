@@ -2,11 +2,13 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
+import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
@@ -24,6 +26,7 @@ interface TagExplorerClientProps {
 const PER_PAGE = 50
 
 function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const selectedTag = searchParams.get("tag")
 
@@ -95,6 +98,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
+  const repositoryNamespace = useMemo(() => {
+    const segments = repoName.split("/")
+    return segments.length > 1 ? segments.slice(0, -1).join("/") : ""
+  }, [repoName])
 
   // Memoize event handlers
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +111,12 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const handleClearSearch = useCallback(() => {
     setSearch("")
   }, [])
+
+  const handleBackToRepositories = useCallback(() => {
+    const params = new URLSearchParams({ registry: registryId })
+    params.set("namespace", repositoryNamespace === "" ? "_root" : repositoryNamespace)
+    router.push(`/repos?${params.toString()}`)
+  }, [registryId, repositoryNamespace, router])
 
   const handleDeleteClick = useCallback((tag: Tag) => {
     setTagToDelete(tag)
@@ -183,128 +196,114 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="space-y-6">
-      {/* Enhanced Header */}
-      <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-primary/3 to-primary/10 border border-primary/20 p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <TagIcon className="size-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold">{repoName}</h1>
-                <p className="text-sm text-muted-foreground">Tag Explorer</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {registryQuery.data && (
-                <Badge variant="outline">{registryQuery.data.name}</Badge>
-              )}
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <TagIcon className="size-3" />
-                <span>{tagCountDisplay}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search toolbar */}
-      <div className="relative max-w-sm">
-        <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={handleSearchChange}
-          className="pl-8 pr-8"
-          placeholder="Filter tags…"
-        />
-        {search && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
-            onClick={handleClearSearch}
-          >
-            <XIcon className="size-3" />
+    <section className="mx-auto max-w-6xl space-y-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
+            <ChevronLeftIcon data-icon="inline-start" />
+            Repositories
           </Button>
-        )}
+          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
+          <Badge variant="secondary">{tagCountDisplay}</Badge>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">Tags in this repository.</p>
       </div>
 
-      {/* Content */}
-      {tagsQuery.isError ? (
-        <div className="rounded-card border border-destructive/30 bg-destructive/10 p-6 text-center">
-          <p className="text-sm text-destructive">
-            {tagsQuery.error?.message ?? "Failed to load tags"}
-          </p>
-        </div>
-      ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
-        <div className="rounded-3xl border border-dashed border-border/50 bg-gradient-to-br from-card/50 to-card/20 p-12 text-center backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="mx-auto w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
-            <TagIcon className="w-8 h-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-bold mb-2 text-foreground">
-            {search ? "No matching tags found" : "No tags in this repository"}
-          </h3>
-          <p className="text-muted-foreground max-w-sm mx-auto mb-6 leading-relaxed">
-            {search
-              ? "Try adjusting your search terms or clearing the filter to see all available tags."
-              : "Tags will appear here once images are pushed to this repository. Check back later or push your first image to get started."
-            }
-          </p>
-          {search && (
-            <Button onClick={handleClearSearch}>
-              Clear search
-            </Button>
-          )}
-        </div>
-      ) : (
-        <>
-          <TagTable
-            registryId={registryId}
-            repoName={repoName}
-            tags={filteredTags}
-            canDelete={canDelete}
-            isLoading={tagsQuery.isLoading}
-            registryUrl={registryQuery.data?.url}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteClick={handleDeleteClick}
-          />
-
-          {/* Pagination controls — only shown when there are multiple pages */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-4 pt-2">
-              <p className="text-sm text-muted-foreground">
-                Page {page} of {totalPages} &bull; {totalTags} tags
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1 || tagsQuery.isFetching}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeftIcon className="size-4" />
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages || tagsQuery.isFetching}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  aria-label="Next page"
-                >
-                  Next
-                  <ChevronRightIcon className="size-4" />
-                </Button>
-              </div>
+      <Card className="overflow-hidden border-border/70">
+        <CardHeader className="gap-2 border-b pb-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <CardTitle>Tag List</CardTitle>
+              <CardDescription>{tagCountDisplay}</CardDescription>
             </div>
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={handleSearchChange}
+                className="pl-9 pr-9"
+                placeholder="Filter tags…"
+              />
+              {search ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1 h-7 w-7 p-0"
+                  onClick={handleClearSearch}
+                >
+                  <XIcon className="size-3.5" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-3">
+          {tagsQuery.isError ? (
+            <AppEmptyState
+              icon={<TagIcon className="size-5" />}
+              title="Failed to load tags"
+              description={tagsQuery.error?.message ?? "Unable to fetch tags."}
+              className="rounded-2xl bg-background/70"
+            />
+          ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
+            <AppEmptyState
+              icon={<TagIcon className="size-5" />}
+              title={search ? "No matching tags" : "No tags yet"}
+              description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
+              action={search ? <Button onClick={handleClearSearch}>Clear search</Button> : undefined}
+              className="rounded-2xl bg-background/70"
+            />
+          ) : (
+            <>
+              <TagTable
+                registryId={registryId}
+                repoName={repoName}
+                tags={filteredTags}
+                canDelete={canDelete}
+                isLoading={tagsQuery.isLoading}
+                registryUrl={registryQuery.data?.url}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                onDeleteClick={handleDeleteClick}
+              />
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 border-t pt-3">
+                  <p className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1 || tagsQuery.isFetching}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeftIcon className="size-4" />
+                      Prev
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages || tagsQuery.isFetching}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      aria-label="Next page"
+                    >
+                      Next
+                      <ChevronRightIcon className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </CardContent>
+      </Card>
 
       {/* Delete Dialog */}
       <DeleteDialog

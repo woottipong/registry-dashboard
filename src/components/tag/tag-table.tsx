@@ -102,6 +102,7 @@ export function TagTable({
       {
         accessorKey: "digest",
         header: "Digest",
+        meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) =>
           row.original.digest ? (
             <span className="font-mono text-xs text-muted-foreground">
@@ -113,6 +114,7 @@ export function TagTable({
       },
       {
         accessorKey: "size",
+        meta: { className: "hidden md:table-cell" },
         header: ({ column }) => (
           <Button
             type="button"
@@ -134,6 +136,7 @@ export function TagTable({
       },
       {
         accessorKey: "createdAt",
+        meta: { className: "hidden md:table-cell" },
         header: ({ column }) => (
           <Button
             type="button"
@@ -156,6 +159,7 @@ export function TagTable({
       {
         id: "platform",
         header: "Platform",
+        meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
             {row.original.os}/{row.original.architecture}
@@ -197,22 +201,23 @@ export function TagTable({
     return (
       <div className="space-y-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-11 w-full" />
+          <Skeleton key={i} className="h-10 w-full" />
         ))}
       </div>
     )
   }
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg border border-border overflow-hidden shadow-sm">
+    <div>
+      <div className="overflow-hidden rounded-lg border border-border/70">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-transparent">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-b border-border/70 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
+                    className={(header.column.columnDef.meta as { className?: string })?.className}
                     aria-sort={
                       !header.column.getCanSort()
                         ? undefined
@@ -236,13 +241,16 @@ export function TagTable({
               {table.getRowModel().rows.map((row) => (
                 <motion.tr
                   key={row.original.name}
-                  className="border-b transition-colors hover:bg-muted/60 data-[state=selected]:bg-primary/10"
+                  className="border-b border-border/60 transition-colors hover:bg-muted/35 data-[state=selected]:bg-primary/10"
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
                   layout
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={(cell.column.columnDef.meta as { className?: string })?.className}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

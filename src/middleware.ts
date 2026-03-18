@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
 
 const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
+const CSRF_ALLOWED_FETCH_SITES = new Set(["same-origin", "same-site", "none"])
 const DELETE_RATE_LIMIT_MAX = 20
 const DELETE_RATE_LIMIT_WINDOW_MS = 60 * 1000
 const PUBLIC_ROUTES = new Set(["/login", "/api/auth/login", "/api/health"])
@@ -93,31 +94,44 @@ function isPublicPath(pathname: string): boolean {
   )
 }
 
+function getExpectedOriginHosts(request: NextRequest): Set<string> {
+  const hosts = new Set<string>()
+
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0].trim().toLowerCase()
+  if (forwardedHost) {
+    hosts.add(forwardedHost)
+  }
+
+  const host = request.headers.get("host")?.toLowerCase()
+  if (host) {
+    hosts.add(host)
+  }
+
+  if (request.nextUrl.host) {
+    hosts.add(request.nextUrl.host.toLowerCase())
+  }
+
+  return hosts
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // CSRF protection: all state-mutating API calls must include the
-  // X-Requested-With: XMLHttpRequest header to prove same-origin intent.
+  // CSRF protection for mutating API calls:
+  // 1. Validate Origin header when present (blocks cross-origin browser requests)
+  // 2. Reject explicit cross-site Sec-Fetch-Site metadata
+  // 3. Require at least one verifiable header (Origin, Sec-Fetch-Site, or X-Requested-With)
+  //    to prevent form-based CSRF from browsers that omit modern fetch metadata
   if (pathname.startsWith("/api/") && !CSRF_SAFE_METHODS.has(request.method)) {
-    const xRequestedWith = request.headers.get("X-Requested-With")
-    if (xRequestedWith !== "XMLHttpRequest") {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          error: { code: "FORBIDDEN", message: "CSRF check failed: missing X-Requested-With header" },
-        },
-        { status: 403 },
-      )
-    }
-
-    // Secondary CSRF defense: validate Origin header matches our host
     const origin = request.headers.get("origin")
-    const host = request.headers.get("host")
-    if (origin && host) {
+    const secFetchSite = request.headers.get("sec-fetch-site")?.toLowerCase()
+    const xRequestedWith = request.headers.get("x-requested-with")
+    const expectedOriginHosts = getExpectedOriginHosts(request)
+
+    if (origin) {
       try {
-        const originHost = new URL(origin).host
-        if (originHost !== host) {
+        const originHost = new URL(origin).host.toLowerCase()
+        if (expectedOriginHosts.size > 0 && !expectedOriginHosts.has(originHost)) {
           return NextResponse.json(
             {
               success: false,
@@ -137,6 +151,33 @@ export default async function middleware(request: NextRequest) {
           { status: 403 },
         )
       }
+    }
+
+    if (secFetchSite && !CSRF_ALLOWED_FETCH_SITES.has(secFetchSite)) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: { code: "FORBIDDEN", message: "CSRF check failed: cross-site request blocked" },
+        },
+        { status: 403 },
+      )
+    }
+
+    // Require at least one verifiable CSRF signal from the client.
+    // Browsers always send Origin or Sec-Fetch-Site on fetch/XHR calls.
+    // X-Requested-With acts as a fallback for non-browser clients that opt in.
+    // Requests with none of these headers (e.g. plain HTML form submissions
+    // from older browsers) are blocked to prevent classic form-based CSRF.
+    if (!origin && !secFetchSite && !xRequestedWith) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: { code: "FORBIDDEN", message: "CSRF check failed: no verifiable request metadata" },
+        },
+        { status: 403 },
+      )
     }
   }
 

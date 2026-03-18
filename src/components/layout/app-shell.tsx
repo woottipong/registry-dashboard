@@ -50,7 +50,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative isolate flex min-h-screen bg-background text-foreground transition-colors duration-700">
       <ThemeBackdrop />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.12),_transparent_32%)] dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),_transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.07),_transparent_38%)] dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),_transparent_30%)]" />
 
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
