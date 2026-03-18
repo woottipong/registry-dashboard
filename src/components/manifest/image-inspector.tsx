@@ -4,7 +4,7 @@ import React, { useCallback, useMemo } from "react"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import {
   AlertTriangleIcon,
-  ArrowLeftIcon,
+  ChevronLeftIcon,
   CalendarIcon,
   ClipboardIcon,
   CpuIcon,
@@ -21,6 +21,7 @@ import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import dynamic from "next/dynamic"
 import { ManifestSkeleton } from "@/components/skeletons"
@@ -121,16 +122,33 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div className="animate-pulse">
-          <div className="h-32 bg-muted/50 rounded-2xl mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 bg-muted/50 rounded-xl"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-muted/50 rounded-xl"></div>
+      <div className="mx-auto max-w-6xl space-y-4">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-8 w-64" />
         </div>
+        <Card className="overflow-hidden border-border/70">
+          <CardHeader className="gap-3 border-b pb-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-28 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <div className="mt-4 space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -160,20 +178,18 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
   return (
     <section className="mx-auto max-w-6xl space-y-4">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge>{tag}</Badge>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
+            <ChevronLeftIcon data-icon="inline-start" />
+            Tags
+          </Button>
           {registryName ? <Badge variant="outline">{registryName}</Badge> : null}
+          <Badge>{tag}</Badge>
           <Badge variant="outline" className="font-mono">{truncatedDigest}</Badge>
         </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
-            <p className="text-sm text-muted-foreground">Image inspection.</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleBack} className="w-fit">
-            <ArrowLeftIcon data-icon="inline-start" />
-            Back
-          </Button>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
+          <p className="text-sm text-muted-foreground">Inspect image manifest, layers, and configuration.</p>
         </div>
       </div>
 

@@ -46,21 +46,21 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-6">
       <div className="text-center">
-        <div className="relative mb-5 inline-flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+        <div className="relative mb-5 inline-flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
           <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-cover" />
         </div>
-        <h1 className="text-[28px] font-semibold text-white mb-2 tracking-tight">
+        <h1 className="mb-2 text-[28px] font-semibold tracking-tight text-foreground">
           Registry Dashboard
         </h1>
-        <p className="text-slate-400 text-sm tracking-wide">
+        <p className="text-sm tracking-wide text-muted-foreground">
           Sign in to manage your container registries
         </p>
       </div>
 
-      <div className="relative rounded-[24px] border border-slate-800/60 bg-slate-950/45 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.2)] backdrop-blur-2xl">
+      <div className="rounded-2xl border border-border/60 bg-card/45 p-8 shadow-lg backdrop-blur-2xl">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-slate-400 font-medium text-[13px] ml-1">
+            <Label htmlFor="username" className="ml-1 text-[13px] font-medium text-muted-foreground">
               Username
             </Label>
             <Input
@@ -72,12 +72,12 @@ export function LoginForm() {
               placeholder="Enter your username"
               required
               disabled={isLoading}
-              className="bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-500 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 h-11 rounded-[14px] transition-all duration-200 text-sm px-4 shadow-inner"
+              className="h-11 bg-background/40 text-sm shadow-inner transition-all duration-200"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-400 font-medium text-[13px] ml-1">
+            <Label htmlFor="password" className="ml-1 text-[13px] font-medium text-muted-foreground">
               Password
             </Label>
             <div className="relative">
@@ -90,39 +90,39 @@ export function LoginForm() {
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
-                className="bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-500 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 h-11 rounded-[14px] pr-12 transition-all duration-200 text-sm px-4 shadow-inner"
+                className="h-11 bg-background/40 pr-12 text-sm shadow-inner transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOffIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+                  <EyeOffIcon className="size-[18px]" aria-hidden="true" />
                 ) : (
-                  <EyeIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+                  <EyeIcon className="size-[18px]" aria-hidden="true" />
                 )}
               </button>
             </div>
           </div>
 
           {error ? (
-            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-[14px] p-3">
-              <AlertCircleIcon className="w-[18px] h-[18px] text-red-400 flex-shrink-0" />
-              <p className="text-red-400 text-sm font-medium">{error}</p>
+            <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-3">
+              <AlertCircleIcon className="size-[18px] shrink-0 text-destructive" />
+              <p className="text-sm font-medium text-destructive">{error}</p>
             </div>
           ) : null}
 
           <Button
             type="submit"
-            className="mt-2 h-11 w-full rounded-[14px] bg-indigo-600 font-medium text-white shadow-lg shadow-indigo-600/20 transition-all duration-300 hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 h-11 w-full"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2Icon className="w-[18px] h-[18px] mr-2 motion-safe:animate-spin" />
+                <Loader2Icon className="mr-2 size-[18px] motion-safe:animate-spin" />
                 Signing In...
               </>
             ) : (

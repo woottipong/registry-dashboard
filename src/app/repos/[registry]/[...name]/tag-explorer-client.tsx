@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -214,7 +215,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       </div>
 
       <Card className="overflow-hidden border-border/70">
-        <CardHeader className="gap-2 border-b pb-3">
+        <CardHeader className="gap-2 border-b pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <CardTitle>Tag List</CardTitle>
@@ -367,50 +368,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   )
 }
 
-// Main component wrapped with error boundary
-class TagExplorerErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('TagExplorer error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="p-6 rounded-full bg-destructive/10 mb-6">
-            <div className="text-4xl">⚠️</div>
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-muted-foreground text-center max-w-md mb-6">
-            An unexpected error occurred while loading the tag explorer.
-          </p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Reload Page
-          </Button>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
-
 const TagExplorerWithBoundary = React.memo((props: TagExplorerClientProps) => (
-  <TagExplorerErrorBoundary>
+  <ErrorBoundary>
     <TagExplorerClient {...props} />
-  </TagExplorerErrorBoundary>
+  </ErrorBoundary>
 ))
 
 TagExplorerWithBoundary.displayName = 'TagExplorerWithBoundary'

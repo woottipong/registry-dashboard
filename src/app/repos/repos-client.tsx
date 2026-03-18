@@ -180,7 +180,7 @@ export function RepositoriesClient({
         <>
           {selectedNamespace === null ? (
             <Card className="overflow-hidden border-border/70">
-              <CardHeader className="gap-2 border-b pb-3">
+              <CardHeader className="gap-2 border-b pb-4">
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     {registries.map((registry) => (
@@ -219,7 +219,7 @@ export function RepositoriesClient({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-4">
                 {namespacesQuery.isLoading ? (
                   <NamespaceSkeleton />
                 ) : namespacesQuery.isError ? (
