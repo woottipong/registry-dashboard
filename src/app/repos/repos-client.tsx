@@ -135,7 +135,7 @@ export function RepositoriesClient({
         <NoRegistryState />
       ) : (
         <>
-          <Card className="overflow-hidden rounded-[26px] border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] py-0 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
+          <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
             <CardContent className="space-y-4 px-5 py-5">
               {selectedNamespace !== null ? (
                 <div className="flex flex-wrap items-center gap-3">
@@ -150,49 +150,44 @@ export function RepositoriesClient({
               ) : null}
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
-                  Repository Browser
+                <h1 className="text-[1.8rem] font-semibold tracking-tight">
+                  {selectedNamespace !== null
+                    ? selectedNamespaceValue
+                      ? `${selectedNamespaceValue}/`
+                      : "(root)"
+                    : "Repositories"}
+                </h1>
+                <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
+                  {selectedNamespace !== null
+                    ? "Inspect repositories inside the selected namespace and jump directly into tag inventory."
+                    : "Choose a registry and namespace to browse image repositories across your fleet."}
                 </p>
-                <div className="space-y-2">
-                  <h1 className="text-[1.8rem] font-semibold tracking-tight">
-                    {selectedNamespace !== null
-                      ? selectedNamespaceValue
-                        ? `${selectedNamespaceValue}/`
-                        : "(root)"
-                      : "Repositories"}
-                  </h1>
-                  <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
-                    {selectedNamespace !== null
-                      ? "Inspect repositories inside the selected namespace and jump directly into tag inventory."
-                      : "Choose a registry and namespace to browse image repositories across your fleet."}
-                  </p>
-                </div>
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                {registries.map((registry) => (
-                  <Button
-                    key={registry.id}
-                    variant={selectedRegistry === registry.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleRegistryChange(registry.id)}
-                    className="max-w-full rounded-full"
-                  >
-                    <span className="truncate">{registry.name}</span>
+              {selectedNamespace === null ? (
+                <div className="flex flex-wrap gap-2.5">
+                  {registries.map((registry) => (
+                    <Button
+                      key={registry.id}
+                      variant={selectedRegistry === registry.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleRegistryChange(registry.id)}
+                      className="max-w-full rounded-full"
+                    >
+                      <span className="truncate">{registry.name}</span>
+                    </Button>
+                  ))}
+                  <Button variant="outline" size="sm" asChild className="rounded-full">
+                    <Link href="/registries/new">
+                      <PlusIcon data-icon="inline-start" />
+                      Connect
+                    </Link>
                   </Button>
-                ))}
-                <Button variant="outline" size="sm" asChild className="rounded-full">
-                  <Link href="/registries/new">
-                    <PlusIcon data-icon="inline-start" />
-                    Connect
-                  </Link>
-                </Button>
-              </div>
+                </div>
+              ) : null}
 
               <div className="flex flex-wrap gap-2">
-                {selectedRegistryData ? (
-                  <SummaryPill label={`Registry: ${selectedRegistryData.name}`} />
-                ) : null}
+                {selectedRegistryData ? <SummaryPill label={selectedRegistryData.name} /> : null}
                 <SummaryPill
                   label={
                     selectedNamespace === null
@@ -331,39 +326,36 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
             key={namespace.name || "_root"}
             type="button"
             onClick={() => onSelect(namespace.name)}
-            className="group flex w-full flex-col gap-3 rounded-[18px] border border-border/70 bg-background/72 px-4 py-3 text-left transition-colors hover:bg-background"
+            className="group flex w-full cursor-pointer flex-col gap-3 rounded-[18px] border border-border/70 bg-background/72 px-4 py-3 text-left transition-colors hover:bg-background"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground">
-                <FolderIcon className="size-4" />
-              </div>
-              <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground">
+                  <FolderIcon className="size-4" />
+                </div>
                 <p className="truncate text-sm font-semibold tracking-tight">
                   {label}{isRoot ? "" : "/"}
                 </p>
-                <p className="truncate text-[11px] text-muted-foreground">Namespace inventory</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="font-mono">
-                  {namespace.repositoryCount}
-                </Badge>
+
+              <div className="flex shrink-0 items-center gap-3">
+                <div className="text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Repos
+                  </p>
+                  <p className="font-mono text-sm font-semibold text-foreground/85">
+                    {namespace.repositoryCount}
+                  </p>
+                </div>
                 <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                <span>Repositories</span>
-                <span className="font-mono text-foreground/80">
-                  {namespace.repositoryCount}
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-secondary/80">
-                <div
-                  className="h-1.5 rounded-full bg-primary transition-all duration-500"
-                  style={{ width: `${width}%` }}
-                />
-              </div>
+            <div className="h-1.5 rounded-full bg-secondary/80">
+              <div
+                className="h-1.5 rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${width}%` }}
+              />
             </div>
           </button>
         )
@@ -377,22 +369,20 @@ function NamespaceSkeleton() {
     <div className="space-y-3">
       {Array.from({ length: 6 }).map((_, index) => (
         <div key={index} className="rounded-[18px] border border-border/70 bg-background/72 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-9 rounded-xl" />
-            <div className="flex flex-1 flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Skeleton className="size-9 rounded-xl" />
               <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-3 w-24" />
             </div>
-            <Skeleton className="h-6 w-12 rounded-full" />
-            <Skeleton className="size-4" />
-          </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-3 w-8" />
+            <div className="flex items-center gap-3">
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-10" />
+                <Skeleton className="h-4 w-8" />
+              </div>
+              <Skeleton className="size-4" />
             </div>
-            <Skeleton className="h-1.5 w-full rounded-full" />
           </div>
+          <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
         </div>
       ))}
     </div>

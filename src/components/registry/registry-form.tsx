@@ -135,11 +135,8 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_320px]">
-        <div className="rounded-[26px] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] px-5 py-5 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
-            {mode === "create" ? "Registry Setup" : "Registry Maintenance"}
-          </p>
-          <div className="mt-3 space-y-2">
+        <div className="rounded-[24px] border border-border/70 bg-card/95 px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+          <div className="space-y-2">
             <h1 className="text-[2rem] font-semibold tracking-tight">
               {mode === "create" ? "Add Registry" : "Edit Registry"}
             </h1>

@@ -54,10 +54,10 @@ export function useManifest(registryId: string, repoName: string, ref: string) {
         )
 
         if (!configResponse.ok) {
-          // Create error with status code for retry logic
-          const error = new Error(`HTTP ${configResponse.status}: ${configResponse.statusText}`) as HttpError
-          error.status = configResponse.status
-          throw error
+          return {
+            manifest: manifestPayload.data,
+            config: null,
+          }
         }
 
         const configPayload = (await configResponse.json()) as ApiResponse<ImageConfig>

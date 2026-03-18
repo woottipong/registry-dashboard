@@ -187,6 +187,7 @@ export function TagTable({
   const table = useReactTable({
     data: tags,
     columns,
+    getRowId: (row) => row.name,
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
     onRowSelectionChange: (updater) => {

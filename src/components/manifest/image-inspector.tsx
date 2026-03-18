@@ -13,7 +13,6 @@ import {
   LayersIcon,
   RefreshCwIcon,
   SettingsIcon,
-  TerminalIcon
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -58,16 +57,15 @@ interface MetricCardProps {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
-  iconColor: string
 }
 
-const MetricCard = React.memo(({ icon: Icon, label, value, iconColor }: MetricCardProps) => (
-  <div className="bg-card rounded-lg p-3 border">
-    <div className="flex items-center gap-1.5 mb-1">
-      <Icon className={`size-3.5 ${iconColor}`} />
-      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+const MetricCard = React.memo(({ icon: Icon, label, value }: MetricCardProps) => (
+  <div className="rounded-[16px] border border-border/70 bg-background/72 px-3.5 py-3">
+    <div className="mb-1 flex items-center gap-1.5">
+      <Icon className="size-3.5 text-muted-foreground" />
+      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</span>
     </div>
-    <div className="font-semibold text-xs">{value}</div>
+    <div className="text-sm font-semibold tracking-tight">{value}</div>
   </div>
 ))
 
@@ -177,74 +175,64 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   return (
     <section className="mx-auto max-w-6xl space-y-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
-            <ChevronLeftIcon data-icon="inline-start" />
-            Tags
-          </Button>
-          {registryName ? <Badge variant="outline">{registryName}</Badge> : null}
-          <Badge>{tag}</Badge>
-          <Badge variant="outline" className="font-mono">{truncatedDigest}</Badge>
-        </div>
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
-          <p className="text-sm text-muted-foreground">Inspect image manifest, layers, and configuration.</p>
-        </div>
-      </div>
+      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+        <CardContent className="space-y-4 px-5 py-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
+              <ChevronLeftIcon data-icon="inline-start" />
+              Tags
+            </Button>
+            {registryName ? <Badge variant="outline">{registryName}</Badge> : null}
+            <Badge>{tag}</Badge>
+            <Badge variant="outline" className="font-mono">{truncatedDigest}</Badge>
+          </div>
 
-      <Card className="overflow-hidden border-border/70">
-        <CardHeader className="gap-3 border-b pb-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <CardTitle>Image Summary</CardTitle>
-              <CardDescription>Manifest details and pull command.</CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <h1 className="text-[1.8rem] font-semibold tracking-tight">{repoName}</h1>
+              <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
+                Inspect manifest structure, layers, configuration, and raw metadata for the selected image tag.
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Button size="sm" variant="outline" onClick={copyPullCommand} className="w-fit">
+              <ClipboardIcon data-icon="inline-start" />
+              Copy Pull Command
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <MetricCard
                 icon={CpuIcon}
                 label="PLATFORM"
                 value={platform}
-                iconColor="text-blue-500"
               />
               <MetricCard
                 icon={HardDriveIcon}
                 label="SIZE"
                 value={formatBytes(manifest.totalSize)}
-                iconColor="text-green-500"
               />
               <MetricCard
                 icon={LayersIcon}
                 label="LAYERS"
                 value={manifest.layers.length.toString()}
-                iconColor="text-purple-500"
               />
               <MetricCard
                 icon={CalendarIcon}
                 label="CREATED"
                 value={config?.created ? formatDate(config.created) : '—'}
-                iconColor="text-orange-500"
               />
-            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="rounded-lg border bg-background p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <TerminalIcon className="size-3.5 text-muted-foreground" />
-                <span className="text-sm font-medium">Pull Command</span>
-              </div>
-              <Button size="sm" onClick={copyPullCommand} className="h-7 px-2">
-                <ClipboardIcon className="size-3" />
-              </Button>
-            </div>
-            <div className="overflow-x-auto rounded border bg-muted/30 p-3 font-mono text-sm">
-              {pullCommand}
-            </div>
-          </div>
+        </CardContent>
+      </Card>
 
-          <Tabs defaultValue="layers" className="mt-4">
+      <div>
+        <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+          <CardHeader className="gap-1 px-5 pb-4 pt-5">
+            <CardTitle className="text-xl tracking-tight">Manifest Workspace</CardTitle>
+            <CardDescription>Review layers, configuration, history, and raw manifest data.</CardDescription>
+          </CardHeader>
+          <CardContent className="px-5 pb-5 pt-0">
+          <Tabs defaultValue="layers">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="layers">Layers</TabsTrigger>
               <TabsTrigger value="config">Config</TabsTrigger>
@@ -284,8 +272,9 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
               <ManifestViewer manifest={manifest} />
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   )
 }

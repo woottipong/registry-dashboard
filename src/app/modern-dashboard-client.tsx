@@ -34,11 +34,8 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   if (!isLoadingRegistries && registries.length === 0) {
     return (
       <section className="mx-auto flex max-w-6xl flex-col gap-4">
-        <div className="rounded-[28px] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] px-5 py-5 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
-            Fleet Overview
-          </p>
-          <div className="mt-3 space-y-2">
+        <div className="rounded-[24px] border border-border/70 bg-card/95 px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+          <div className="space-y-2">
             <h1 className="text-[2rem] font-semibold tracking-tight">Dashboard</h1>
             <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
               Connect at least one registry to unlock live inventory and repository ranking across your fleet.
@@ -71,19 +68,14 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <Card className="overflow-hidden rounded-[28px] border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] py-0 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
+      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
         <CardContent className="space-y-4 px-5 py-5">
           <div className="space-y-4">
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
-                Fleet Overview
+              <CardTitle className="text-[1.7rem] tracking-tight">Dashboard</CardTitle>
+              <p className="max-w-xl text-sm leading-5 text-muted-foreground">
+                A live operational view of registry inventory and the repositories pulling the most tag activity right now.
               </p>
-              <div className="space-y-2">
-                <CardTitle className="text-[1.7rem] tracking-tight">Dashboard</CardTitle>
-                <p className="max-w-xl text-sm leading-5 text-muted-foreground">
-                  A live operational view of registry inventory and the repositories pulling the most tag activity right now.
-                </p>
-              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">

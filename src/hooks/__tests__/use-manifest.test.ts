@@ -178,9 +178,9 @@ describe("useManifest", () => {
       { wrapper: makeWrapper(queryClient) }
     )
 
-    await waitFor(() => expect(result.current.isError).toBe(true))
-    // HTTP error on blobs propagates
-    expect((result.current.error as Error).message).toContain("404")
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.manifest).toEqual(mockManifest)
+    expect(result.current.data?.config).toBeNull()
   })
 
   it("returns config: null when config response has success: false", async () => {

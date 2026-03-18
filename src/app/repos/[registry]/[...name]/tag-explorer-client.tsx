@@ -69,9 +69,9 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     return memoizedTags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
   }, [memoizedTags, debouncedSearch])
 
-  // Derive selected tags from row indices (TanStack Table uses string indices as default row IDs)
+  // Derive selected tags from stable row ids (tag names)
   const selectedRowTags = useMemo(
-    () => filteredTags.filter((_, i) => rowSelection[String(i)]),
+    () => filteredTags.filter((tag) => rowSelection[tag.name]),
     [filteredTags, rowSelection],
   )
 
@@ -198,51 +198,52 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   return (
     <section className="mx-auto max-w-6xl space-y-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
-            <ChevronLeftIcon data-icon="inline-start" />
-            Repositories
-          </Button>
-          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
-          <Badge variant="secondary">{tagCountDisplay}</Badge>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{repoName}</h1>
-        </div>
-        <p className="text-sm text-muted-foreground">Tags in this repository.</p>
-      </div>
-
-      <Card className="overflow-hidden border-border/70">
-        <CardHeader className="gap-2 border-b pb-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <CardTitle>Tag List</CardTitle>
-              <CardDescription>{tagCountDisplay}</CardDescription>
-            </div>
-            <div className="relative w-full max-w-sm">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={handleSearchChange}
-                className="pl-9 pr-9"
-                placeholder="Filter tags…"
-              />
-              {search ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1 h-7 w-7 p-0"
-                  onClick={handleClearSearch}
-                >
-                  <XIcon className="size-3.5" />
-                </Button>
-              ) : null}
-            </div>
+      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+        <CardContent className="space-y-4 px-5 py-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
+              <ChevronLeftIcon data-icon="inline-start" />
+              Repositories
+            </Button>
+            {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
+            <Badge variant="secondary">{tagCountDisplay}</Badge>
           </div>
+
+          <div className="space-y-2">
+            <h1 className="text-[1.8rem] font-semibold tracking-tight">{repoName}</h1>
+            <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
+              Review tag inventory, inspect image details, and handle cleanup from one workspace.
+            </p>
+          </div>
+
+          <div className="relative max-w-md">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={handleSearchChange}
+              className="h-10 rounded-xl border-border/70 bg-background/78 pl-9 pr-9"
+              placeholder="Filter tags…"
+            />
+            {search ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-8 w-8 p-0"
+                onClick={handleClearSearch}
+              >
+                <XIcon className="size-3.5" />
+              </Button>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+        <CardHeader className="gap-1 px-5 pb-4 pt-5">
+          <CardTitle className="text-xl tracking-tight">Tag Inventory</CardTitle>
+          <CardDescription>Inspect, copy, and curate tags in this repository.</CardDescription>
         </CardHeader>
-        <CardContent className="pt-3">
+        <CardContent className="px-5 pb-4 pt-0">
           {tagsQuery.isError ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
@@ -273,7 +274,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               />
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between gap-4 border-t pt-3">
+                <div className="mt-4 flex items-center justify-between gap-4 border-t pt-3">
                   <p className="text-sm text-muted-foreground">
                     Page {page} of {totalPages}
                   </p>

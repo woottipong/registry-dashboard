@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -44,20 +43,13 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <div className="relative mb-5 inline-flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-          <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-cover" />
-        </div>
-        <h1 className="mb-2 text-[28px] font-semibold tracking-tight text-foreground">
-          Registry Dashboard
-        </h1>
-        <p className="text-sm tracking-wide text-muted-foreground">
-          Sign in to manage your container registries
-        </p>
+    <div className="w-full max-w-sm space-y-5">
+      <div className="space-y-2 lg:hidden">
+        <h1 className="text-[1.9rem] font-semibold tracking-tight text-foreground">Sign In</h1>
+        <p className="text-sm text-muted-foreground">Continue into the registry workspace.</p>
       </div>
 
-      <div className="rounded-2xl border border-border/60 bg-card/45 p-8 shadow-lg backdrop-blur-2xl">
+      <div className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="username" className="ml-1 text-[13px] font-medium text-muted-foreground">
@@ -72,7 +64,7 @@ export function LoginForm() {
               placeholder="Enter your username"
               required
               disabled={isLoading}
-              className="h-11 bg-background/40 text-sm shadow-inner transition-all duration-200"
+              className="h-11 rounded-xl border-border/70 bg-background text-sm shadow-none transition-all duration-200"
             />
           </div>
 
@@ -90,7 +82,7 @@ export function LoginForm() {
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
-                className="h-11 bg-background/40 pr-12 text-sm shadow-inner transition-all duration-200"
+                className="h-11 rounded-xl border-border/70 bg-background pr-12 text-sm shadow-none transition-all duration-200"
               />
               <button
                 type="button"
@@ -117,7 +109,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="mt-2 h-11 w-full"
+            className="mt-2 h-11 w-full rounded-xl"
             disabled={isLoading}
           >
             {isLoading ? (
