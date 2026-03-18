@@ -42,42 +42,38 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/70 backdrop-blur-xl">
-      <div className="flex h-16 items-center justify-between px-6 lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/92">
+      <div className="flex h-14 items-center justify-between px-5 lg:px-8">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="size-10 lg:hidden"
+            className="size-9 rounded-full lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open menu"
           >
-            <MenuIcon className="size-5" />
+            <MenuIcon className="size-4.5" />
           </Button>
 
-          <div className="hidden md:block">
+          <div className="min-w-0">
             <Suspense fallback={null}>
               <Breadcrumbs />
             </Suspense>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="mx-2 h-8 w-px bg-border" />
-
+        <div className="flex items-center gap-2">
           <ThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="icon-sm"
                 aria-label="User menu"
-                className="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] hidden sm:flex"
+                className="hidden rounded-full border-border/70 bg-background sm:flex"
               >
-                <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-                  <UserIcon className="size-4 text-primary" />
-                </div>
+                <UserIcon className="size-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -85,7 +81,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium leading-none">Admin User</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    Logged in
+                    System access
                   </p>
                 </div>
               </DropdownMenuLabel>

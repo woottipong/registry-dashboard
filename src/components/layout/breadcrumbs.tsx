@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { ChevronRightIcon, HomeIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { useRegistries } from "@/hooks/use-registries"
 import { useMounted } from "@/hooks/use-mounted"
 
@@ -138,24 +137,24 @@ export function Breadcrumbs() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="hidden items-center gap-1 text-sm md:flex">
+    <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-1 text-sm md:flex">
       <Link
         href="/"
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-colors hover:text-foreground"
       >
         <HomeIcon className="size-4" />
-        <span>Home</span>
+        <span className="hidden lg:inline">Home</span>
       </Link>
 
       {allItems.map((item, i) => (
         <div key={`${item.href}-${i}`} className="inline-flex items-center gap-1">
           <ChevronRightIcon className="size-4 text-muted-foreground" />
           {item.isLast ? (
-            <Badge variant="outline" className="max-w-[220px] truncate">{item.label}</Badge>
+            <span className="max-w-[220px] truncate px-2 py-1 text-foreground">{item.label}</span>
           ) : (
             <Link
               href={item.href}
-              className="max-w-[160px] truncate rounded-md px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="max-w-[160px] truncate rounded-md px-2 py-1 text-muted-foreground transition-colors hover:text-foreground"
             >
               {item.label}
             </Link>

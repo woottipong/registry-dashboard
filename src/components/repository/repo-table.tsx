@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { BoxIcon, Clock3Icon, TagsIcon } from "lucide-react"
+import { BoxIcon, TagsIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table"
 import { useDebounce } from "@/hooks/use-debounce"
 import { queryKeys } from "@/lib/constants/query-keys"
-import { formatDate } from "@/lib/format"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
 import type { Repository } from "@/types/registry"
 
@@ -59,7 +58,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       <TableHeader className="bg-transparent">
         <TableRow className="border-b border-border/70 hover:bg-transparent">
           <TableHead className="px-6 py-4">Repository</TableHead>
-          <TableHead className="hidden px-4 py-4 md:table-cell">Updated</TableHead>
           <TableHead className="px-6 py-4 text-right">Tags</TableHead>
         </TableRow>
       </TableHeader>
@@ -85,13 +83,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                   </div>
                   <p className="truncate text-xs text-muted-foreground">{repo.fullName}</p>
                 </div>
-              </div>
-            </TableCell>
-
-            <TableCell className="hidden px-4 py-4 md:table-cell">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock3Icon className="size-4" />
-                <span>{repo.lastUpdated ? formatDate(repo.lastUpdated) : "Unknown"}</span>
               </div>
             </TableCell>
 

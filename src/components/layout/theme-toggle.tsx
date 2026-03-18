@@ -98,30 +98,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   )
 }
 
-export function ThemeBackdrop({ className }: ThemeBackdropProps) {
-  const mounted = useMounted()
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
-
-  if (!mounted) return null
-
-  return (
-    <div aria-hidden="true" className={cn("pointer-events-none fixed inset-0 z-0 overflow-hidden", className)}>
-      <motion.div
-        className="absolute inset-0"
-        animate={{ opacity: isDark ? 0 : 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.96),transparent_28%),radial-gradient(circle_at_top,rgba(191,219,254,0.2),transparent_36%),linear-gradient(180deg,#ffffff_0%,#f8fafc_45%,#f5f7fb_100%)]" />
-      </motion.div>
-
-      <motion.div
-        className="absolute inset-0"
-        animate={{ opacity: isDark ? 1 : 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(57,79,171,0.16),transparent_24%),linear-gradient(180deg,#040811_0%,#060c18_38%,#04060b_100%)]" />
-      </motion.div>
-    </div>
-  )
+export function ThemeBackdrop(_props: ThemeBackdropProps) {
+  return null
 }

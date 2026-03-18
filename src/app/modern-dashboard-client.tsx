@@ -1,17 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { DatabaseIcon, FolderIcon, TagIcon } from "lucide-react"
-import { EmptyState } from "@/components/empty-state"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import type { ReactNode } from "react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  BadgePlusIcon,
+  DatabaseIcon,
+  FolderIcon,
+  TagIcon,
+} from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import type { RegistryConnection } from "@/types/registry"
@@ -26,25 +26,44 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   })
 
   const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
+  const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size
+  const maxRegistryRepos = Math.max(...registriesWithStats.map((registry) => registry.repoCount), 1)
+  const maxRegistryTags = Math.max(...registriesWithStats.map((registry) => registry.tagCount), 1)
+  const maxRepoTags = Math.max(...chartData.map((repo) => repo.tagCount), 1)
 
   if (!isLoadingRegistries && registries.length === 0) {
     return (
       <section className="mx-auto flex max-w-6xl flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Overview of your connected registries.
+        <div className="rounded-[28px] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] px-5 py-5 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
+            Fleet Overview
           </p>
+          <div className="mt-3 space-y-2">
+            <h1 className="text-[2rem] font-semibold tracking-tight">Dashboard</h1>
+            <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
+              Connect at least one registry to unlock live inventory and repository ranking across your fleet.
+            </p>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            <Button size="sm" asChild>
+              <Link href="/registries/new">
+                <BadgePlusIcon data-icon="inline-start" />
+                Connect Registry
+              </Link>
+            </Button>
+          </div>
         </div>
+
         <EmptyState
           icon={<DatabaseIcon className="size-5" />}
-          title="No registries connected"
-          description="Connect your first registry to start browsing repositories and image tags."
+          title="No registry telemetry yet"
+          description="Add your first registry to turn this screen into a live operations dashboard."
           action={
             <Button asChild>
               <Link href="/registries/new">Connect Registry</Link>
             </Button>
           }
+          className="rounded-[24px] border-border/70 bg-card/92 p-14"
         />
       </section>
     )
@@ -52,149 +71,326 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Registries, repositories, and tags at a glance.
-        </p>
-      </div>
+      <Card className="overflow-hidden rounded-[28px] border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] py-0 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
+        <CardContent className="space-y-4 px-5 py-5">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
+                Fleet Overview
+              </p>
+              <div className="space-y-2">
+                <CardTitle className="text-[1.7rem] tracking-tight">Dashboard</CardTitle>
+                <p className="max-w-xl text-sm leading-5 text-muted-foreground">
+                  A live operational view of registry inventory and the repositories pulling the most tag activity right now.
+                </p>
+              </div>
+            </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="Registries"
-          value={registries.length}
-          description="Connected endpoints"
-          icon={<DatabaseIcon className="size-5 text-muted-foreground" />}
-          isLoading={isLoadingRegistries}
-        />
-        <StatCard
-          title="Repositories"
-          value={totalRepositories}
-          description="Repositories found"
-          icon={<FolderIcon className="size-5 text-muted-foreground" />}
-          isLoading={isLoadingRegistries || isLoadingRepos}
-        />
-        <StatCard
-          title="Tags"
-          value={totalTags}
-          description="Tags counted"
-          icon={<TagIcon className="size-5 text-muted-foreground" />}
-          isLoading={isLoadingRegistries || isLoadingRepos}
-        />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="overflow-hidden border-border/70">
-          <CardHeader className="gap-1 border-b pb-4">
-            <CardTitle>Registry Summary</CardTitle>
-            <CardDescription>Inventory by registry.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 pt-4">
-            {isLoadingRegistries ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between rounded-xl border p-4">
-                  <div className="flex flex-col gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-48" />
-                  </div>
-                  <Skeleton className="h-6 w-20" />
-                </div>
-              ))
-            ) : (
-              registriesWithStats.map((registry) => (
-                <Link
-                  key={registry.id}
-                  href={`/repos?registry=${registry.id}`}
-                  className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/70 p-4 transition-colors hover:bg-muted/40 md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-medium">{registry.name}</p>
-                      {registry.isDefault ? <Badge>Default</Badge> : null}
-                      <Badge variant="secondary">{registry.provider}</Badge>
-                    </div>
-                    <p className="truncate text-sm text-muted-foreground">{registry.url}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 md:justify-end">
-                    <Badge variant="outline">{registry.repoCount} repos</Badge>
-                    <Badge variant="outline">{registry.tagCount} tags</Badge>
-                  </div>
-                </Link>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-border/70">
-          <CardHeader className="gap-1 border-b pb-4">
-            <CardTitle>Top Repositories</CardTitle>
-            <CardDescription>Most-tagged repositories.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 pt-4">
-            {isLoadingRegistries || isLoadingRepos ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between rounded-xl border p-3">
-                  <div className="flex flex-col gap-2">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-6 w-16" />
-                </div>
-              ))
-            ) : chartData.length === 0 ? (
-              <EmptyState
-                icon={<FolderIcon className="size-5" />}
-                title="No repository data yet"
-                description="Repository statistics will appear here after registries finish loading."
+            <div className="grid gap-3 sm:grid-cols-3">
+              <CompactMetric
+                label="Registries"
+                value={isLoadingRegistries ? null : String(registries.length)}
+                note={`${providerCount} providers`}
+                icon={<DatabaseIcon className="size-4 text-muted-foreground" />}
               />
-            ) : (
-              chartData.map((repo) => {
+              <CompactMetric
+                label="Repositories"
+                value={isLoadingRegistries || isLoadingRepos ? null : String(totalRepositories)}
+                note="Tracked across all connected registries"
+                icon={<FolderIcon className="size-4 text-muted-foreground" />}
+              />
+              <CompactMetric
+                label="Tags"
+                value={isLoadingRegistries || isLoadingRepos ? null : String(totalTags)}
+                note="Fleet total"
+                icon={<TagIcon className="size-4 text-muted-foreground" />}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <DashboardPanel
+          title="Inventory by Registry"
+          description="Compare repository breadth and tag depth across connected registries."
+        >
+          {isLoadingRegistries ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <RegistryDensitySkeleton key={index} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {registriesWithStats.map((registry) => {
+                const repoWidth = Math.max(8, Math.round((registry.repoCount / maxRegistryRepos) * 100))
+                const tagWidth = Math.max(8, Math.round((registry.tagCount / maxRegistryTags) * 100))
+
+                return (
+                  <Link
+                    key={registry.id}
+                    href={`/repos?registry=${registry.id}`}
+                    className="group block rounded-[20px] border border-border/70 bg-background/72 px-4 py-4 transition-colors hover:bg-background"
+                  >
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-base font-semibold tracking-tight">{registry.name}</p>
+                            {registry.isDefault ? (
+                              <Badge className="border-primary/10 bg-primary/10 text-primary shadow-none hover:bg-primary/10">
+                                Default
+                              </Badge>
+                            ) : null}
+                            <RegistryPill label={registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"} />
+                          </div>
+                          <p className="truncate font-mono text-[13px] text-muted-foreground">{registry.url}</p>
+                        </div>
+
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          <RegistryPill label={`${registry.repoCount} repos`} />
+                          <RegistryPill label={`${registry.tagCount} tags`} />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <ComparisonMetric
+                          label="Repositories"
+                          value={registry.repoCount}
+                          width={repoWidth}
+                        />
+                        <ComparisonMetric
+                          label="Tags"
+                          value={registry.tagCount}
+                          width={tagWidth}
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </DashboardPanel>
+
+        <DashboardPanel
+          title="Highest Tag Volume"
+          description="Ranked by tag volume across the fleet."
+        >
+          {isLoadingRegistries || isLoadingRepos ? (
+            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <RepositoryRankSkeleton key={index} />
+              ))}
+            </div>
+          ) : chartData.length === 0 ? (
+            <EmptyState
+              icon={<FolderIcon className="size-5" />}
+              title="No repository data yet"
+              description="Repository ranking will appear once tags have been indexed."
+              className="rounded-[20px] border-border/70 bg-background/72"
+            />
+          ) : (
+            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
+              {chartData.map((repo, index) => {
                 const registry = registriesWithStats.find((item) => item.id === repo.registryId)
+                const intensity = Math.max(12, Math.round((repo.tagCount / maxRepoTags) * 100))
+                const rankTone = getRankTone(index)
+
                 return (
                   <Link
                     key={`${repo.registryId}-${repo.name}`}
                     href={`/repos/${repo.registryId}/${repo.name}`}
-                    className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/70 p-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+                    className={`group block rounded-[18px] border px-4 py-3 transition-colors hover:bg-background ${rankTone.cardClass}`}
                   >
-                    <div className="min-w-0 flex flex-col gap-1">
-                      <p className="truncate font-medium">{repo.name}</p>
-                      <p className="truncate text-sm text-muted-foreground">{registry?.name ?? repo.registryId}</p>
+                    <div className="flex items-center gap-3">
+                      <div className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${rankTone.rankClass}`}>
+                        {String(index + 1).padStart(2, "0")}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="space-y-1">
+                          <p className="truncate text-sm font-semibold tracking-tight">{repo.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {registry?.name ?? repo.registryId}
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            <span>Tag volume</span>
+                            <span>{repo.tagCount}</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-secondary/80">
+                            <div
+                              className="h-1.5 rounded-full bg-primary transition-all duration-500"
+                              style={{ width: `${intensity}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="outline" className="w-fit">
-                      {repo.tagCount} tags
-                    </Badge>
                   </Link>
                 )
-              })
-            )}
-          </CardContent>
-        </Card>
+              })}
+            </div>
+          )}
+        </DashboardPanel>
       </div>
     </section>
   )
 }
 
-interface StatCardProps {
+function DashboardPanel({
+  title,
+  description,
+  children,
+}: {
   title: string
-  value: number
   description: string
-  icon: React.ReactNode
-  isLoading: boolean
+  children: ReactNode
+}) {
+  return (
+    <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+      <CardHeader className="gap-1 px-5 pb-4 pt-5">
+        <div className="space-y-1">
+          <CardTitle className="text-xl tracking-tight">{title}</CardTitle>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </CardHeader>
+      <CardContent className="px-5 pb-5 pt-0">{children}</CardContent>
+    </Card>
+  )
 }
 
-function StatCard({ title, value, description, icon, isLoading }: StatCardProps) {
+function CompactMetric({
+  label,
+  value,
+  note,
+  icon,
+}: {
+  label: string
+  value: string | null
+  note: string
+  icon: ReactNode
+}) {
   return (
-    <Card className="overflow-hidden border-border/70">
-      <CardHeader className="gap-1">
-        <div className="flex items-center justify-between gap-3">
-          <CardDescription>{title}</CardDescription>
-          {icon}
+    <div className="rounded-[18px] border border-border/70 bg-background/72 px-3.5 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+          {label}
+        </p>
+        {icon}
+      </div>
+      <div className="mt-2 space-y-1">
+        {value === null ? (
+          <Skeleton className="h-6 w-16" />
+        ) : (
+          <p className="font-mono text-base font-semibold tracking-tight text-foreground">{value}</p>
+        )}
+        <p className="text-xs text-muted-foreground">{note}</p>
+      </div>
+    </div>
+  )
+}
+
+function ComparisonMetric({
+  label,
+  value,
+  width,
+}: {
+  label: string
+  value: number
+  width: number
+}) {
+  return (
+    <div className="space-y-2 rounded-[16px] border border-border/70 bg-card/75 px-3 py-3">
+      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <span>{label}</span>
+        <span className="font-mono text-foreground/80">{value}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-secondary/80">
+        <div
+          className="h-1.5 rounded-full bg-primary transition-all duration-500"
+          style={{ width: `${width}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function RegistryPill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium text-foreground/72">
+      {label}
+    </span>
+  )
+}
+
+function getRankTone(index: number) {
+  if (index === 0) {
+    return {
+      cardClass: "border-primary/30 bg-primary/[0.06]",
+      rankClass: "border-primary/30 bg-primary/10 text-primary",
+    }
+  }
+
+  if (index === 1) {
+    return {
+      cardClass: "border-sky-200/70 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/20",
+      rankClass: "border-sky-200/80 bg-sky-100 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300",
+    }
+  }
+
+  if (index === 2) {
+    return {
+      cardClass: "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20",
+      rankClass: "border-amber-200/80 bg-amber-100 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
+    }
+  }
+
+  return {
+    cardClass: "border-border/70 bg-background/72",
+    rankClass: "border-border/70 bg-card text-muted-foreground",
+  }
+}
+
+function RegistryDensitySkeleton() {
+  return (
+    <div className="rounded-[20px] border border-border/70 bg-background/72 px-4 py-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Skeleton className="h-5 w-28 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-44" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
         </div>
-        <CardTitle className="text-3xl">{isLoading ? <Skeleton className="h-8 w-16" /> : value}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Skeleton className="h-14 rounded-[16px]" />
+          <Skeleton className="h-14 rounded-[16px]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RepositoryRankSkeleton() {
+  return (
+    <div className="rounded-[18px] border border-border/70 bg-background/72 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-8 rounded-full" />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-1.5 w-full rounded-full" />
+        </div>
+      </div>
+    </div>
   )
 }

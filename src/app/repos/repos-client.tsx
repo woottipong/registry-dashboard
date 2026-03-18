@@ -29,8 +29,6 @@ type SortOption =
   | "name-desc"
   | "tags-desc"
   | "tags-asc"
-  | "updated-desc"
-  | "updated-asc"
 
 export function RepositoriesClient({
   initialRegistry,
@@ -126,20 +124,6 @@ export function RepositoriesClient({
         return repos.sort((a, b) => (b.tagCount ?? 0) - (a.tagCount ?? 0))
       case "tags-asc":
         return repos.sort((a, b) => (a.tagCount ?? 0) - (b.tagCount ?? 0))
-      case "updated-desc":
-        return repos.sort((a, b) => {
-          if (!a.lastUpdated && !b.lastUpdated) return 0
-          if (!a.lastUpdated) return 1
-          if (!b.lastUpdated) return -1
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-        })
-      case "updated-asc":
-        return repos.sort((a, b) => {
-          if (!a.lastUpdated && !b.lastUpdated) return 0
-          if (!a.lastUpdated) return 1
-          if (!b.lastUpdated) return -1
-          return new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
-        })
       default:
         return repos
     }
@@ -147,79 +131,90 @@ export function RepositoriesClient({
 
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        {selectedNamespace !== null ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit">
-              <ChevronLeftIcon data-icon="inline-start" />
-              Namespaces
-            </Button>
-            <Badge variant="outline">{selectedNamespaceValue || "(root)"}</Badge>
-          </div>
-        ) : null}
-
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {selectedNamespace !== null
-              ? selectedNamespaceValue
-                ? `${selectedNamespaceValue}/`
-                : "(root)"
-              : "Repositories"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {selectedNamespace !== null
-              ? "Browse repositories in the selected namespace."
-              : "Select a namespace to browse container images."}
-          </p>
-        </div>
-      </div>
-
       {!selectedRegistry ? (
         <NoRegistryState />
       ) : (
         <>
-          {selectedNamespace === null ? (
-            <Card className="overflow-hidden border-border/70">
-              <CardHeader className="gap-2 border-b pb-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {registries.map((registry) => (
-                      <Button
-                        key={registry.id}
-                        variant={selectedRegistry === registry.id ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleRegistryChange(registry.id)}
-                        className="max-w-full"
-                      >
-                        <span className="truncate">{registry.name}</span>
-                      </Button>
-                    ))}
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/registries/new">
-                        <PlusIcon data-icon="inline-start" />
-                        Connect
-                      </Link>
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <CardTitle>Namespaces</CardTitle>
-                      <CardDescription>
-                        {selectedRegistryData
-                          ? `Available namespaces in ${selectedRegistryData.name}`
-                          : "Available namespaces"}
-                      </CardDescription>
-                    </div>
-                    {namespaceList.length > 0 ? (
-                      <Badge variant="secondary">
-                        {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"}
-                      </Badge>
-                    ) : null}
-                  </div>
+          <Card className="overflow-hidden rounded-[26px] border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_92%,var(--card)_8%)_100%)] py-0 shadow-[0_20px_45px_rgba(15,23,42,0.05)]">
+            <CardContent className="space-y-4 px-5 py-5">
+              {selectedNamespace !== null ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit">
+                    <ChevronLeftIcon data-icon="inline-start" />
+                    Namespaces
+                  </Button>
+                  <Badge variant="outline" className="font-mono">
+                    {selectedNamespaceValue || "(root)"}
+                  </Badge>
                 </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/70">
+                  Repository Browser
+                </p>
+                <div className="space-y-2">
+                  <h1 className="text-[1.8rem] font-semibold tracking-tight">
+                    {selectedNamespace !== null
+                      ? selectedNamespaceValue
+                        ? `${selectedNamespaceValue}/`
+                        : "(root)"
+                      : "Repositories"}
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
+                    {selectedNamespace !== null
+                      ? "Inspect repositories inside the selected namespace and jump directly into tag inventory."
+                      : "Choose a registry and namespace to browse image repositories across your fleet."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
+                {registries.map((registry) => (
+                  <Button
+                    key={registry.id}
+                    variant={selectedRegistry === registry.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleRegistryChange(registry.id)}
+                    className="max-w-full rounded-full"
+                  >
+                    <span className="truncate">{registry.name}</span>
+                  </Button>
+                ))}
+                <Button variant="outline" size="sm" asChild className="rounded-full">
+                  <Link href="/registries/new">
+                    <PlusIcon data-icon="inline-start" />
+                    Connect
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {selectedRegistryData ? (
+                  <SummaryPill label={`Registry: ${selectedRegistryData.name}`} />
+                ) : null}
+                <SummaryPill
+                  label={
+                    selectedNamespace === null
+                      ? `${namespaceList.length} ${namespaceList.length === 1 ? "namespace" : "namespaces"}`
+                      : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"}`
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {selectedNamespace === null ? (
+            <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+              <CardHeader className="gap-1 px-5 pb-4 pt-5">
+                <CardTitle className="text-xl tracking-tight">Namespace Index</CardTitle>
+                <CardDescription>
+                  {selectedRegistryData
+                    ? `Available namespaces in ${selectedRegistryData.name}`
+                    : "Available namespaces"}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="px-5 pb-5 pt-0">
                 {namespacesQuery.isLoading ? (
                   <NamespaceSkeleton />
                 ) : namespacesQuery.isError ? (
@@ -232,103 +227,80 @@ export function RepositoriesClient({
               </CardContent>
             </Card>
           ) : (
-            <>
-              <Card className="overflow-hidden border-border/70">
-                <CardHeader className="gap-3 border-b pb-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {registries.map((registry) => (
-                        <Button
-                          key={registry.id}
-                          variant={selectedRegistry === registry.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleRegistryChange(registry.id)}
-                          className="max-w-full"
-                        >
-                          <span className="truncate">{registry.name}</span>
-                        </Button>
-                      ))}
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href="/registries/new">
-                          <PlusIcon data-icon="inline-start" />
-                          Connect
-                        </Link>
-                      </Button>
-                    </div>
+            <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+              <CardHeader className="gap-4 px-5 pb-4 pt-5">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl tracking-tight">Repository Inventory</CardTitle>
+                  <CardDescription>
+                    {sortedRepos.length} {sortedRepos.length === 1 ? "repository" : "repositories"} in {selectedNamespaceValue || "root"}
+                  </CardDescription>
+                </div>
 
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                      <div className="min-w-0">
-                        <CardTitle>Repository List</CardTitle>
-                        <CardDescription>
-                          {sortedRepos.length} {sortedRepos.length === 1 ? "repository" : "repositories"} in {selectedNamespaceValue || "root"}
-                        </CardDescription>
-                      </div>
-                      {selectedRegistryData ? (
-                        <Badge variant="outline">{selectedRegistryData.name}</Badge>
-                      ) : null}
-                    </div>
-
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                      <div className="relative flex-1">
-                        <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          value={search}
-                          onChange={handleSearchChange}
-                          className="pl-9"
-                          placeholder={`Search in ${selectedNamespaceValue || "root"}...`}
-                          aria-label="Search repositories"
-                        />
-                        {search ? (
-                          <button
-                            type="button"
-                            onClick={() => setSearch("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                            aria-label="Clear search"
-                          >
-                            Clear
-                          </button>
-                        ) : null}
-                      </div>
-
-                      <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                        <SelectTrigger className="w-full md:w-48" aria-label="Sort repositories">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name-asc">Name A→Z</SelectItem>
-                          <SelectItem value="name-desc">Name Z→A</SelectItem>
-                          <SelectItem value="tags-desc">Most Tags</SelectItem>
-                          <SelectItem value="tags-asc">Fewest Tags</SelectItem>
-                          <SelectItem value="updated-desc">Newest First</SelectItem>
-                          <SelectItem value="updated-asc">Oldest First</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-0">
-                  {repositoriesQuery.isLoading ? (
-                    <RepoSkeleton />
-                  ) : repositoriesQuery.isError ? (
-                    <ErrorState onRetry={() => repositoriesQuery.refetch()} />
-                  ) : filteredRepos.length === 0 ? (
-                    <EmptyState
-                      message={
-                        debouncedSearch
-                          ? "No repositories match your search."
-                          : "No repositories in this namespace."
-                      }
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                  <div className="relative flex-1">
+                    <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={handleSearchChange}
+                      className="h-10 rounded-xl border-border/70 bg-background/78 pl-9"
+                      placeholder={`Search in ${selectedNamespaceValue || "root"}...`}
+                      aria-label="Search repositories"
                     />
-                  ) : (
-                    <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
-                  )}
-                </CardContent>
-              </Card>
-            </>
+                    {search ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label="Clear search"
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                    <SelectTrigger className="h-10 w-full rounded-xl border-border/70 bg-background/78 md:w-52" aria-label="Sort repositories">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name-asc">Name A→Z</SelectItem>
+                      <SelectItem value="name-desc">Name Z→A</SelectItem>
+                      <SelectItem value="tags-desc">Most Tags</SelectItem>
+                      <SelectItem value="tags-asc">Fewest Tags</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent className="px-0 pb-4">
+                {repositoriesQuery.isLoading ? (
+                  <RepoSkeleton />
+                ) : repositoriesQuery.isError ? (
+                  <ErrorState onRetry={() => repositoriesQuery.refetch()} />
+                ) : filteredRepos.length === 0 ? (
+                  <EmptyState
+                    message={
+                      debouncedSearch
+                        ? "No repositories match your search."
+                        : "No repositories in this namespace."
+                    }
+                  />
+                ) : (
+                  <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
+                )}
+              </CardContent>
+            </Card>
           )}
         </>
       )}
     </section>
+  )
+}
+
+function SummaryPill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-border/70 bg-background/72 px-2.5 py-1 text-[11px] font-medium text-foreground/72">
+      {label}
+    </span>
   )
 }
 
@@ -338,76 +310,100 @@ interface NamespaceListProps {
 }
 
 function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
-  return (
-    <div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b px-2 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        <span>Namespace</span>
-        <span className="hidden sm:inline">Repos</span>
-        <span className="sr-only">Open</span>
-      </div>
+  const sortedNamespaces = [...namespaces].sort((a, b) => {
+    if (b.repositoryCount !== a.repositoryCount) {
+      return b.repositoryCount - a.repositoryCount
+    }
 
-      <div className="divide-y">
-      {namespaces.map((namespace) => {
+    return a.name.localeCompare(b.name)
+  })
+  const maxRepos = Math.max(...sortedNamespaces.map((namespace) => namespace.repositoryCount), 1)
+
+  return (
+    <div className="space-y-3">
+      {sortedNamespaces.map((namespace) => {
         const isRoot = namespace.name === ""
         const label = isRoot ? "(root)" : namespace.name
+        const width = Math.max(10, Math.round((namespace.repositoryCount / maxRepos) * 100))
 
         return (
           <button
             key={namespace.name || "_root"}
             type="button"
             onClick={() => onSelect(namespace.name)}
-            className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-muted/30"
+            className="group flex w-full flex-col gap-3 rounded-[18px] border border-border/70 bg-background/72 px-4 py-3 text-left transition-colors hover:bg-background"
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <FolderIcon className="size-4 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-card text-muted-foreground">
+                <FolderIcon className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="truncate text-sm font-semibold tracking-tight">
+                  {label}{isRoot ? "" : "/"}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">Namespace inventory</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="font-mono">
+                  {namespace.repositoryCount}
+                </Badge>
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{label}{isRoot ? "" : "/"}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {namespace.repositoryCount} {namespace.repositoryCount === 1 ? "repository" : "repositories"}
-              </p>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <span>Repositories</span>
+                <span className="font-mono text-foreground/80">
+                  {namespace.repositoryCount}
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-secondary/80">
+                <div
+                  className="h-1.5 rounded-full bg-primary transition-all duration-500"
+                  style={{ width: `${width}%` }}
+                />
+              </div>
             </div>
-            <Badge variant="outline" className="hidden sm:inline-flex">
-              {namespace.repositoryCount}
-            </Badge>
-            <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
           </button>
         )
       })}
-      </div>
     </div>
   )
 }
 
 function NamespaceSkeleton() {
   return (
-    <div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b px-2 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        <span>Namespace</span>
-        <span className="hidden sm:inline">Repos</span>
-        <span className="sr-only">Open</span>
-      </div>
-      <div className="divide-y">
+    <div className="space-y-3">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="flex items-center gap-4 px-2 py-4">
-          <Skeleton className="size-9 rounded-lg" />
-          <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-24" />
+        <div key={index} className="rounded-[18px] border border-border/70 bg-background/72 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-9 rounded-xl" />
+            <div className="flex flex-1 flex-col gap-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-6 w-12 rounded-full" />
+            <Skeleton className="size-4" />
           </div>
-          <Skeleton className="size-4" />
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-8" />
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
         </div>
       ))}
-      </div>
     </div>
   )
 }
 
 function RepoSkeleton() {
   return (
-    <div className="px-6 py-4">
+    <div className="px-5 py-2">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="flex items-center justify-between border-b py-4 last:border-0">
+        <div key={index} className="flex items-center justify-between border-b border-border/60 py-4 last:border-0">
           <div className="flex items-center gap-3">
             <Skeleton className="size-9 rounded-lg" />
             <div className="flex flex-col gap-2">

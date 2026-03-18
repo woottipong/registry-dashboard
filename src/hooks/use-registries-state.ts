@@ -22,11 +22,12 @@ interface UseRegistriesStateReturn {
   hasError: boolean
 }
 
-export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStateProps = {}): UseRegistriesStateReturn {
+export function useRegistriesState({ initialRegistries }: UseRegistriesStateProps = {}): UseRegistriesStateReturn {
+  const registriesQueryOptions =
+    initialRegistries !== undefined ? { initialData: initialRegistries } : undefined
+
   // Registry data
-  const { data: registries = [], isLoading, isError } = useRegistries({
-    initialData: initialRegistries,
-  })
+  const { data: registries = [], isLoading, isError } = useRegistries(registriesQueryOptions)
 
   // Mutations
   const deleteRegistry = useDeleteRegistry()

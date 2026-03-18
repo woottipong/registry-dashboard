@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useMemo, type ComponentType } from "react"
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -11,7 +11,6 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
-  ServerIcon,
   StarIcon,
   Trash2Icon,
 } from "lucide-react"
@@ -45,10 +44,15 @@ export function RegistryCard({
   onSetDefault,
   className,
 }: RegistryCardProps) {
-  const [checkedAt, setCheckedAt] = useState<string | null>(null)
   const ping = usePingRegistry(registry.id)
 
-  const status = ping.data?.status === "ok" ? "connected" : ping.isError ? "error" : "checking"
+  const status = ping.isPending
+    ? "checking"
+    : ping.data?.status === "ok"
+      ? "connected"
+      : ping.isError
+        ? "error"
+        : null
   const latencyMs = ping.data?.latencyMs ?? null
 
   const rateLimitPercent = useMemo(() => {
@@ -68,123 +72,172 @@ export function RegistryCard({
     basic: { Icon: LockIcon, label: "Basic Auth" },
     bearer: { Icon: KeyRoundIcon, label: "Token" },
   }[registry.authType]
-  const capabilitySummary = summarizeCapabilities(registry)
+  const capabilityLabels = getCapabilityLabels(registry)
+  const registryHost = safeGetHost(registry.url)
 
   function runPing() {
     ping.mutate(undefined, {
-      onSuccess: () => setCheckedAt(new Date().toISOString()),
       onError: (error) => {
-        setCheckedAt(new Date().toISOString())
         toast.error(error.message)
       },
     })
   }
 
   return (
-    <Card className={cn("overflow-hidden border-border/70 bg-card/90", className)}>
-      <CardHeader className="gap-3 border-b pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
+    <Card
+      className={cn(
+        "h-auto self-start overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.06)] gap-0",
+        className,
+      )}
+    >
+      <CardHeader className="gap-4 px-5 pb-4 pt-5">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="truncate">{registry.name}</CardTitle>
-              {registry.isDefault ? <Badge>Default</Badge> : null}
+              <RegistryFlag label={providerLabel} />
+              <div className="flex flex-wrap items-center gap-2">
+                {registry.isDefault ? (
+                  <Badge className="border-primary/10 bg-primary/10 text-primary shadow-none hover:bg-primary/10">
+                    Default
+                  </Badge>
+                ) : null}
+              </div>
             </div>
-            <p className="mt-2 truncate text-sm text-muted-foreground">{safeGetHost(registry.url)}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>{providerLabel}</span>
-              <span>&bull;</span>
-              <span>{authVisual.label}</span>
-              {registry.namespace ? (
-                <>
-                  <span>&bull;</span>
-                  <span>{registry.namespace}</span>
-                </>
-              ) : null}
+            <div className="space-y-1.5">
+              <CardTitle className="truncate text-xl tracking-tight">{registry.name}</CardTitle>
+              <p className="truncate font-mono text-[13px] text-muted-foreground">{registryHost}</p>
             </div>
           </div>
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <ServerIcon className="size-5" />
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="shrink-0 rounded-full border-border/70 bg-background/82"
+                aria-label="Registry actions"
+              >
+                <MoreHorizontalIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={runPing} disabled={ping.isPending}>
+                  <RefreshCwIcon data-icon="inline-start" />
+                  {ping.isPending ? "Testing..." : "Test"}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/registries/${registry.id}/edit`}>
+                    <PencilIcon data-icon="inline-start" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                {!registry.isDefault ? (
+                  <DropdownMenuItem onClick={() => onSetDefault(registry.id)}>
+                    <CheckIcon data-icon="inline-start" />
+                    Set Default
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem disabled>
+                    <StarIcon data-icon="inline-start" />
+                    Default
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem variant="destructive" onClick={() => onDelete(registry.id)}>
+                  <Trash2Icon data-icon="inline-start" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <ConnectionStatus state={status} latencyMs={latencyMs} checkedAt={checkedAt} />
+        <div className="grid gap-2 sm:grid-cols-2">
+          <RegistryMetaChip icon={authVisual.Icon} label={authVisual.label} />
+          <RegistryMetaChip label={registry.namespace ?? "Global scope"} />
+        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3 pt-4">
-        {capabilitySummary ? (
-          <p className="text-sm text-muted-foreground">{capabilitySummary}</p>
+      <CardContent className="space-y-3 px-5 pb-4 pt-0">
+        <ConnectionStatus state={status} latencyMs={latencyMs} />
+
+        {capabilityLabels.length > 0 ? (
+          <DetailRow label="Capabilities" value={capabilityLabels.join(" • ")} />
         ) : null}
 
         {typeof rateLimitPercent === "number" ? (
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Quota</p>
-                <p className="mt-2 text-sm text-muted-foreground">{registry.rateLimit?.remaining ?? 0} / {registry.rateLimit?.limit ?? 0} remaining</p>
+          <div className="rounded-[20px] border border-border/70 bg-background/72 px-3.5 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Quota
+                </p>
+                <p className="text-sm text-foreground/78">
+                  {registry.rateLimit?.remaining ?? 0} / {registry.rateLimit?.limit ?? 0} remaining
+                </p>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-semibold tabular-nums">{rateLimitPercent.toFixed(0)}%</p>
-              </div>
+              <p className="text-xl font-semibold tabular-nums text-foreground/90">
+                {rateLimitPercent.toFixed(0)}%
+              </p>
             </div>
-            <div className="mt-4 h-2 rounded-full bg-secondary">
-              <div className="h-2 rounded-full bg-primary transition-all duration-500" style={{ width: `${rateLimitPercent}%` }} />
+            <div className="mt-3 h-1.5 rounded-full bg-secondary/80">
+              <div
+                className="h-1.5 rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${rateLimitPercent}%` }}
+              />
             </div>
           </div>
         ) : null}
       </CardContent>
 
-      <CardFooter className="flex items-center gap-2 border-t pt-4">
-        <Button size="sm" className="flex-1" asChild>
+      <CardFooter className="px-5 pb-5 pt-0">
+        <Button size="sm" className="h-10 w-full rounded-full shadow-[0_10px_20px_rgba(37,99,235,0.18)]" asChild>
           <Link href={`/repos?registry=${registry.id}`}>
             Browse
             <ArrowRightIcon data-icon="inline-end" />
           </Link>
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Registry actions">
-              <MoreHorizontalIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={runPing} disabled={ping.isPending}>
-                <RefreshCwIcon data-icon="inline-start" />
-                {ping.isPending ? "Testing..." : "Test"}
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/registries/${registry.id}/edit`}>
-                  <PencilIcon data-icon="inline-start" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              {!registry.isDefault ? (
-                <DropdownMenuItem onClick={() => onSetDefault(registry.id)}>
-                  <CheckIcon data-icon="inline-start" />
-                  Set Default
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem disabled>
-                  <StarIcon data-icon="inline-start" />
-                  Default
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem variant="destructive" onClick={() => onDelete(registry.id)}>
-                <Trash2Icon data-icon="inline-start" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </CardFooter>
     </Card>
   )
 }
 
-function summarizeCapabilities(registry: RegistryConnection): string | null {
+interface RegistryMetaChipProps {
+  label: string
+  icon?: ComponentType<{ className?: string }>
+}
+
+function RegistryFlag({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+      {label}
+    </span>
+  )
+}
+
+function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
+  return (
+    <span className="inline-flex min-h-10 items-center gap-1.5 rounded-[16px] border border-border/70 bg-background/72 px-3 py-2 text-[12px] font-medium text-foreground/72">
+      {Icon ? <Icon className="size-3 text-muted-foreground" /> : null}
+      <span>{label}</span>
+    </span>
+  )
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1 rounded-[18px] border border-border/70 bg-background/56 px-3.5 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm text-foreground/78">{value}</p>
+    </div>
+  )
+}
+
+function getCapabilityLabels(registry: RegistryConnection): string[] {
   const labels: string[] = []
 
   if (registry.capabilities?.canListCatalog) labels.push("Catalog")
@@ -192,7 +245,7 @@ function summarizeCapabilities(registry: RegistryConnection): string | null {
   if (registry.capabilities?.canDelete) labels.push("Delete")
   if (registry.capabilities?.hasRateLimit) labels.push("Rate limits")
 
-  return labels.length > 0 ? labels.join(" • ") : null
+  return labels
 }
 
 function safeGetHost(url: string): string {

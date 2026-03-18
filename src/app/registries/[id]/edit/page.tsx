@@ -10,15 +10,15 @@ export default function EditRegistryPage() {
   const { data: registry, isLoading, isError } = useRegistry(params.id)
 
   if (isLoading) {
-    return <Skeleton className="mx-auto h-96 w-full max-w-2xl rounded-xl" />
+    return <Skeleton className="mx-auto h-[42rem] w-full max-w-6xl rounded-[26px]" />
   }
 
   if (isError || !registry) {
-    return <p className="text-sm text-destructive">Registry not found.</p>
+    return <p className="mx-auto max-w-6xl text-sm text-destructive">Registry not found.</p>
   }
 
   return (
-    <section className="mx-auto max-w-2xl">
+    <section className="mx-auto max-w-6xl">
       <RegistryForm mode="edit" initialValue={registry} />
     </section>
   )

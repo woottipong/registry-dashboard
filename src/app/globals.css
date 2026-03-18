@@ -155,15 +155,13 @@
     z-index: -1;
     pointer-events: none;
     background-image:
-      radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 6%, transparent), transparent 34%),
-      radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 28%),
+      radial-gradient(circle at top, color-mix(in srgb, var(--primary) 4%, transparent), transparent 36%),
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--card) 92%, var(--background) 8%) 0%,
-        var(--background) 58%,
-        color-mix(in srgb, var(--background) 96%, var(--card) 4%) 100%
+        color-mix(in srgb, var(--card) 96%, var(--background) 4%) 0%,
+        color-mix(in srgb, var(--background) 98%, var(--card) 2%) 100%
       );
-    opacity: 0.8;
+    opacity: 0.72;
   }
 }
 
