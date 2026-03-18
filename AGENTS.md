@@ -2,13 +2,23 @@
 
 Agent guide for `registry_ui`.
 
+This is the canonical workspace instructions file for the repository. Keep it concise, and link to the source documents instead of duplicating long guidance.
+
 ## Read First
 
 1. Read `CLAUDE.md` once at the start of a new task.
 2. Use `CONTRIBUTING.md` for contributor workflow and commands.
-3. Follow existing project structure and naming before introducing anything new.
+3. Use `README.md` for runtime, Docker, and environment setup.
+4. Follow existing project structure and naming before introducing anything new.
 
 `CLAUDE.md` remains the main source of truth for architecture, routes, and UI/data conventions. This file adds repo-specific execution rules for coding agents.
+
+## Documentation Map
+
+- `CLAUDE.md` — architecture, route shapes, provider model, URL patterns, and coding conventions.
+- `CONTRIBUTING.md` — local setup, test commands, and contributor workflow.
+- `README.md` — product overview, Docker usage, and deployment/runtime notes.
+- `.breakdown/STATUS.md` — current milestone and backlog status when task scope touches ongoing project planning.
 
 ## Core Rules
 
