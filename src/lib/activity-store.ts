@@ -49,12 +49,7 @@ function readStore(): ActivityItem[] {
   if (!raw) return []
 
   try {
-    const parsed = JSON.parse(raw) as ActivityItem[]
-    // Convert timestamp strings back to Date objects
-    return parsed.map(activity => ({
-      ...activity,
-      timestamp: new Date(activity.timestamp)
-    }))
+    return JSON.parse(raw) as ActivityItem[]
   } catch {
     console.error("[activity-store] Failed to parse store, starting fresh")
     return []
@@ -78,14 +73,13 @@ export function listActivities(options: { limit?: number; registry?: string } = 
 
   // Sort by timestamp (newest first) and limit
   return activities
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, limit)
 }
 
 export function createActivity(payload: ActivityInput): ActivityItem {
   const activities = readStore()
   const id = randomUUID()
-  const now = new Date()
 
   const activity: ActivityItem = {
     id,
@@ -94,7 +88,7 @@ export function createActivity(payload: ActivityInput): ActivityItem {
     registry: payload.registry,
     tag: payload.tag,
     user: payload.user,
-    timestamp: now,
+    timestamp: new Date().toISOString(),
   }
 
   // Add to the beginning of the array (newest first)
