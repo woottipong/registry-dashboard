@@ -1,6 +1,10 @@
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 import { ModernDashboardClient } from "./modern-dashboard-client"
 import { listRegistries } from "@/lib/registry-store"
 import { sanitizeRegistry } from "@/lib/registry-sanitizer"
+import { queryKeys } from "@/lib/constants/query-keys"
+
+export const dynamic = "force-dynamic"
 
 export const metadata = {
   title: "Dashboard | Registry UI",
@@ -8,7 +12,17 @@ export const metadata = {
 }
 
 export default async function DashboardPage() {
-  const initialRegistries = listRegistries().map(sanitizeRegistry)
+  const queryClient = new QueryClient()
+  const registries = listRegistries().map(sanitizeRegistry)
 
-  return <ModernDashboardClient initialRegistries={initialRegistries} />
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.registries.all,
+    queryFn: () => registries,
+  })
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ModernDashboardClient />
+    </HydrationBoundary>
+  )
 }
