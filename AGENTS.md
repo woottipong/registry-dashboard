@@ -76,12 +76,21 @@ When acting on review feedback:
 
 ## Verification Before Done
 
+All verification must run **inside the Docker dev container**, not on the host machine.
+The `ui` service container name is `registry-dashboard-ui-dev`.
+
 Default verification for code changes:
 
 ```bash
-bun run typecheck
-bun run lint
-bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+docker compose -f docker-compose.dev.yml exec ui bun run lint
+docker compose -f docker-compose.dev.yml exec ui bun run test
+```
+
+If the container is not running, start it first:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 If only one focused area changed, you may also run a narrower test first, but do not claim completion without appropriate verification.
@@ -151,15 +160,26 @@ For larger features:
 
 ## Commands
 
-Common commands:
+All commands run inside the Docker dev container via `docker compose exec`.
 
 ```bash
-bun dev
-bun run typecheck
-bun run lint
-bun run test
-bun run test:e2e
+# Start the dev stack
+docker compose -f docker-compose.dev.yml up -d
+
+# Run commands inside the ui container
+docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+docker compose -f docker-compose.dev.yml exec ui bun run lint
+docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
+docker compose -f docker-compose.dev.yml exec ui bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run test:watch
+
+# Install a new package (writes to node_modules volume inside Docker)
+docker compose -f docker-compose.dev.yml exec ui bun add <package>
+docker compose -f docker-compose.dev.yml exec ui bun add -d <package>
 ```
+
+Do **not** run `bun install`, `bun run lint`, or `bun run test` directly on the host.
+The `node_modules` volume lives inside Docker — the host has no `node_modules` directory.
 
 ## Final Check
 

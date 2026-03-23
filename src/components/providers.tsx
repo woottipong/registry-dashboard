@@ -3,7 +3,6 @@
 import { QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { usePathname } from "next/navigation"
-import { ThemeProvider } from "next-themes"
 import { useState } from "react"
 import { makeQueryClient } from "@/lib/query-client"
 import { Toaster } from "@/components/ui/sonner"
@@ -22,17 +21,11 @@ export function Providers({ children }: ProvidersProps) {
   const isLoginPage = pathname === "/login"
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-    >
-      <QueryClientProvider client={queryClient}>
-        {children}
-        {isLoginPage ? null : <CommandPalette />}
-        <Toaster richColors closeButton />
-        {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {isLoginPage ? null : <CommandPalette />}
+      <Toaster richColors closeButton />
+      {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+    </QueryClientProvider>
   )
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
+import { ThemeProvider } from "next-themes"
 import { AppShell } from "@/components/layout/app-shell"
 import { ActivityProvider } from "@/contexts/activity-context"
 import { Providers } from "@/components/providers"
@@ -47,11 +48,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <Providers>
-          <ActivityProvider>
-            <AppShell>{children}</AppShell>
-          </ActivityProvider>
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+        >
+          <Providers>
+            <ActivityProvider>
+              <AppShell>{children}</AppShell>
+            </ActivityProvider>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   )
