@@ -38,10 +38,11 @@ services:
       APP_PASSWORD: ${APP_PASSWORD:-admin123}
       CHOKIDAR_USEPOLLING: "true"
     volumes:
-      # Mount source code for hot-reload (node_modules excluded via anonymous volume)
+      # Mount source code for hot-reload
       - .:/app
-      - /app/node_modules
-      - /app/.next
+      # node_modules and .next live inside Docker volumes — not on the host
+      - node_modules_dev:/app/node_modules
+      - next_cache_dev:/app/.next
       # Persistent data directory for registry configs
       - ui-data-dev:/app/data
     depends_on:
@@ -54,6 +55,10 @@ volumes:
   registry-data-dev:
     driver: local
   ui-data-dev:
+    driver: local
+  node_modules_dev:
+    driver: local
+  next_cache_dev:
     driver: local
 
 networks:

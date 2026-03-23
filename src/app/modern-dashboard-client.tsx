@@ -312,24 +312,27 @@ function RegistryPill({ label }: { label: string }) {
 }
 
 function getRankTone(index: number) {
+  // Critical — highest tag volume, review first
   if (index === 0) {
     return {
-      cardClass: "border-primary/30 bg-primary/[0.06]",
-      rankClass: "border-primary/30 bg-primary/10 text-primary",
+      cardClass: "border-red-300/70 bg-red-50/60 dark:border-red-800/50 dark:bg-red-950/20",
+      rankClass: "border-red-400/80 bg-red-100 text-red-700 dark:border-red-800/60 dark:bg-red-900/40 dark:text-red-300",
     }
   }
 
+  // Warning
   if (index === 1) {
     return {
-      cardClass: "border-sky-200/70 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/20",
-      rankClass: "border-sky-200/80 bg-sky-100 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300",
+      cardClass: "border-orange-300/70 bg-orange-50/60 dark:border-orange-800/50 dark:bg-orange-950/20",
+      rankClass: "border-orange-400/80 bg-orange-100 text-orange-700 dark:border-orange-800/60 dark:bg-orange-900/40 dark:text-orange-300",
     }
   }
 
+  // Caution
   if (index === 2) {
     return {
-      cardClass: "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20",
-      rankClass: "border-amber-200/80 bg-amber-100 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
+      cardClass: "border-yellow-300/70 bg-yellow-50/60 dark:border-yellow-700/50 dark:bg-yellow-950/20",
+      rankClass: "border-yellow-400/80 bg-yellow-100 text-yellow-700 dark:border-yellow-700/60 dark:bg-yellow-900/40 dark:text-yellow-300",
     }
   }
 
