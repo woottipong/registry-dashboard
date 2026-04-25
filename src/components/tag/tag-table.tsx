@@ -184,6 +184,8 @@ export function TagTable({
     [registryId, repoName, canDelete, registryUrl, onDeleteClick],
   )
 
+  // TanStack Table intentionally returns callable helpers that React Compiler cannot memoize.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: tags,
     columns,

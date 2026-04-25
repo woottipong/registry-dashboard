@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useWatch } from "react-hook-form"
-import { z } from "zod"
+import * as z from "zod"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,

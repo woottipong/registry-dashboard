@@ -1,5 +1,5 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
-import { z } from "zod"
+import * as z from "zod"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"

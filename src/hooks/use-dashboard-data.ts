@@ -63,7 +63,10 @@ export function useDashboardData() {
     })),
   })
 
-  const repoQueries = [...eagerQueries, ...deferredQueries]
+  const repoQueries = useMemo(
+    () => [...eagerQueries, ...deferredQueries],
+    [eagerQueries, deferredQueries],
+  )
 
   const isLoadingRegistries = registriesQuery.isLoading
   const isLoadingRepos = repoQueries.some((q) => q.isLoading)
