@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button"
 import { useRegistriesState } from "@/hooks/use-registries-state"
 import type { RegistryConnection } from "@/types/registry"
 
-export function ModernRegistriesPage() {
+interface ModernRegistriesPageProps {
+  initialRegistries?: RegistryConnection[]
+}
+
+export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPageProps) {
   const {
     registries,
     isLoading,
@@ -20,7 +24,7 @@ export function ModernRegistriesPage() {
     handleDelete,
     handleSetDefault,
     isEmpty,
-  } = useRegistriesState()
+  } = useRegistriesState({ initialRegistries })
 
   const router = useRouter()
   const defaultRegistry = useMemo(

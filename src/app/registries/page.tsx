@@ -17,7 +17,7 @@ export default async function RegistriesPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ModernRegistriesPage />
+      <ModernRegistriesPage initialRegistries={registries} />
     </HydrationBoundary>
   )
 }

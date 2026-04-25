@@ -14,9 +14,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
+import type { RegistryConnection } from "@/types/registry"
 
-export function ModernDashboardClient() {
-  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData()
+interface ModernDashboardClientProps {
+  initialRegistries?: RegistryConnection[]
+}
+
+export function ModernDashboardClient({ initialRegistries }: ModernDashboardClientProps) {
+  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData({
+    initialRegistries,
+  })
 
   const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
   const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size

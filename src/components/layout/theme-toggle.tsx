@@ -2,7 +2,7 @@
 
 import { MoonStarIcon, SunMediumIcon } from "lucide-react"
 import { motion, useReducedMotion } from "framer-motion"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/contexts/theme-context"
 import { useMounted } from "@/hooks/use-mounted"
 import { cn } from "@/lib/utils"
 

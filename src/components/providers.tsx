@@ -7,6 +7,7 @@ import { useState } from "react"
 import { makeQueryClient } from "@/lib/query-client"
 import { Toaster } from "@/components/ui/sonner"
 import { CommandPalette } from "@/components/layout/command-palette"
+import { ThemeProvider } from "@/contexts/theme-context"
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -21,11 +22,13 @@ export function Providers({ children }: ProvidersProps) {
   const isLoginPage = pathname === "/login"
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {isLoginPage ? null : <CommandPalette />}
-      <Toaster richColors closeButton />
-      {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {isLoginPage ? null : <CommandPalette />}
+        <Toaster richColors closeButton />
+        {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }

@@ -4,7 +4,7 @@ import { useRegistries } from "@/hooks/use-registries"
 import { fetchRepositories } from "@/hooks/use-repositories"
 import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { DASHBOARD_CONFIG, DASHBOARD_QUERY_KEYS } from "@/lib/constants/dashboard"
-import type { ProviderCapabilities, RegistryAuthType, RegistryCredentials, RegistryProviderType, Repository } from "@/types/registry"
+import type { ProviderCapabilities, RegistryAuthType, RegistryConnection, RegistryCredentials, RegistryProviderType, Repository } from "@/types/registry"
 
 interface DashboardData {
   totalRepositories: number
@@ -29,8 +29,14 @@ interface DashboardData {
   }>
 }
 
-export function useDashboardData() {
-  const registriesQuery = useRegistries()
+interface UseDashboardDataOptions {
+  initialRegistries?: RegistryConnection[]
+}
+
+export function useDashboardData({ initialRegistries }: UseDashboardDataOptions = {}) {
+  const registriesQuery = useRegistries(
+    initialRegistries !== undefined ? { initialData: initialRegistries } : undefined,
+  )
   const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
 
   // Eager registries load immediately; deferred wait until eager ones complete
