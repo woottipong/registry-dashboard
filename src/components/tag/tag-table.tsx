@@ -202,10 +202,65 @@ export function TagTable({
   })
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
+      <div className="overflow-hidden rounded-lg border border-border/70">
+        <Table>
+          <TableHeader className="bg-transparent">
+            <TableRow className="border-b border-border/70 hover:bg-transparent">
+              {canDelete ? (
+                <TableHead className="w-12">
+                  <Skeleton className="size-4 rounded-sm" />
+                </TableHead>
+              ) : null}
+              <TableHead>
+                <Skeleton className="h-4 w-16" />
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">
+                <Skeleton className="h-4 w-20" />
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                <Skeleton className="h-4 w-14" />
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                <Skeleton className="h-4 w-20" />
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">
+                <Skeleton className="h-4 w-20" />
+              </TableHead>
+              <TableHead>
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <TableRow key={i} className="border-b border-border/60 hover:bg-transparent">
+                {canDelete ? (
+                  <TableCell>
+                    <Skeleton className="size-4 rounded-sm" />
+                  </TableCell>
+                ) : null}
+                <TableCell>
+                  <Skeleton className="h-4 w-28 font-mono" />
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <Skeleton className="h-4 w-32 font-mono" />
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Skeleton className="h-4 w-28" />
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="ml-auto h-8 w-8 rounded-md" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     )
   }

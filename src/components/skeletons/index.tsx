@@ -93,6 +93,41 @@ export function ManifestSkeleton() {
   )
 }
 
+export function LayerListSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className="space-y-1">
+      <div className="mb-3 grid grid-cols-[2rem_1fr_6rem_10rem] gap-3 px-3 text-xs">
+        <Skeleton className="h-4 w-4" />
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="ml-auto h-4 w-10" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+
+      {Array.from({ length: rows }).map((_, index) => (
+        <div
+          key={index}
+          className="relative overflow-hidden rounded-md border border-border/70 bg-card px-3 py-2"
+        >
+          <Skeleton
+            className="absolute inset-y-0 left-0 rounded-none bg-primary/8"
+            style={{ width: `${Math.max(18, 82 - index * 9)}%` }}
+          />
+          <div className="relative grid grid-cols-[2rem_1fr_6rem_10rem] items-center gap-3 text-xs">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-32 font-mono" />
+            <Skeleton className="ml-auto h-4 w-14" />
+            <Skeleton className="h-4 w-32 max-w-full" />
+          </div>
+        </div>
+      ))}
+
+      <div className="flex justify-end border-t border-border/70 pt-2">
+        <Skeleton className="h-5 w-24" />
+      </div>
+    </div>
+  )
+}
+
 export function StatsCardSkeleton() {
   return (
     <Card>

@@ -382,14 +382,14 @@ function NamespaceSkeleton() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Skeleton className="size-9 rounded-md" />
-              <Skeleton className="h-4 w-40" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-40 max-w-full" />
+                <Skeleton className="h-3 w-24" />
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="space-y-1">
-                <Skeleton className="h-3 w-10" />
-                <Skeleton className="h-4 w-8" />
-              </div>
-              <Skeleton className="size-4" />
+              <Skeleton className="h-6 w-16 rounded-md" />
+              <Skeleton className="size-4 rounded-sm" />
             </div>
           </div>
           <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
@@ -401,17 +401,21 @@ function NamespaceSkeleton() {
 
 function RepoSkeleton() {
   return (
-    <div className="px-5 py-2">
+    <div className="overflow-hidden">
+      <div className="grid grid-cols-[minmax(0,1fr)_7rem] border-b border-border/70 px-5 py-3">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="ml-auto h-3 w-10" />
+      </div>
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="flex items-center justify-between border-b border-border/60 py-4 last:border-0">
+        <div key={index} className="flex items-center justify-between border-b border-border/60 px-5 py-3 last:border-0">
           <div className="flex items-center gap-3">
-            <Skeleton className="size-9 rounded-lg" />
+            <Skeleton className="size-9 rounded-md" />
             <div className="flex flex-col gap-2">
               <Skeleton className="h-4 w-36" />
-              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-48 max-w-[50vw]" />
             </div>
           </div>
-          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-md" />
         </div>
       ))}
     </div>

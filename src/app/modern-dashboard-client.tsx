@@ -350,23 +350,36 @@ function getRankTone(index: number) {
 function RegistryDensitySkeleton() {
   return (
     <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Skeleton className="h-5 w-28 rounded-full" />
+              <Skeleton className="h-4 w-32" />
               <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-20 rounded-md" />
             </div>
-            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-[13px] w-56 max-w-full" />
           </div>
           <div className="flex gap-2">
-            <Skeleton className="h-6 w-20 rounded-full" />
-            <Skeleton className="h-6 w-16 rounded-full" />
+            <Skeleton className="h-6 w-16 rounded-md" />
+            <Skeleton className="h-6 w-14 rounded-md" />
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Skeleton className="h-14 rounded-md" />
-          <Skeleton className="h-14 rounded-md" />
+          <div className="space-y-2 rounded-md border border-border/70 bg-card/70 px-3 py-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-3 w-6" />
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
+          <div className="space-y-2 rounded-md border border-border/70 bg-card/70 px-3 py-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-3 w-8" />
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
         </div>
       </div>
     </div>
@@ -378,10 +391,18 @@ function RepositoryRankSkeleton() {
     <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
       <div className="flex items-center gap-3">
         <Skeleton className="size-8 rounded-md" />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-1.5 w-full rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-6" />
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
         </div>
       </div>
     </div>

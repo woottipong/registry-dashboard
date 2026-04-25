@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo, useSyncExternalStore } from "react"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import {
   AlertTriangleIcon,
@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import dynamic from "next/dynamic"
-import { ManifestSkeleton } from "@/components/skeletons"
+import { LayerListSkeleton, ManifestSkeleton } from "@/components/skeletons"
 
 const ConfigInspector = dynamic(
   () => import("@/components/manifest/config-inspector").then((m) => m.ConfigInspector),
@@ -34,7 +34,7 @@ const HistoryTimeline = dynamic(
 )
 const LayerList = dynamic(
   () => import("@/components/manifest/layer-list").then((m) => m.LayerList),
-  { loading: () => <ManifestSkeleton /> },
+  { loading: () => <LayerListSkeleton /> },
 )
 const ManifestViewer = dynamic(
   () => import("@/components/manifest/manifest-viewer").then((m) => m.ManifestViewer),
@@ -83,6 +83,7 @@ export { ImageInspectorWithBoundary as ImageInspector }
 
 function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }: ImageInspectorProps) {
   const router = useRouter()
+  const isHydrated = useHydrated()
   const { data, isLoading, isError, error } = useManifest(registryId, repoName, tag)
 
   // Memoize expensive computations
@@ -119,34 +120,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4">
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-8 w-64" />
-        </div>
-        <div className="rounded-lg border border-border/70 bg-card/80">
-          <div className="gap-3 p-4 pb-0">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-28 rounded-xl" />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="p-4">
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <div className="mt-4 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-64 w-full rounded-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ImageInspectorLoading detailed={isHydrated} />
     )
   }
 
@@ -271,5 +245,63 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         </div>
       </div>
     </section>
+  )
+}
+
+const subscribeHydration = () => () => undefined
+const getClientHydrationSnapshot = () => true
+const getServerHydrationSnapshot = () => false
+
+function useHydrated() {
+  return useSyncExternalStore(
+    subscribeHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  )
+}
+
+function ImageInspectorLoading({ detailed }: { detailed: boolean }) {
+  return (
+    <div className="mx-auto max-w-6xl space-y-4">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-8 w-64" />
+      </div>
+      <div className="rounded-lg border border-border/70 bg-card/80">
+        <div className="gap-3 p-4 pb-0">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-28 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="p-4">
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <div className="mt-4 space-y-3">
+            {detailed ? (
+              <>
+                <div className="grid h-9 w-full grid-cols-4 gap-1 rounded-md bg-muted p-1">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-7 rounded-md bg-background/70" />
+                  ))}
+                </div>
+                <LayerListSkeleton />
+              </>
+            ) : (
+              <>
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-64 w-full rounded-xl" />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

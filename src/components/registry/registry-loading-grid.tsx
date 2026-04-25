@@ -3,36 +3,38 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function RegistryLoadingGrid() {
   return (
-    <div className="grid items-start gap-5 md:grid-cols-2">
-      {Array.from({ length: 6 }).map((_, index) => (
+    <div className="grid items-start gap-3 xl:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, index) => (
         <Card
           key={index}
-          className="overflow-hidden rounded-[24px] border-border/70 gap-0 bg-card/95 py-0"
+          className="h-auto self-start overflow-hidden rounded-lg border-border/70 bg-card/95 py-0 shadow-sm gap-0"
         >
-          <CardHeader className="gap-4 px-5 pb-4 pt-5">
-            <div className="flex items-start gap-4">
-              <div className="flex flex-1 flex-col gap-3">
-                <Skeleton className="h-5 w-20 rounded-full" />
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-6 w-28 rounded-full" />
-                  <Skeleton className="h-5 w-16 rounded-full" />
+          <CardHeader className="gap-3 px-4 pb-3 pt-4">
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="space-y-1">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-[13px] w-48" />
                 </div>
-                <Skeleton className="h-4 w-40" />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
               </div>
               <Skeleton className="size-8 rounded-full" />
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <Skeleton className="h-10 rounded-[16px]" />
-              <Skeleton className="h-10 rounded-[16px]" />
+              <Skeleton className="h-9 rounded-lg" />
+              <Skeleton className="h-9 rounded-lg" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-3 px-5 pb-4 pt-0">
-            <Skeleton className="h-6 w-24 rounded-full" />
-            <Skeleton className="h-14 w-full rounded-[18px]" />
-            <Skeleton className="h-16 w-full rounded-[20px]" />
+          <CardContent className="space-y-2 px-4 pb-3 pt-0">
+            <Skeleton className="h-[4.25rem] rounded-lg" />
+            <Skeleton className="h-[4.75rem] rounded-lg" />
           </CardContent>
-          <CardContent className="px-5 pb-5 pt-0">
-            <Skeleton className="h-10 w-full rounded-full" />
+          <CardContent className="px-4 pb-4 pt-0">
+            <Skeleton className="h-9 w-full rounded-md" />
           </CardContent>
         </Card>
       ))}
