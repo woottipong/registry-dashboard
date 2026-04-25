@@ -35,6 +35,7 @@ interface RegistryCardProps {
   registry: RegistryConnection
   onDelete: (id: string) => void
   onSetDefault: (id: string) => void
+  isActionPending?: boolean
   className?: string
 }
 
@@ -42,6 +43,7 @@ export function RegistryCard({
   registry,
   onDelete,
   onSetDefault,
+  isActionPending = false,
   className,
 }: RegistryCardProps) {
   const ping = usePingRegistry(registry.id)
@@ -86,26 +88,30 @@ export function RegistryCard({
   return (
     <Card
       className={cn(
-        "h-auto self-start overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.06)] gap-0",
+        "h-auto self-start overflow-hidden rounded-lg border-border/70 bg-card/95 py-0 shadow-sm gap-0",
         className,
       )}
     >
-      <CardHeader className="gap-4 px-5 pb-4 pt-5">
+      <CardHeader className="gap-3 px-4 pb-3 pt-4">
         <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <RegistryFlag label={providerLabel} />
-              <div className="flex flex-wrap items-center gap-2">
-                {registry.isDefault ? (
-                  <Badge className="border-primary/10 bg-primary/10 text-primary shadow-none hover:bg-primary/10">
-                    Default
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <CardTitle className="truncate text-xl tracking-tight">{registry.name}</CardTitle>
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="space-y-1">
+              <CardTitle className="truncate text-base tracking-tight">{registry.name}</CardTitle>
               <p className="truncate font-mono text-[13px] text-muted-foreground">{registryHost}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <RegistryFlag label={providerLabel} />
+              {registry.isDefault ? (
+                <Badge className="h-6 border-primary/10 bg-primary/10 text-primary shadow-none hover:bg-primary/10">
+                  Default
+                </Badge>
+              ) : null}
+              <ConnectionStatus state={status} latencyMs={latencyMs} compact />
+              {status === null ? (
+                <span className="inline-flex h-6 items-center rounded-full border border-border/70 bg-background/72 px-2 text-[11px] font-medium text-muted-foreground">
+                  Not tested
+                </span>
+              ) : null}
             </div>
           </div>
           <DropdownMenu>
@@ -132,7 +138,7 @@ export function RegistryCard({
                   </Link>
                 </DropdownMenuItem>
                 {!registry.isDefault ? (
-                  <DropdownMenuItem onClick={() => onSetDefault(registry.id)}>
+                  <DropdownMenuItem onClick={() => onSetDefault(registry.id)} disabled={isActionPending}>
                     <CheckIcon data-icon="inline-start" />
                     Set Default
                   </DropdownMenuItem>
@@ -145,7 +151,7 @@ export function RegistryCard({
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem variant="destructive" onClick={() => onDelete(registry.id)}>
+                <DropdownMenuItem variant="destructive" onClick={() => onDelete(registry.id)} disabled={isActionPending}>
                   <Trash2Icon data-icon="inline-start" />
                   Delete
                 </DropdownMenuItem>
@@ -160,25 +166,23 @@ export function RegistryCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 px-5 pb-4 pt-0">
-        <ConnectionStatus state={status} latencyMs={latencyMs} />
-
+      <CardContent className="space-y-2 px-4 pb-3 pt-0">
         {capabilityLabels.length > 0 ? (
           <DetailRow label="Capabilities" value={capabilityLabels.join(" • ")} />
         ) : null}
 
         {typeof rateLimitPercent === "number" ? (
-          <div className="rounded-[20px] border border-border/70 bg-background/72 px-3.5 py-3">
+          <div className="rounded-lg border border-border/70 bg-background/72 px-3 py-2.5">
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Quota
                 </p>
-                <p className="text-sm text-foreground/78">
+                <p className="text-xs text-foreground/78">
                   {registry.rateLimit?.remaining ?? 0} / {registry.rateLimit?.limit ?? 0} remaining
                 </p>
               </div>
-              <p className="text-xl font-semibold tabular-nums text-foreground/90">
+              <p className="text-base font-semibold tabular-nums text-foreground/90">
                 {rateLimitPercent.toFixed(0)}%
               </p>
             </div>
@@ -192,8 +196,8 @@ export function RegistryCard({
         ) : null}
       </CardContent>
 
-      <CardFooter className="px-5 pb-5 pt-0">
-        <Button size="sm" className="h-10 w-full rounded-full shadow-[0_10px_20px_rgba(37,99,235,0.18)]" asChild>
+      <CardFooter className="px-4 pb-4 pt-0">
+        <Button size="sm" className="h-9 w-full" asChild>
           <Link href={`/repos?registry=${registry.id}`}>
             Browse
             <ArrowRightIcon data-icon="inline-end" />
@@ -211,7 +215,7 @@ interface RegistryMetaChipProps {
 
 function RegistryFlag({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+    <span className="inline-flex h-6 items-center rounded-full border border-border/70 bg-background px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
       {label}
     </span>
   )
@@ -219,7 +223,7 @@ function RegistryFlag({ label }: { label: string }) {
 
 function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
   return (
-    <span className="inline-flex min-h-10 items-center gap-1.5 rounded-[16px] border border-border/70 bg-background/72 px-3 py-2 text-[12px] font-medium text-foreground/72">
+    <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border/70 bg-background/72 px-3 py-2 text-[12px] font-medium text-foreground/72">
       {Icon ? <Icon className="size-3 text-muted-foreground" /> : null}
       <span>{label}</span>
     </span>
@@ -228,11 +232,11 @@ function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-[18px] border border-border/70 bg-background/56 px-3.5 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="flex flex-col gap-1 rounded-lg border border-border/70 bg-background/56 px-3 py-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
-      <p className="text-sm text-foreground/78">{value}</p>
+      <p className="text-xs text-foreground/78">{value}</p>
     </div>
   )
 }

@@ -10,7 +10,6 @@ import {
   ArrowRightIcon,
   LockKeyholeIcon,
   PlusIcon,
-  ServerIcon,
   ShieldCheckIcon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -133,68 +132,45 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_320px]">
-        <div className="rounded-[24px] border border-border/70 bg-card/95 px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-          <div className="space-y-2">
-            <h1 className="text-[2rem] font-semibold tracking-tight">
+    <div className="mx-auto flex max-w-4xl flex-col gap-4">
+      <div className="flex flex-col gap-3 border-b border-border/70 pb-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
               {mode === "create" ? "Add Registry" : "Edit Registry"}
-            </h1>
-            <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
-              Configure connection details, authentication, and default namespace so this registry behaves consistently across the dashboard.
-            </p>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2.5">
-            <Button size="sm" asChild>
-              <Link href="/registries">
-                <ArrowLeftIcon data-icon="inline-start" />
-                Back to Registries
-              </Link>
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={testConnection}
-              disabled={pingRegistry.isPending || !canPing}
-            >
-              <ShieldCheckIcon data-icon="inline-start" />
-              {pingRegistry.isPending ? "Testing…" : "Test Connection"}
-            </Button>
-          </div>
+          </h1>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Configure the endpoint, provider, and credentials used by the dashboard.
+          </p>
         </div>
-
-        <div className="rounded-[26px] border border-border/70 bg-card/92 px-4 py-4 shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
-            <ServerIcon className="size-3.5 text-primary" />
-            Form Snapshot
-          </div>
-          <div className="mt-3 grid gap-2">
-            <FormSummaryStat
-              label="Mode"
-              value={mode === "create" ? "New registry" : "Update registry"}
-              mono={false}
-            />
-            <FormSummaryStat label="Provider" value={form.getValues("provider")} />
-            <FormSummaryStat
-              label="Authentication"
-              value={currentAuthType === "none" ? "Anonymous" : currentAuthType === "basic" ? "Basic Auth" : "Bearer Token"}
-              mono={false}
-            />
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link href="/registries">
+              <ArrowLeftIcon data-icon="inline-start" />
+              Registries
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={testConnection}
+            disabled={pingRegistry.isPending || !canPing}
+          >
+            <ShieldCheckIcon data-icon="inline-start" />
+            {pingRegistry.isPending ? "Testing..." : "Test"}
+          </Button>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="rounded-[24px] border border-border/70 bg-card/95 p-5 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-            <SectionIntro
-              eyebrow="Connection Details"
-              title="General Information"
-              description="Name the registry, define the endpoint, and choose the provider behavior."
-            />
+          <div className="rounded-lg border border-border/70 bg-card/95 shadow-sm">
+            <div className="border-b border-border/70 px-4 py-3">
+              <h2 className="text-sm font-semibold tracking-tight">Connection</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Name and route registry traffic through the server-side proxy.</p>
+            </div>
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-4 p-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -204,7 +180,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="e.g. Production Cluster"
-                        className="h-10 rounded-xl border-border/70 bg-background/78"
+                        className="h-10 border-border/70 bg-background/78"
                         {...field}
                       />
                     </FormControl>
@@ -222,7 +198,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="https://registry.example.com"
-                        className="h-10 rounded-xl border-border/70 bg-background/78"
+                        className="h-10 border-border/70 bg-background/78"
                         {...field}
                       />
                     </FormControl>
@@ -239,7 +215,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormLabel>Provider</FormLabel>
                     <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-10 w-full rounded-xl border-border/70 bg-background/78">
+                        <SelectTrigger className="h-10 w-full border-border/70 bg-background/78">
                           <SelectValue placeholder="Select a provider" />
                         </SelectTrigger>
                       </FormControl>
@@ -248,9 +224,6 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <SelectItem value="dockerhub">Docker Hub</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription className="text-[11px]">
-                      Determines feature support and default behavior.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -268,28 +241,25 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="e.g. library"
-                        className="h-10 rounded-xl border-border/70 bg-background/78"
+                        className="h-10 border-border/70 bg-background/78"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      Used when pushing or pulling without an explicit namespace.
+                      Optional default namespace.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-          </div>
 
-          <div className="rounded-[24px] border border-border/70 bg-card/95 p-5 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-            <SectionIntro
-              eyebrow="Access Policy"
-              title="Authentication"
-              description="Choose how this registry should be accessed from the dashboard."
-            />
+            <div className="border-t border-border/70 px-4 py-3">
+              <h2 className="text-sm font-semibold tracking-tight">Authentication</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Credentials stay server-side and are never exposed to the browser.</p>
+            </div>
 
-            <div className="mt-5 space-y-5">
+            <div className="space-y-4 p-4 pt-0">
               <FormField
                 control={form.control}
                 name="authType"
@@ -299,7 +269,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="grid gap-3 md:grid-cols-3"
+                        className="grid gap-2 md:grid-cols-3"
                       >
                         {([
                           { value: "none", label: "Anonymous", note: "Public pull access" },
@@ -310,7 +280,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                             key={option.value}
                             htmlFor={`auth-${option.value}`}
                             className={cn(
-                              "flex min-h-24 cursor-pointer flex-col justify-between rounded-[18px] border px-4 py-4 transition-colors",
+                              "flex cursor-pointer flex-col gap-1 rounded-lg border px-3 py-3 transition-colors",
                               field.value === option.value
                                 ? "border-primary/40 bg-primary/6 text-foreground"
                                 : "border-border/70 bg-background/72 text-muted-foreground hover:border-primary/25 hover:text-foreground",
@@ -320,7 +290,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                               <RadioGroupItem value={option.value} id={`auth-${option.value}`} className="shrink-0" />
                               <span className="font-medium">{option.label}</span>
                             </div>
-                            <p className="mt-3 pl-7 text-sm text-muted-foreground">{option.note}</p>
+                            <p className="pl-7 text-xs text-muted-foreground">{option.note}</p>
                           </label>
                         ))}
                       </RadioGroup>
@@ -341,7 +311,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormControl>
                           <Input
                             placeholder="Enter username"
-                            className="h-10 rounded-xl border-border/70 bg-background/78"
+                            className="h-10 border-border/70 bg-background/78"
                             {...field}
                           />
                         </FormControl>
@@ -359,7 +329,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <Input
                             type="password"
                             placeholder="••••••••"
-                            className="h-10 rounded-xl border-border/70 bg-background/78"
+                            className="h-10 border-border/70 bg-background/78"
                             {...field}
                           />
                         </FormControl>
@@ -382,7 +352,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <Input
                             type="password"
                             placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                            className="h-10 rounded-xl border-border/70 bg-background/78 font-mono text-sm"
+                            className="h-10 border-border/70 bg-background/78 font-mono text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -395,7 +365,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-card/95 px-5 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-card/95 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <LockKeyholeIcon className="size-4 text-primary" />
               <span>Credentials are stored server-side and never exposed to the browser.</span>
@@ -412,49 +382,6 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
           </div>
         </form>
       </Form>
-    </div>
-  )
-}
-
-function SectionIntro({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow: string
-  title: string
-  description: string
-}) {
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/70">
-        {eyebrow}
-      </p>
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  )
-}
-
-function FormSummaryStat({
-  label,
-  value,
-  mono = true,
-}: {
-  label: string
-  value: string
-  mono?: boolean
-}) {
-  return (
-    <div className="rounded-[18px] border border-border/70 bg-background/72 px-3.5 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-        {label}
-      </p>
-      <p className={`mt-2 text-base font-semibold tracking-tight text-foreground ${mono ? "font-mono" : ""}`}>
-        {value}
-      </p>
     </div>
   )
 }

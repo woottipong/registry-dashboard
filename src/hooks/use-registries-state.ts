@@ -2,6 +2,11 @@ import { useCallback } from 'react'
 import { useRegistries, useDeleteRegistry, useSetDefaultRegistry } from '@/hooks/use-registries'
 import type { RegistryConnection } from '@/types/registry'
 
+interface MutationCallbacks {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}
+
 interface UseRegistriesStateProps {
   initialRegistries?: RegistryConnection[]
 }
@@ -13,8 +18,10 @@ interface UseRegistriesStateReturn {
   isError: boolean
 
   // Actions
-  handleDelete: (id: string) => void
-  handleSetDefault: (id: string) => void
+  handleDelete: (id: string, callbacks?: MutationCallbacks) => void
+  handleSetDefault: (id: string, callbacks?: MutationCallbacks) => void
+  isDeleting: boolean
+  isSettingDefault: boolean
 
   // Computed
   hasRegistries: boolean
@@ -34,14 +41,24 @@ export function useRegistriesState({ initialRegistries }: UseRegistriesStateProp
   const setDefaultRegistry = useSetDefaultRegistry()
 
   // Handle delete
-  const handleDelete = useCallback((id: string) => {
+  const handleDelete = useCallback((id: string, callbacks?: MutationCallbacks) => {
+    if (callbacks) {
+      deleteRegistry.mutate(id, callbacks)
+      return
+    }
+
     deleteRegistry.mutate(id)
   }, [deleteRegistry])
 
   // Handle set default
-  const handleSetDefault = useCallback((id: string) => {
+  const handleSetDefault = useCallback((id: string, callbacks?: MutationCallbacks) => {
     const registry = registries.find(item => item.id === id)
     if (!registry) return
+
+    if (callbacks) {
+      setDefaultRegistry.mutate({ id, registry }, callbacks)
+      return
+    }
 
     setDefaultRegistry.mutate({ id, registry })
   }, [registries, setDefaultRegistry])
@@ -60,6 +77,8 @@ export function useRegistriesState({ initialRegistries }: UseRegistriesStateProp
     // Actions
     handleDelete,
     handleSetDefault,
+    isDeleting: deleteRegistry.isPending,
+    isSettingDefault: setDefaultRegistry.isPending,
 
     // Computed
     hasRegistries,
