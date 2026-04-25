@@ -133,7 +133,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
-      <div className="flex flex-col gap-3 border-b border-border/70 pb-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-3 pb-2 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
               {mode === "create" ? "Add Registry" : "Edit Registry"}
@@ -165,7 +165,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="rounded-lg border border-border/70 bg-card/95 shadow-sm">
-            <div className="border-b border-border/70 px-4 py-3">
+            <div className="px-4 pt-4">
               <h2 className="text-sm font-semibold tracking-tight">Connection</h2>
               <p className="mt-1 text-xs text-muted-foreground">Name and route registry traffic through the server-side proxy.</p>
             </div>
@@ -254,7 +254,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               />
             </div>
 
-            <div className="border-t border-border/70 px-4 py-3">
+            <div className="px-4 pb-3 pt-5">
               <h2 className="text-sm font-semibold tracking-tight">Authentication</h2>
               <p className="mt-1 text-xs text-muted-foreground">Credentials stay server-side and are never exposed to the browser.</p>
             </div>

@@ -4,9 +4,9 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import {
   ArrowRightIcon,
-  BadgePlusIcon,
   DatabaseIcon,
   FolderIcon,
+  PlusIcon,
   TagIcon,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
@@ -34,7 +34,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   if (!isLoadingRegistries && registries.length === 0) {
     return (
       <section className="mx-auto flex max-w-6xl flex-col gap-4">
-        <div className="flex flex-col gap-4 border-b border-border/70 pb-4">
+        <div className="flex flex-col gap-4 pb-2">
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
             <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
@@ -44,8 +44,8 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           <div className="flex flex-wrap gap-2">
             <Button size="sm" asChild>
               <Link href="/registries/new">
-                <BadgePlusIcon data-icon="inline-start" />
-                Connect Registry
+                <PlusIcon data-icon="inline-start" />
+                Add Registry
               </Link>
             </Button>
           </div>
@@ -57,7 +57,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           description="Add your first registry to turn this screen into a live operations dashboard."
           action={
             <Button asChild>
-              <Link href="/registries/new">Connect Registry</Link>
+              <Link href="/registries/new">
+                <PlusIcon data-icon="inline-start" />
+                Add Registry
+              </Link>
             </Button>
           }
           className="rounded-lg border-border/70 bg-card/80 p-14"
@@ -68,7 +71,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-4 border-b border-border/70 pb-4">
+      <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
@@ -79,7 +82,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           <div className="flex flex-wrap gap-2">
             <Button size="sm" asChild>
               <Link href="/registries/new">
-                <BadgePlusIcon data-icon="inline-start" />
+                <PlusIcon data-icon="inline-start" />
                 Add Registry
               </Link>
             </Button>
@@ -255,7 +258,7 @@ function DashboardPanel({
 }) {
   return (
     <div className="rounded-lg border border-border/70 bg-card/80">
-      <div className="border-b border-border/70 px-5 py-4">
+      <div className="px-5 pt-5">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>

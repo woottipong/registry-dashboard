@@ -17,7 +17,7 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="rounded-card border">
+    <div className="rounded-lg border border-border/70 bg-card/70">
       <button
         type="button"
         className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-muted/40"

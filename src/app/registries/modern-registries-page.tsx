@@ -109,7 +109,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
 
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-4 border-b border-border/70 pb-4">
+      <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Registries</h1>

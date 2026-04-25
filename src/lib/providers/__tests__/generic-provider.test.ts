@@ -333,6 +333,77 @@ describe("GenericProvider", () => {
     })
   })
 
+  describe("getManifest()", () => {
+    it("resolves OCI image indexes to a linux/amd64 child manifest", async () => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const u = String(url)
+
+        if (u.includes("manifests/latest")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ "Docker-Content-Digest": "sha256:indexdigest" }),
+            text: () => Promise.resolve(JSON.stringify({
+              schemaVersion: 2,
+              mediaType: "application/vnd.oci.image.index.v1+json",
+              manifests: [
+                {
+                  mediaType: "application/vnd.oci.image.manifest.v1+json",
+                  size: 900,
+                  digest: "sha256:arm64",
+                  platform: { architecture: "arm64", os: "linux" },
+                },
+                {
+                  mediaType: "application/vnd.oci.image.manifest.v1+json",
+                  size: 1000,
+                  digest: "sha256:amd64",
+                  platform: { architecture: "amd64", os: "linux" },
+                },
+              ],
+            })),
+          })
+        }
+
+        if (u.includes("manifests/sha256:amd64")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ "Docker-Content-Digest": "sha256:amd64" }),
+            text: () => Promise.resolve(JSON.stringify({
+              schemaVersion: 2,
+              mediaType: "application/vnd.oci.image.manifest.v1+json",
+              config: { mediaType: "application/vnd.oci.image.config.v1+json", size: 500, digest: "sha256:cfg" },
+              layers: [{ mediaType: "application/vnd.oci.image.layer.v1.tar+gzip", size: 1500, digest: "sha256:layer" }],
+            })),
+          })
+        }
+
+        throw new Error(`Unexpected URL ${u}`)
+      }) as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      const manifest = await provider.getManifest("app", "latest")
+
+      expect(manifest.digest).toBe("sha256:amd64")
+      expect(manifest.config.digest).toBe("sha256:cfg")
+      expect(manifest.totalSize).toBe(2000)
+    })
+
+    it("throws a clear error when a manifest index has no child manifests", async () => {
+      global.fetch = mockFetch({
+        schemaVersion: 2,
+        mediaType: "application/vnd.oci.image.index.v1+json",
+        manifests: [],
+      })
+
+      const provider = new GenericProvider(CONNECTION)
+
+      await expect(provider.getManifest("app", "empty")).rejects.toThrow(
+        "Manifest index for app:empty has no platform manifests",
+      )
+    })
+  })
+
   describe("listRepositories() — Link header pagination", () => {
     it("follows Link header to fetch all catalog pages", async () => {
       let callCount = 0

@@ -9,7 +9,6 @@ import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
@@ -197,32 +196,32 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="mx-auto max-w-6xl space-y-4">
-      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-        <CardContent className="space-y-4 px-5 py-5">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
-              <ChevronLeftIcon data-icon="inline-start" />
-              Repositories
-            </Button>
-            {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
-            <Badge variant="secondary">{tagCountDisplay}</Badge>
-          </div>
+    <section className="mx-auto flex max-w-6xl flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
+            <ChevronLeftIcon data-icon="inline-start" />
+            Repositories
+          </Button>
+          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
+          <Badge variant="secondary">{tagCountDisplay}</Badge>
+        </div>
 
-          <div className="space-y-2">
-            <h1 className="text-[1.8rem] font-semibold tracking-tight">{repoName}</h1>
-            <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
-              Review tag inventory, inspect image details, and handle cleanup from one workspace.
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">{repoName}</h1>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Review tags, inspect images, and remove unused digests.
             </p>
           </div>
 
-          <div className="relative max-w-md">
+          <div className="relative w-full lg:max-w-md">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={handleSearchChange}
-              className="h-10 rounded-xl border-border/70 bg-background/78 pl-9 pr-9"
-              placeholder="Filter tags…"
+              className="pl-9 pr-9"
+              placeholder="Filter tags"
             />
             {search ? (
               <Button
@@ -235,21 +234,21 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               </Button>
             ) : null}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="overflow-hidden rounded-[24px] border-border/70 bg-card/95 py-0 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-        <CardHeader className="gap-1 px-5 pb-4 pt-5">
-          <CardTitle className="text-xl tracking-tight">Tag Inventory</CardTitle>
-          <CardDescription>Inspect, copy, and curate tags in this repository.</CardDescription>
-        </CardHeader>
-        <CardContent className="px-5 pb-4 pt-0">
+      <div className="rounded-lg border border-border/70 bg-card/80">
+        <div className="px-5 pt-5">
+          <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
+        </div>
+        <div className="px-5 pb-4 pt-5">
           {tagsQuery.isError ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
               title="Failed to load tags"
               description={tagsQuery.error?.message ?? "Unable to fetch tags."}
-              className="rounded-2xl bg-background/70"
+              className="rounded-lg bg-background/70"
             />
           ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
             <AppEmptyState
@@ -257,7 +256,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               title={search ? "No matching tags" : "No tags yet"}
               description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
               action={search ? <Button onClick={handleClearSearch}>Clear search</Button> : undefined}
-              className="rounded-2xl bg-background/70"
+              className="rounded-lg bg-background/70"
             />
           ) : (
             <>
@@ -304,8 +303,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Dialog */}
       <DeleteDialog
@@ -339,7 +338,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             transition={{ type: "spring", damping: 22, stiffness: 320 }}
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
           >
-            <div className="flex items-center gap-3 rounded-full border border-border bg-background px-5 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
               <span className="text-sm font-medium tabular-nums">
                 {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
               </span>
@@ -347,7 +346,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
+                className="h-7 px-3 text-muted-foreground hover:text-foreground"
                 onClick={() => setRowSelection({})}
               >
                 Clear
@@ -355,7 +354,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-7 rounded-full px-4"
+                className="h-7 px-4"
                 onClick={() => handleBulkDeleteClick(selectedRowTags)}
               >
                 <Trash2Icon className="size-3.5" />

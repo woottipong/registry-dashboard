@@ -57,8 +57,12 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
     <Table>
       <TableHeader className="bg-transparent">
         <TableRow className="border-b border-border/70 hover:bg-transparent">
-          <TableHead className="px-6 py-4">Repository</TableHead>
-          <TableHead className="px-6 py-4 text-right">Tags</TableHead>
+          <TableHead className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Repository
+          </TableHead>
+          <TableHead className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Tags
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,9 +74,9 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             onMouseEnter={() => setHoveredRepo(repo)}
             onMouseLeave={() => setHoveredRepo(null)}
           >
-            <TableCell className="px-6 py-4">
+            <TableCell className="px-5 py-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card">
                   <BoxIcon className="size-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
@@ -86,8 +90,8 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
               </div>
             </TableCell>
 
-            <TableCell className="px-6 py-4 text-right">
-              <Badge variant="outline" className="justify-center whitespace-nowrap">
+            <TableCell className="px-5 py-3 text-right">
+              <Badge variant="outline" className="h-6 justify-center whitespace-nowrap rounded-md px-2">
                 <TagsIcon className="size-3.5" />
                 <span>{formatCount(repo.tagCount)}</span>
               </Badge>
