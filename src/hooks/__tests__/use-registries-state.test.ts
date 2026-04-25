@@ -123,7 +123,7 @@ describe('useRegistriesState', () => {
 
     // Implementation calls mutate with only the data argument (no callback)
     expect(mockMutate).toHaveBeenCalledWith(
-      { id: 'registry-1', registry: mockRegistries[0] },
+      { id: 'registry-1' },
     )
   })
 

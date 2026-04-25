@@ -6,10 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation"
 import {
   FolderOpenIcon,
   LayoutDashboardIcon,
-  PlusIcon,
   ServerIcon,
 } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
@@ -23,9 +21,9 @@ interface SidebarProps {
 }
 
 const NAV_LINKS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboardIcon, exact: true },
+  { href: "/", label: "Overview", icon: LayoutDashboardIcon, exact: true },
   { href: "/repos", label: "Repositories", icon: FolderOpenIcon, exact: false },
-  { href: "/registries", label: "Registries", icon: ServerIcon, exact: false },
+  { href: "/registries", label: "Registry Settings", icon: ServerIcon, exact: false },
 ]
 
 function SidebarBody() {
@@ -41,22 +39,22 @@ function SidebarBody() {
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="border-b border-sidebar-border px-5 py-5">
+      <div className="px-5 pb-3 pt-5">
         <div className="flex items-center gap-3">
-          <Image src="/logo.svg" alt="Registry" width={36} height={36} className="rounded-xl" />
+          <Image src="/logo.svg" alt="Registry" width={34} height={34} className="rounded-lg" />
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sidebar-foreground/55">
-              Control Plane
+              Registry UI
             </p>
-            <h2 className="truncate text-sm font-semibold tracking-tight">Registry Dashboard</h2>
+            <h2 className="truncate text-sm font-semibold tracking-tight">Container Images</h2>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 px-4 py-5">
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-1 flex-col gap-7 px-4 py-5">
+        <div className="flex flex-col gap-2.5">
           <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/45">
-            Navigation
+            Main
           </p>
           <nav className="flex flex-col gap-1">
             {NAV_LINKS.map(({ href, label, icon: Icon, exact }) => {
@@ -66,10 +64,10 @@ function SidebarBody() {
                   key={href}
                   href={href}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     active
-                      ? "border-sidebar-primary/25 bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_10px_20px_rgba(37,99,235,0.18)]"
-                      : "border-transparent text-sidebar-foreground/68 hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground/68 hover:bg-sidebar-accent hover:text-sidebar-foreground",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -80,20 +78,11 @@ function SidebarBody() {
           </nav>
         </div>
 
-        <Separator />
-
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between px-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/45">
-              Registries
+              Registry Shortcuts
             </p>
-            <Link
-              href="/registries/new"
-              className="rounded-full border border-transparent p-1.5 text-sidebar-foreground/55 transition-colors hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              title="Add Registry"
-            >
-              <PlusIcon className="size-3.5" />
-            </Link>
           </div>
 
           <div className="flex max-h-[300px] flex-col gap-1 overflow-y-auto">
@@ -111,25 +100,25 @@ function SidebarBody() {
                     key={registry.id}
                     href={`/repos?registry=${registry.id}`}
                     className={cn(
-                      "flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                      "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors",
                       active
-                        ? "border-sidebar-primary/20 bg-sidebar-accent text-sidebar-foreground"
-                        : "border-transparent text-sidebar-foreground/68 hover:border-sidebar-border hover:bg-sidebar-accent/85 hover:text-sidebar-foreground"
+                        ? "bg-sidebar-accent text-sidebar-foreground"
+                        : "text-sidebar-foreground/68 hover:bg-sidebar-accent/85 hover:text-sidebar-foreground"
                     )}
                   >
                     <div className="flex items-center gap-2.5 truncate">
                       <div className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-[10px] font-bold",
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[10px] font-bold",
                         active
-                          ? "border-sidebar-primary bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "border-sidebar-border bg-background text-sidebar-foreground/72"
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          : "bg-background text-sidebar-foreground/72"
                       )}>
                         {registry.name.substring(0, 1).toUpperCase()}
                       </div>
                       <span className="truncate font-medium">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="rounded-full border border-sidebar-primary/20 bg-sidebar-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-primary">
+                      <span className="rounded-md bg-sidebar-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-primary">
                         Default
                       </span>
                     )}
@@ -145,11 +134,13 @@ function SidebarBody() {
         </div>
       </div>
 
-      <div className="mt-auto flex items-center justify-between border-t border-sidebar-border px-5 py-4 text-[11px] text-sidebar-foreground/45">
-        <span className="uppercase tracking-[0.18em]">Registry OS</span>
-        <span className="font-mono tabular-nums text-sidebar-foreground/55">
-          {process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
-        </span>
+      <div className="mt-auto px-4 pb-4">
+        <div className="flex items-center justify-between rounded-lg bg-sidebar-accent/55 px-3 py-2.5 text-[11px] text-sidebar-foreground/50">
+          <span className="uppercase tracking-[0.18em]">Version</span>
+          <span className="font-mono tabular-nums text-sidebar-foreground/60">
+            {process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
+          </span>
+        </div>
       </div>
     </div>
   )

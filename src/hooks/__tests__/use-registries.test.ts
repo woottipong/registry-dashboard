@@ -294,7 +294,7 @@ describe("useUpdateRegistry", () => {
 // ── useSetDefaultRegistry ─────────────────────────────────────────────────────
 
 describe("useSetDefaultRegistry", () => {
-  it("sends PUT with isDefault: true", async () => {
+  it("sends PATCH with isDefault: true", async () => {
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true, data: { ...makeRegistry(), isDefault: true } }),
@@ -305,14 +305,17 @@ describe("useSetDefaultRegistry", () => {
     const { result } = renderHook(() => useSetDefaultRegistry(), { wrapper: makeWrapper(queryClient) })
 
     await act(async () => {
-      result.current.mutate({ id: "r1", registry: makeRegistry() })
+      result.current.mutate({ id: "r1" })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    const [, options] = (fetchSpy as ReturnType<typeof vi.fn>).mock.calls[0]
+    const [url, options] = (fetchSpy as ReturnType<typeof vi.fn>).mock.calls[0]
     const body = JSON.parse(options.body as string)
+    expect(String(url)).toBe("/api/v1/registries/r1")
+    expect(options.method).toBe("PATCH")
     expect(body.isDefault).toBe(true)
+    expect(body.credentials).toBeUndefined()
   })
 
   it("invalidates all registries on success", async () => {
@@ -327,7 +330,7 @@ describe("useSetDefaultRegistry", () => {
     const { result } = renderHook(() => useSetDefaultRegistry(), { wrapper: makeWrapper(queryClient) })
 
     await act(async () => {
-      result.current.mutate({ id: "r1", registry: makeRegistry() })
+      result.current.mutate({ id: "r1" })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))

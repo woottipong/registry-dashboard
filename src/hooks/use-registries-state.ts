@@ -52,15 +52,14 @@ export function useRegistriesState({ initialRegistries }: UseRegistriesStateProp
 
   // Handle set default
   const handleSetDefault = useCallback((id: string, callbacks?: MutationCallbacks) => {
-    const registry = registries.find(item => item.id === id)
-    if (!registry) return
+    if (!registries.some(item => item.id === id)) return
 
     if (callbacks) {
-      setDefaultRegistry.mutate({ id, registry }, callbacks)
+      setDefaultRegistry.mutate({ id }, callbacks)
       return
     }
 
-    setDefaultRegistry.mutate({ id, registry })
+    setDefaultRegistry.mutate({ id })
   }, [registries, setDefaultRegistry])
 
   // Computed values

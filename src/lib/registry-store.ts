@@ -264,6 +264,24 @@ export function updateRegistry(id: string, payload: RegistryInput): RegistryConn
   return updated
 }
 
+export function setDefaultRegistry(id: string): RegistryConnection | undefined {
+  const store = readStore()
+  const existing = store.get(id)
+  if (!existing) {
+    return undefined
+  }
+
+  for (const registry of store.values()) {
+    registry.isDefault = registry.id === id
+    if (registry.id === id) {
+      registry.updatedAt = new Date().toISOString()
+    }
+  }
+
+  writeStore(store)
+  return store.get(id)
+}
+
 export function deleteRegistry(id: string): boolean {
   const store = readStore()
   const deleted = store.delete(id)

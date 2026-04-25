@@ -42,13 +42,13 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/92">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/88 backdrop-blur-md">
       <div className="flex h-14 items-center justify-between px-5 lg:px-8">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 rounded-full lg:hidden"
+            className="size-9 rounded-lg lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open menu"
           >
@@ -71,7 +71,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
                 variant="outline"
                 size="icon-sm"
                 aria-label="User menu"
-                className="hidden rounded-full border-border/70 bg-background sm:flex"
+                className="hidden rounded-lg border-border/70 bg-background sm:flex"
               >
                 <UserIcon className="size-4 text-muted-foreground" />
               </Button>
