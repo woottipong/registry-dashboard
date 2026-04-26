@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, type Mock } from "vitest"
 import { NextRequest } from "next/server"
 
-// Must mock config before any module that imports it (session, middleware chain)
+// Must mock config before any module that imports it (session, proxy chain)
 vi.mock("@/lib/config", () => ({
   config: {
     SESSION_SECRET: "test-session-secret-32-chars-min!",
@@ -11,12 +11,12 @@ vi.mock("@/lib/config", () => ({
   },
 }))
 
-// Mock iron-session so the middleware can run without a real session cookie
+// Mock iron-session so the proxy can run without a real session cookie
 vi.mock("@/lib/session", () => ({
   getSession: vi.fn().mockResolvedValue({ user: { username: "admin" }, save: vi.fn() }),
 }))
 
-import middleware from "@/middleware"
+import proxy from "@/proxy"
 import { getSession } from "@/lib/session"
 
 function makeRequest(
@@ -35,14 +35,14 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
         Origin: "http://localhost",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
 
     it("blocks DELETE when no CSRF headers are present", async () => {
       const req = makeRequest("http://localhost/api/v1/registries/abc", "DELETE")
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).toBe(403)
       const body = await res.json()
@@ -53,7 +53,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries/abc", "DELETE", {
         "X-Requested-With": "XMLHttpRequest",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -62,7 +62,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries/abc", "PUT", {
         "Sec-Fetch-Site": "same-origin",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -71,7 +71,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries/abc", "PATCH", {
         "Sec-Fetch-Site": "same-site",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -80,7 +80,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
         "Sec-Fetch-Site": "none",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -89,7 +89,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
         "X-Requested-With": "XMLHttpRequest",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -98,7 +98,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
         Origin: "https://attacker.example.com",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).toBe(403)
       const body = await res.json()
@@ -109,7 +109,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries", "POST", {
         Origin: "not a url",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).toBe(403)
       const body = await res.json()
@@ -122,7 +122,7 @@ describe("CSRF protection", () => {
         Host: "localhost:3000",
         "X-Forwarded-Host": "registry.example.com",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -133,7 +133,7 @@ describe("CSRF protection", () => {
         Host: "localhost:3000",
         "X-Forwarded-Host": "registry.example.com, proxy.internal",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -144,7 +144,7 @@ describe("CSRF protection", () => {
         Host: "localhost:3000",
         "X-Forwarded-Host": "registry.example.com",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).toBe(403)
       const body = await res.json()
@@ -155,7 +155,7 @@ describe("CSRF protection", () => {
       const req = makeRequest("http://localhost/api/v1/registries/reg-1/manifests/app/web/sha256:abc", "DELETE", {
         "Sec-Fetch-Site": "cross-site",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).toBe(403)
       const body = await res.json()
@@ -166,21 +166,21 @@ describe("CSRF protection", () => {
   describe("safe methods are exempt from CSRF check", () => {
     it("GET requests pass without X-Requested-With", async () => {
       const req = makeRequest("http://localhost/api/v1/registries", "GET")
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
 
     it("HEAD requests pass without X-Requested-With", async () => {
       const req = makeRequest("http://localhost/api/v1/registries", "HEAD")
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
 
     it("OPTIONS requests pass without X-Requested-With", async () => {
       const req = makeRequest("http://localhost/api/v1/registries", "OPTIONS")
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       expect(res.status).not.toBe(403)
     })
@@ -189,7 +189,7 @@ describe("CSRF protection", () => {
   describe("non-API paths are not subject to CSRF check", () => {
     it("POST to /login page does not return 403 (CSRF only applies to /api/)", async () => {
       const req = makeRequest("http://localhost/login", "POST")
-      const res = await middleware(req)
+      const res = await proxy(req)
 
       // /login is a public path — either redirected or passed through, never 403
       expect(res.status).not.toBe(403)
@@ -213,7 +213,7 @@ describe("session authentication", () => {
 
     for (const url of publicPaths) {
       const req = makeRequest(url, "GET")
-      const res = await middleware(req)
+      const res = await proxy(req)
       expect(res.status).not.toBe(403)
       expect(res.status).not.toBe(401)
     }
@@ -226,7 +226,7 @@ describe("session authentication", () => {
     } as never)
 
     const req = makeRequest("http://localhost/api/v1/registries", "GET")
-    const res = await middleware(req)
+    const res = await proxy(req)
 
     expect(res.status).not.toBe(401)
     expect(res.status).not.toBe(403)
@@ -239,7 +239,7 @@ describe("session authentication", () => {
     } as never)
 
     const req = makeRequest("http://localhost/repos", "GET")
-    const res = await middleware(req)
+    const res = await proxy(req)
 
     expect(res.status).toBe(307)
     expect(res.headers.get("location")).toContain("/login")
@@ -252,7 +252,7 @@ describe("session authentication", () => {
     } as never)
 
     const req = makeRequest("http://localhost/repos/docker.io/library/nginx.v1", "GET")
-    const res = await middleware(req)
+    const res = await proxy(req)
 
     expect(res.status).toBe(307)
     expect(res.headers.get("location")).toContain("/login")
@@ -265,7 +265,7 @@ describe("session authentication", () => {
     } as never)
 
     const req = makeRequest("http://localhost/api/v1/registries", "GET")
-    const res = await middleware(req)
+    const res = await proxy(req)
 
     expect(res.status).toBe(401)
     const body = await res.json()
@@ -283,7 +283,7 @@ describe("session authentication", () => {
         "X-Requested-With": "XMLHttpRequest",
         "X-Real-IP": "198.51.100.10",
       })
-      const res = await middleware(req)
+      const res = await proxy(req)
       expect(res.status).not.toBe(429)
     }
 
@@ -296,7 +296,7 @@ describe("session authentication", () => {
       "X-Requested-With": "XMLHttpRequest",
       "X-Real-IP": "198.51.100.10",
     })
-    const limitedRes = await middleware(limitedReq)
+    const limitedRes = await proxy(limitedReq)
 
     expect(limitedRes.status).toBe(429)
     expect(limitedRes.headers.get("Retry-After")).toBeTruthy()
@@ -315,7 +315,7 @@ describe("session authentication", () => {
         "X-Requested-With": "XMLHttpRequest",
         "X-Real-IP": "198.51.100.11",
       })
-      const manifestRes = await middleware(manifestReq)
+      const manifestRes = await proxy(manifestReq)
       expect(manifestRes.status).not.toBe(429)
     }
 
@@ -328,7 +328,7 @@ describe("session authentication", () => {
       "X-Requested-With": "XMLHttpRequest",
       "X-Real-IP": "198.51.100.11",
     })
-    const repositoryRes = await middleware(repositoryReq)
+    const repositoryRes = await proxy(repositoryReq)
 
     expect(repositoryRes.status).not.toBe(429)
   })

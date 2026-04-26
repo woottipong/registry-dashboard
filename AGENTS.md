@@ -1,23 +1,21 @@
 # AGENTS.md
 
-Agent guide for `registry_ui`.
+Canonical agent and contributor guide for `registry_ui`.
 
-This is the canonical workspace instructions file for the repository. Keep it concise, and link to the source documents instead of duplicating long guidance.
+This file is the source of truth for architecture, route shapes, provider model, workflow, commands, and security guardrails. Keep it concise and update it when conventions change.
 
 ## Read First
 
-1. Read `CLAUDE.md` once at the start of a new task.
-2. Use `CONTRIBUTING.md` for contributor workflow and commands.
-3. Use `README.md` for runtime, Docker, and environment setup.
+1. Read `AGENTS.md` once at the start of a new task.
+2. Use `README.md` for product overview, Docker usage, and deployment/runtime notes.
+3. Use `CONTRIBUTING.md` for contributor workflow.
 4. Follow existing project structure and naming before introducing anything new.
-
-`CLAUDE.md` remains the main source of truth for architecture, routes, and UI/data conventions. This file adds repo-specific execution rules for coding agents.
 
 ## Documentation Map
 
-- `CLAUDE.md` — architecture, route shapes, provider model, URL patterns, and coding conventions.
-- `CONTRIBUTING.md` — local setup, test commands, and contributor workflow.
+- `AGENTS.md` — architecture, route shapes, provider model, commands, coding conventions, and security guardrails.
 - `README.md` — product overview, Docker usage, and deployment/runtime notes.
+- `CONTRIBUTING.md` — contributor workflow and PR expectations.
 - `.breakdown/STATUS.md` — current milestone and backlog status when task scope touches ongoing project planning.
 
 ## Core Rules
@@ -28,6 +26,86 @@ This is the canonical workspace instructions file for the repository. Keep it co
 - Do not revert unrelated user changes.
 - Prefer updating existing files over creating new ones.
 - Never call registry APIs directly from the browser. All registry traffic must stay behind `/api/v1/*`.
+
+## Project Overview
+
+Registry Dashboard is a self-hosted web dashboard for browsing and managing Docker container images across multiple Docker Registry V2 compatible registries. It supports multiple registries simultaneously, including Docker Hub and generic Registry V2.
+
+## Tech Stack
+
+- Next.js 16 App Router + TypeScript strict mode
+- Tailwind CSS 4 + shadcn/ui
+- TanStack Query v5 for server state
+- Zustand v5 for client state
+- Zod v4 for runtime validation
+- iron-session for encrypted HTTP-only session cookies
+- Bun for package management and scripts
+- Vitest for unit tests, Playwright for E2E tests
+
+## Architecture
+
+### BFF Proxy Pattern
+
+Browser traffic must go through Next.js API routes. Do not call upstream registry APIs from client components.
+
+```text
+Browser -> /api/v1/* Next.js routes -> Registry provider -> Docker Registry / Hub APIs
+```
+
+Reasons:
+- avoid exposing registry credentials to the browser
+- avoid CORS coupling
+- centralize validation, error shaping, auth, CSRF, and rate limiting
+
+### Provider Pattern
+
+Provider implementations live under `src/lib/providers/`.
+
+- `GenericProvider` handles vanilla Docker Registry V2.
+- `DockerHubProvider` uses Docker Hub APIs for catalog/search and Registry APIs for manifests.
+- Always check provider capabilities before delete/search operations.
+- For Docker Hub, remember Hub API and Registry API are different systems.
+
+### Namespace-First Loading
+
+Repository browsing loads namespaces first, then repositories for the selected namespace.
+
+1. `/api/v1/registries/[id]/namespaces` returns `Namespace[]`
+2. `/api/v1/registries/[id]/repositories?namespace=<value>` returns repositories for that namespace
+
+Use `_root` in URLs as the sentinel for the empty root namespace.
+
+### Frontend URL Patterns
+
+Use these route shapes:
+
+```text
+/repos
+/repos?registry=<id>
+/repos?registry=<id>&namespace=<ns>
+/repos?registry=<id>&namespace=_root
+/repos/<registryId>/<repoFullName>
+/repos/<registryId>/<repoFullName>?tag=<tag>
+/registries
+/registries/new
+/registries/<id>/edit
+```
+
+Do not introduce `/repos/<registryId>` as a standalone registry overview route; registry filtering belongs in the query string.
+
+### API Response Shape
+
+Every app API route must return `ApiResponse<T>`:
+
+```ts
+// success
+{ success: true, data: T, error: null }
+
+// error
+{ success: false, data: null, error: { code: string, message: string, details?: unknown } }
+```
+
+Do not leak raw upstream Docker error shapes to clients.
 
 ## When To Open An Issue
 
@@ -106,7 +184,7 @@ This repo has several sensitive areas. Be conservative when touching them.
 
 ### Authentication and Sessions
 
-- Session auth is enforced in `src/middleware.ts`.
+- Session auth is enforced in `src/proxy.ts`.
 - API routes must return JSON errors for API auth failures, not HTML redirects.
 - State-changing API routes must preserve CSRF protections.
 
@@ -143,9 +221,19 @@ This repo has several sensitive areas. Be conservative when touching them.
 ## Frontend Rules
 
 - Use TanStack Query for server state, not ad hoc `useEffect` fetching.
-- Keep URL patterns consistent with `CLAUDE.md`.
+- Keep URL patterns consistent with this file.
 - Preserve namespace-first loading behavior.
 - Do not change route shapes casually.
+
+## Coding Conventions
+
+- TypeScript strict mode. Avoid `any`; use `unknown` and narrow with Zod or type guards.
+- Use named exports except for Next.js pages/layouts/error boundaries where default exports are required.
+- Use `@/` imports for `src/`.
+- Keep client components as small as practical; prefer server components for static/data-prepared shells.
+- Use direct imports over broad barrel imports for heavy modules.
+- Keep runtime validation at external boundaries.
+- Show user-friendly client errors; log sensitive/internal details server-side only.
 
 ## Creating Features
 

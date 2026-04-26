@@ -114,7 +114,7 @@ function getExpectedOriginHosts(request: NextRequest): Set<string> {
   return hosts
 }
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // CSRF protection for mutating API calls:

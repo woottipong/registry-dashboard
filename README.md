@@ -24,31 +24,25 @@ A modern, self-hosted web dashboard for browsing and managing Docker container i
 ## Quick Start
 
 ```bash
-# Install dependencies
-bun install
-
-# Copy environment config
+# Copy environment config, then edit secrets locally
 cp .env.example .env.local
 
-# Start dev server
-bun dev
+# Start the Docker dev stack
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open the UI using the `UI_PORT` value from your env. The default Docker dev compose port is `9002`.
 
 ## Commands
 
+Run project commands inside the Docker dev container. See [AGENTS.md](./AGENTS.md) for the canonical workflow.
+
 ```bash
-bun dev              # Dev server on :3000 (Turbopack)
-bun run build        # Production build
-bun run start        # Start production server
-bun run lint         # ESLint
-bun run lint:fix     # Auto-fix lint issues
-bun run typecheck    # tsc --noEmit
-bun test             # Unit tests (Vitest)
-bun run test:watch   # Unit tests in watch mode
-bun run test:coverage  # Unit tests with coverage
-bun run test:e2e      # E2E tests (Playwright)
+docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+docker compose -f docker-compose.dev.yml exec ui bun run lint
+docker compose -f docker-compose.dev.yml exec ui bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
+docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 ```
 
 ## Development
@@ -57,16 +51,16 @@ bun run test:e2e      # E2E tests (Playwright)
 
 ```bash
 # Unit tests
-bun test
-bun run test:watch
-bun run test:coverage
+docker compose -f docker-compose.dev.yml exec ui bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run test:watch
+docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
 
 # E2E tests
-bun run test:e2e
+docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 
 # Linting
-bun run lint
-bun run lint:fix
+docker compose -f docker-compose.dev.yml exec ui bun run lint
+docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
 ```
 
 ### Contributing
@@ -74,8 +68,8 @@ bun run lint:fix
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make your changes and ensure tests pass
-4. Run linting: `bun run lint:fix`
-5. Run type checks: `bun run typecheck`
+4. Run linting: `docker compose -f docker-compose.dev.yml exec ui bun run lint:fix`
+5. Run type checks: `docker compose -f docker-compose.dev.yml exec ui bun run typecheck`
 6. Commit your changes: `git commit -m 'Add some feature'`
 7. Push to the branch: `git push origin feature/your-feature`
 8. Submit a pull request
@@ -197,5 +191,4 @@ src/
 
 ## Repo Guidance
 
-- [CLAUDE.md](/Users/iwoody/Workspace/labs/registry_ui/CLAUDE.md): project architecture, route shapes, and implementation conventions
-- [AGENTS.md](/Users/iwoody/Workspace/labs/registry_ui/AGENTS.md): agent workflow for issues, branches, reviews, verification, and security guardrails
+- [AGENTS.md](./AGENTS.md): canonical project guide for architecture, route shapes, implementation conventions, agent workflow, verification, and security guardrails
