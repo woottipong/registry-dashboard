@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils"
 type ConnectionState = "connected" | "checking" | "error"
 
 interface ConnectionStatusProps {
-  state: ConnectionState
+  state: ConnectionState | null
   latencyMs?: number | null
-  checkedAt?: string | null
+  compact?: boolean
 }
 
 const stateStyle: Record<ConnectionState, string> = {
@@ -16,16 +16,26 @@ const stateStyle: Record<ConnectionState, string> = {
   error: "bg-rose-500",
 }
 
-export function ConnectionStatus({ state, latencyMs, checkedAt }: ConnectionStatusProps) {
-  const timestamp = checkedAt ? new Date(checkedAt).toLocaleString() : "Not checked"
+export function ConnectionStatus({ state, latencyMs, compact = false }: ConnectionStatusProps) {
+  if (!state) {
+    return null
+  }
+
+  const statusLabel =
+    state === "connected" ? "Live" : state === "error" ? "Needs attention" : "Testing"
 
   return (
-    <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-      <span className={cn("inline-flex size-2.5 rounded-full", stateStyle[state])} aria-hidden />
-      <span>{state}</span>
-      {typeof latencyMs === "number" ? <span>{latencyMs}ms</span> : null}
-      <span>•</span>
-      <span>{timestamp}</span>
+    <div className="flex items-center gap-2 text-xs">
+      <span className={cn(
+        "inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 text-foreground/85",
+        compact ? "h-6 px-2" : "px-2.5 py-1",
+      )}>
+        <span className={cn("inline-flex size-2 rounded-full", stateStyle[state])} aria-hidden />
+        <span className="font-medium">{statusLabel}</span>
+        {typeof latencyMs === "number" ? (
+          <span className="text-muted-foreground">{latencyMs}ms</span>
+        ) : null}
+      </span>
     </div>
   )
 }

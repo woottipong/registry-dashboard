@@ -3,6 +3,7 @@ import {
   deleteRegistry,
   getRegistry,
   parseRegistryInput,
+  setDefaultRegistry,
   updateRegistry,
 } from "@/lib/registry-store"
 import { sanitizeRegistry } from "@/lib/registry-sanitizer"
@@ -74,6 +75,62 @@ export async function PUT(request: Request, context: RouteContext) {
       error: {
         code: "INVALID_PAYLOAD",
         message: error instanceof Error ? error.message : "Unable to update registry",
+      },
+    }
+
+    return NextResponse.json(response, { status: 400 })
+  }
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  const { id } = await context.params
+
+  try {
+    const body = (await request.json()) as { isDefault?: unknown }
+
+    if (body.isDefault !== true) {
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: {
+          code: "INVALID_PAYLOAD",
+          message: "PATCH supports setting isDefault to true only",
+        },
+      }
+
+      return NextResponse.json(response, { status: 400 })
+    }
+
+    const updated = setDefaultRegistry(id)
+
+    if (!updated) {
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: {
+          code: "REGISTRY_NOT_FOUND",
+          message: `Registry ${id} was not found`,
+        },
+      }
+
+      return NextResponse.json(response, { status: 404 })
+    }
+
+    const response: ApiResponse<ReturnType<typeof sanitizeRegistry>> = {
+      success: true,
+      data: sanitizeRegistry(updated),
+      error: null,
+    }
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error("[PATCH /api/v1/registries/:id]", error)
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: {
+        code: "INVALID_PAYLOAD",
+        message: "Unable to set default registry",
       },
     }
 

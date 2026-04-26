@@ -1,10 +1,17 @@
 "use client"
 
-import { useMemo } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { useForm, useWatch } from "react-hook-form"
+import * as z from "zod"
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  LockKeyholeIcon,
+  PlusIcon,
+  ShieldCheckIcon,
+} from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +27,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAddRegistry, usePingRegistry, useUpdateRegistry } from "@/hooks/use-registries"
+import { cn } from "@/lib/utils"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
 const schema = z.object({
@@ -60,8 +68,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
     },
   })
 
-  const canPing = useMemo(() => Boolean(initialValue?.id), [initialValue?.id])
-  const currentAuthType = form.watch("authType")
+  const canPing = Boolean(initialValue?.id)
+  const currentAuthType = useWatch({
+    control: form.control,
+    name: "authType",
+  })
 
   const handleProviderChange = (value: string) => {
     form.setValue("provider", value as RegistryProviderType)
@@ -121,24 +132,45 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-      {/* Header */}
-      <div className="border-b bg-muted/30 px-6 py-5">
-        <h1 className="text-lg font-semibold">
-          {mode === "create" ? "Add Registry" : "Edit Registry"}
-        </h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Configure connection details for your container registry.
-        </p>
+    <div className="mx-auto flex max-w-4xl flex-col gap-4">
+      <div className="flex flex-col gap-3 pb-2 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+              {mode === "create" ? "Add Registry" : "Edit Registry"}
+          </h1>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Configure the endpoint, provider, and credentials used by the dashboard.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link href="/registries">
+              <ArrowLeftIcon data-icon="inline-start" />
+              Registries
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={testConnection}
+            disabled={pingRegistry.isPending || !canPing}
+          >
+            <ShieldCheckIcon data-icon="inline-start" />
+            {pingRegistry.isPending ? "Testing..." : "Test"}
+          </Button>
+        </div>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          {/* General Information Section */}
-          <div className="space-y-5 px-6 py-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">General Information</p>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="rounded-lg border border-border/70 bg-card/95 shadow-sm">
+            <div className="px-4 pt-4">
+              <h2 className="text-sm font-semibold tracking-tight">Connection</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Name and route registry traffic through the server-side proxy.</p>
+            </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-4 p-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -146,7 +178,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Production Cluster" {...field} />
+                      <Input
+                        placeholder="e.g. Production Cluster"
+                        className="h-10 border-border/70 bg-background/78"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,7 +196,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://registry.example.com" {...field} />
+                      <Input
+                        placeholder="https://registry.example.com"
+                        className="h-10 border-border/70 bg-background/78"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -175,7 +215,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormLabel>Provider</FormLabel>
                     <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="h-10 w-full border-border/70 bg-background/78">
                           <SelectValue placeholder="Select a provider" />
                         </SelectTrigger>
                       </FormControl>
@@ -184,7 +224,6 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <SelectItem value="dockerhub">Docker Hub</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription className="text-[11px]">Determines available features.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -200,135 +239,146 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                       <span className="font-normal text-muted-foreground">(Optional)</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. library" {...field} />
+                      <Input
+                        placeholder="e.g. library"
+                        className="h-10 border-border/70 bg-background/78"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      Used when pushing/pulling images without a namespace.
+                      Optional default namespace.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <div className="px-4 pb-3 pt-5">
+              <h2 className="text-sm font-semibold tracking-tight">Authentication</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Credentials stay server-side and are never exposed to the browser.</p>
+            </div>
+
+            <div className="space-y-4 p-4 pt-0">
+              <FormField
+                control={form.control}
+                name="authType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid gap-2 md:grid-cols-3"
+                      >
+                        {([
+                          { value: "none", label: "Anonymous", note: "Public pull access" },
+                          { value: "basic", label: "Basic Auth", note: "Username + password" },
+                          { value: "bearer", label: "Bearer Token", note: "Token-based access" },
+                        ] as const).map((option) => (
+                          <label
+                            key={option.value}
+                            htmlFor={`auth-${option.value}`}
+                            className={cn(
+                              "flex cursor-pointer flex-col gap-1 rounded-lg border px-3 py-3 transition-colors",
+                              field.value === option.value
+                                ? "border-primary/40 bg-primary/6 text-foreground"
+                                : "border-border/70 bg-background/72 text-muted-foreground hover:border-primary/25 hover:text-foreground",
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <RadioGroupItem value={option.value} id={`auth-${option.value}`} className="shrink-0" />
+                              <span className="font-medium">{option.label}</span>
+                            </div>
+                            <p className="pl-7 text-xs text-muted-foreground">{option.note}</p>
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {currentAuthType === "basic" ? (
+                <div className="grid gap-4 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter username"
+                            className="h-10 border-border/70 bg-background/78"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password / PAT</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            className="h-10 border-border/70 bg-background/78"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ) : null}
+
+              {currentAuthType === "bearer" ? (
+                <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
+                  <FormField
+                    control={form.control}
+                    name="token"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bearer Token</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                            className="h-10 border-border/70 bg-background/78 font-mono text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
 
-          <div className="h-px bg-border" />
-
-          {/* Authentication Section */}
-          <div className="space-y-5 px-6 py-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Authentication</p>
-
-            <FormField
-              control={form.control}
-              name="authType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="grid grid-cols-3 gap-3"
-                    >
-                      {(["none", "basic", "bearer"] as const).map((val) => (
-                        <label
-                          key={val}
-                          htmlFor={`auth-${val}`}
-                          className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${field.value === val
-                            ? "border-primary bg-primary/5 text-foreground"
-                            : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                            }`}
-                        >
-                          <RadioGroupItem value={val} id={`auth-${val}`} className="shrink-0" />
-                          <span className="font-medium">
-                            {val === "none" ? "Anonymous" : val === "basic" ? "Basic Auth" : "Bearer Token"}
-                          </span>
-                        </label>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {currentAuthType === "basic" && (
-              <div className="grid gap-4 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password / PAT</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {currentAuthType === "bearer" && (
-              <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
-                <FormField
-                  control={form.control}
-                  name="token"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bearer Token</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                          className="font-mono text-sm"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Footer actions */}
-          <div className="flex items-center justify-between gap-3 border-t bg-muted/20 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.back()}
-                disabled={loading}
-              >
+          <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-card/95 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LockKeyholeIcon className="size-4 text-primary" />
+              <span>Credentials are stored server-side and never exposed to the browser.</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="ghost" onClick={() => router.back()} disabled={loading}>
                 Cancel
               </Button>
+              <Button type="submit" disabled={loading}>
+                {mode === "create" ? <PlusIcon data-icon="inline-start" /> : <ArrowRightIcon data-icon="inline-start" />}
+                {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={testConnection}
-              disabled={pingRegistry.isPending || !canPing}
-            >
-              {pingRegistry.isPending ? "Testing…" : "Test Connection"}
-            </Button>
           </div>
         </form>
       </Form>

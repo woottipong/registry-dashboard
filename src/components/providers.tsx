@@ -3,11 +3,11 @@
 import { QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { usePathname } from "next/navigation"
-import { ThemeProvider } from "next-themes"
 import { useState } from "react"
 import { makeQueryClient } from "@/lib/query-client"
 import { Toaster } from "@/components/ui/sonner"
 import { CommandPalette } from "@/components/layout/command-palette"
+import { ThemeProvider } from "@/contexts/theme-context"
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -22,11 +22,7 @@ export function Providers({ children }: ProvidersProps) {
   const isLoginPage = pathname === "/login"
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-    >
+    <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         {children}
         {isLoginPage ? null : <CommandPalette />}

@@ -152,7 +152,7 @@ export function ModernRegistryList({
               url: "",
               provider: "generic" as const,
               authType: "none" as const,
-              createdAt: new Date().toISOString(),
+              createdAt: "2000-01-01T00:00:00.000Z",
             }}
             isLoading={true}
           />

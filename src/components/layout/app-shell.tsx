@@ -16,12 +16,12 @@ interface AppShellProps {
 function SidebarWrapper({ mobileOpen, onMobileOpenChange }: { mobileOpen?: boolean; onMobileOpenChange?: (open: boolean) => void }) {
   return (
     <Suspense fallback={
-      <div className="h-full w-60 border-r border-border/70 bg-sidebar/80 p-4 backdrop-blur-xl">
-        <Skeleton className="h-8 w-32" />
-        <div className="mt-4 flex flex-col gap-2">
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-full" />
+      <div className="h-full w-64 border-r border-sidebar-border bg-sidebar p-5">
+        <Skeleton className="h-8 w-36" />
+        <div className="mt-6 flex flex-col gap-3">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
         </div>
       </div>
     }>
@@ -50,13 +50,12 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative isolate flex min-h-screen bg-background text-foreground transition-colors duration-700">
       <ThemeBackdrop />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.12),_transparent_32%)] dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),_transparent_30%)]" />
 
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:ml-60">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:ml-64">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
-        <main className="flex-1 p-4 lg:px-8 lg:py-7">{children}</main>
+        <main className="flex-1 p-4 lg:px-8 lg:py-6">{children}</main>
       </div>
     </div>
   )

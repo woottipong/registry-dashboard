@@ -2,9 +2,11 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
+import { EmptyState as AppEmptyState } from "@/components/empty-state"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +26,7 @@ interface TagExplorerClientProps {
 const PER_PAGE = 50
 
 function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const selectedTag = searchParams.get("tag")
 
@@ -65,9 +68,9 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     return memoizedTags.filter(tag => tag.name.toLowerCase().includes(lowerSearch))
   }, [memoizedTags, debouncedSearch])
 
-  // Derive selected tags from row indices (TanStack Table uses string indices as default row IDs)
+  // Derive selected tags from stable row ids (tag names)
   const selectedRowTags = useMemo(
-    () => filteredTags.filter((_, i) => rowSelection[String(i)]),
+    () => filteredTags.filter((tag) => rowSelection[tag.name]),
     [filteredTags, rowSelection],
   )
 
@@ -95,6 +98,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
+  const repositoryNamespace = useMemo(() => {
+    const segments = repoName.split("/")
+    return segments.length > 1 ? segments.slice(0, -1).join("/") : ""
+  }, [repoName])
 
   // Memoize event handlers
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +111,12 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const handleClearSearch = useCallback(() => {
     setSearch("")
   }, [])
+
+  const handleBackToRepositories = useCallback(() => {
+    const params = new URLSearchParams({ registry: registryId })
+    params.set("namespace", repositoryNamespace === "" ? "_root" : repositoryNamespace)
+    router.push(`/repos?${params.toString()}`)
+  }, [registryId, repositoryNamespace, router])
 
   const handleDeleteClick = useCallback((tag: Tag) => {
     setTagToDelete(tag)
@@ -183,128 +196,115 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="space-y-6">
-      {/* Enhanced Header */}
-      <div className="relative rounded-xl bg-gradient-to-br from-primary/5 via-primary/3 to-primary/10 border border-primary/20 p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <TagIcon className="size-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold">{repoName}</h1>
-                <p className="text-sm text-muted-foreground">Tag Explorer</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {registryQuery.data && (
-                <Badge variant="outline">{registryQuery.data.name}</Badge>
-              )}
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <TagIcon className="size-3" />
-                <span>{tagCountDisplay}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search toolbar */}
-      <div className="relative max-w-sm">
-        <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={handleSearchChange}
-          className="pl-8 pr-8"
-          placeholder="Filter tags…"
-        />
-        {search && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1 h-6 w-6 p-0 hover:bg-muted"
-            onClick={handleClearSearch}
-          >
-            <XIcon className="size-3" />
+    <section className="mx-auto flex max-w-6xl flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
+            <ChevronLeftIcon data-icon="inline-start" />
+            Repositories
           </Button>
-        )}
+          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
+          <Badge variant="secondary">{tagCountDisplay}</Badge>
+        </div>
+
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">{repoName}</h1>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Review tags, inspect images, and remove unused digests.
+            </p>
+          </div>
+
+          <div className="relative w-full lg:max-w-md">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={handleSearchChange}
+              className="pl-9 pr-9"
+              placeholder="Filter tags"
+            />
+            {search ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-8 w-8 p-0"
+                onClick={handleClearSearch}
+              >
+                <XIcon className="size-3.5" />
+              </Button>
+            ) : null}
+          </div>
+        </div>
       </div>
 
-      {/* Content */}
-      {tagsQuery.isError ? (
-        <div className="rounded-card border border-destructive/30 bg-destructive/10 p-6 text-center">
-          <p className="text-sm text-destructive">
-            {tagsQuery.error?.message ?? "Failed to load tags"}
-          </p>
+      <div className="rounded-lg border border-border/70 bg-card/80">
+        <div className="px-5 pt-5">
+          <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
         </div>
-      ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
-        <div className="rounded-3xl border border-dashed border-border/50 bg-gradient-to-br from-card/50 to-card/20 p-12 text-center backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="mx-auto w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
-            <TagIcon className="w-8 h-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-bold mb-2 text-foreground">
-            {search ? "No matching tags found" : "No tags in this repository"}
-          </h3>
-          <p className="text-muted-foreground max-w-sm mx-auto mb-6 leading-relaxed">
-            {search
-              ? "Try adjusting your search terms or clearing the filter to see all available tags."
-              : "Tags will appear here once images are pushed to this repository. Check back later or push your first image to get started."
-            }
-          </p>
-          {search && (
-            <Button onClick={handleClearSearch}>
-              Clear search
-            </Button>
-          )}
-        </div>
-      ) : (
-        <>
-          <TagTable
-            registryId={registryId}
-            repoName={repoName}
-            tags={filteredTags}
-            canDelete={canDelete}
-            isLoading={tagsQuery.isLoading}
-            registryUrl={registryQuery.data?.url}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteClick={handleDeleteClick}
-          />
+        <div className="px-5 pb-4 pt-5">
+          {tagsQuery.isError ? (
+            <AppEmptyState
+              icon={<TagIcon className="size-5" />}
+              title="Failed to load tags"
+              description={tagsQuery.error?.message ?? "Unable to fetch tags."}
+              className="rounded-lg bg-background/70"
+            />
+          ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
+            <AppEmptyState
+              icon={<TagIcon className="size-5" />}
+              title={search ? "No matching tags" : "No tags yet"}
+              description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
+              action={search ? <Button onClick={handleClearSearch}>Clear search</Button> : undefined}
+              className="rounded-lg bg-background/70"
+            />
+          ) : (
+            <>
+              <TagTable
+                registryId={registryId}
+                repoName={repoName}
+                tags={filteredTags}
+                canDelete={canDelete}
+                isLoading={tagsQuery.isLoading}
+                registryUrl={registryQuery.data?.url}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                onDeleteClick={handleDeleteClick}
+              />
 
-          {/* Pagination controls — only shown when there are multiple pages */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-4 pt-2">
-              <p className="text-sm text-muted-foreground">
-                Page {page} of {totalPages} &bull; {totalTags} tags
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1 || tagsQuery.isFetching}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeftIcon className="size-4" />
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages || tagsQuery.isFetching}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  aria-label="Next page"
-                >
-                  Next
-                  <ChevronRightIcon className="size-4" />
-                </Button>
-              </div>
-            </div>
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between gap-4 border-t pt-3">
+                  <p className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1 || tagsQuery.isFetching}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeftIcon className="size-4" />
+                      Prev
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages || tagsQuery.isFetching}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      aria-label="Next page"
+                    >
+                      Next
+                      <ChevronRightIcon className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </div>
 
       {/* Delete Dialog */}
       <DeleteDialog
@@ -338,7 +338,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             transition={{ type: "spring", damping: 22, stiffness: 320 }}
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
           >
-            <div className="flex items-center gap-3 rounded-full border border-border bg-background px-5 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
               <span className="text-sm font-medium tabular-nums">
                 {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
               </span>
@@ -346,7 +346,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
+                className="h-7 px-3 text-muted-foreground hover:text-foreground"
                 onClick={() => setRowSelection({})}
               >
                 Clear
@@ -354,7 +354,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-7 rounded-full px-4"
+                className="h-7 px-4"
                 onClick={() => handleBulkDeleteClick(selectedRowTags)}
               >
                 <Trash2Icon className="size-3.5" />
@@ -368,50 +368,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   )
 }
 
-// Main component wrapped with error boundary
-class TagExplorerErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('TagExplorer error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="p-6 rounded-full bg-destructive/10 mb-6">
-            <div className="text-4xl">⚠️</div>
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-muted-foreground text-center max-w-md mb-6">
-            An unexpected error occurred while loading the tag explorer.
-          </p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Reload Page
-          </Button>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
-
 const TagExplorerWithBoundary = React.memo((props: TagExplorerClientProps) => (
-  <TagExplorerErrorBoundary>
+  <ErrorBoundary>
     <TagExplorerClient {...props} />
-  </TagExplorerErrorBoundary>
+  </ErrorBoundary>
 ))
 
 TagExplorerWithBoundary.displayName = 'TagExplorerWithBoundary'

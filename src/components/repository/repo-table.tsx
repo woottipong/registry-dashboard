@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { BoxIcon, TagsIcon } from "lucide-react"
@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useDebounce } from "@/hooks/use-debounce"
-import { STALE_TIME_TAGS } from "@/lib/query-client"
 import { queryKeys } from "@/lib/constants/query-keys"
+import { STALE_TIME_TAGS } from "@/lib/query-client"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -55,43 +55,45 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
 
   return (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Repository</TableHead>
-          <TableHead className="hidden md:table-cell">Full name</TableHead>
-          <TableHead className="text-right">Tags</TableHead>
+      <TableHeader className="bg-transparent">
+        <TableRow className="border-b border-border/70 hover:bg-transparent">
+          <TableHead className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Repository
+          </TableHead>
+          <TableHead className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Tags
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {repositories.map((repo) => (
           <TableRow
             key={repo.fullName}
-            className="cursor-pointer"
+            className="cursor-pointer border-b border-border/60 hover:bg-muted/35"
             onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
             onMouseEnter={() => setHoveredRepo(repo)}
             onMouseLeave={() => setHoveredRepo(null)}
           >
-            <TableCell>
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center rounded-md bg-muted">
+            <TableCell className="px-5 py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card">
                   <BoxIcon className="size-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <span className="block truncate font-medium">{repo.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground md:hidden">
-                    {repo.fullName}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="truncate font-medium">{repo.name}</span>
+                    {repo.isOfficial ? <Badge variant="outline">Official</Badge> : null}
+                    {repo.isPrivate ? <Badge variant="secondary">Private</Badge> : null}
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">{repo.fullName}</p>
                 </div>
               </div>
             </TableCell>
-            <TableCell className="hidden text-muted-foreground md:table-cell">{repo.fullName}</TableCell>
-            <TableCell className="text-right">
-              <Badge variant="outline" className="justify-center whitespace-nowrap">
-                <TagsIcon />
-                <span className="hidden sm:inline">
-                  {(repo.tagCount ?? 0) === 1 ? "1 tag" : `${repo.tagCount ?? 0} tags`}
-                </span>
-                <span className="sm:hidden">{repo.tagCount ?? 0}</span>
+
+            <TableCell className="px-5 py-3 text-right">
+              <Badge variant="outline" className="h-6 justify-center whitespace-nowrap rounded-md px-2">
+                <TagsIcon className="size-3.5" />
+                <span>{formatCount(repo.tagCount)}</span>
               </Badge>
             </TableCell>
           </TableRow>
@@ -99,4 +101,9 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       </TableBody>
     </Table>
   )
+}
+
+function formatCount(value?: number): string {
+  const count = value ?? 0
+  return count === 1 ? "1 tag" : `${count} tags`
 }

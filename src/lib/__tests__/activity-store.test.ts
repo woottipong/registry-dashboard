@@ -40,7 +40,7 @@ describe("createActivity()", () => {
     expect(activity.type).toBe("push")
     expect(activity.repository).toBe("app/web")
     expect(activity.registry).toBe("registry-1")
-    expect(activity.timestamp).toBeInstanceOf(Date)
+    expect(activity.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 
   it("stores optional tag and user fields", () => {
@@ -139,10 +139,10 @@ describe("clearActivities()", () => {
 })
 
 describe("timestamp persistence", () => {
-  it("deserialises timestamps as Date objects on read", () => {
+  it("deserialises timestamps as ISO strings on read", () => {
     createActivity(BASE_ACTIVITY)
 
     const list = listActivities()
-    expect(list[0].timestamp).toBeInstanceOf(Date)
+    expect(list[0].timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 })

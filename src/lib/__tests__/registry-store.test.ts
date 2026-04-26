@@ -20,6 +20,7 @@ import {
   getRegistry,
   listRegistries,
   parseRegistryInput,
+  setDefaultRegistry,
   updateRegistry,
   deleteRegistry,
 } from "@/lib/registry-store"
@@ -161,6 +162,29 @@ describe("updateRegistry()", () => {
 
     const found = getRegistry(created.id)
     expect(found?.name).toBe("Persisted")
+  })
+})
+
+describe("setDefaultRegistry()", () => {
+  it("marks only the specified registry as default", () => {
+    const first = createRegistry({ ...INPUT, name: "First" })
+    const second = createRegistry({
+      ...INPUT,
+      name: "Second",
+      authType: "basic",
+      credentials: { username: "user", password: "secret" },
+    })
+
+    const updated = setDefaultRegistry(second.id)
+
+    expect(updated?.isDefault).toBe(true)
+    expect(getRegistry(first.id)?.isDefault).toBe(false)
+    expect(getRegistry(second.id)?.isDefault).toBe(true)
+    expect(getRegistry(second.id)?.credentials?.password).toBe("secret")
+  })
+
+  it("returns undefined for non-existent id", () => {
+    expect(setDefaultRegistry("ghost-id")).toBeUndefined()
   })
 })
 

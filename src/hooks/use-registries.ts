@@ -95,21 +95,11 @@ export function useSetDefaultRegistry() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, registry }: { id: string; registry: RegistryConnection }) => {
-      const payload: RegistryPayload = {
-        name: registry.name,
-        url: registry.url,
-        provider: registry.provider,
-        authType: registry.authType,
-        credentials: registry.credentials,
-        namespace: registry.namespace,
-        isDefault: true,
-      }
-
+    mutationFn: async ({ id }: { id: string }) => {
       const response = await fetch(`/api/v1/registries/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ isDefault: true }),
       })
 
       return assertApiSuccess<RegistryConnection>(response)

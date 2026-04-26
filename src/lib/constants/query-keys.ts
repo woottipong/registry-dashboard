@@ -49,4 +49,8 @@ export const queryKeys = {
         byRef: (registryId: string, repoName: string, ref: string) =>
             ["manifest", registryId, repoName, ref] as const,
     },
+    // ── Activities ──────────────────────────────────────────────
+    activities: {
+        all: ["activities"] as const,
+    },
 } as const

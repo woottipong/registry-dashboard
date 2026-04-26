@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
+import * as z from "zod"
 import { createActivity, listActivities } from "@/lib/activity-store"
 import { logApiError } from "@/lib/error-handling"
 import type { ActivityInput } from "@/lib/activity-store"

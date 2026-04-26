@@ -27,7 +27,7 @@ export function LayerList({ layers }: LayerListProps) {
         return (
           <div
             key={`${layer.digest}-${index}`}
-            className="relative overflow-hidden rounded-md border bg-card px-3 py-2"
+            className="relative overflow-hidden rounded-md border border-border/70 bg-card px-3 py-2"
           >
             <div
               className="absolute inset-y-0 left-0 bg-primary/8"

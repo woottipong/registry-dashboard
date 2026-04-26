@@ -2,6 +2,11 @@ import { useCallback } from 'react'
 import { useRegistries, useDeleteRegistry, useSetDefaultRegistry } from '@/hooks/use-registries'
 import type { RegistryConnection } from '@/types/registry'
 
+interface MutationCallbacks {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}
+
 interface UseRegistriesStateProps {
   initialRegistries?: RegistryConnection[]
 }
@@ -13,8 +18,10 @@ interface UseRegistriesStateReturn {
   isError: boolean
 
   // Actions
-  handleDelete: (id: string) => void
-  handleSetDefault: (id: string) => void
+  handleDelete: (id: string, callbacks?: MutationCallbacks) => void
+  handleSetDefault: (id: string, callbacks?: MutationCallbacks) => void
+  isDeleting: boolean
+  isSettingDefault: boolean
 
   // Computed
   hasRegistries: boolean
@@ -22,27 +29,37 @@ interface UseRegistriesStateReturn {
   hasError: boolean
 }
 
-export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStateProps = {}): UseRegistriesStateReturn {
+export function useRegistriesState({ initialRegistries }: UseRegistriesStateProps = {}): UseRegistriesStateReturn {
+  const registriesQueryOptions =
+    initialRegistries !== undefined ? { initialData: initialRegistries } : undefined
+
   // Registry data
-  const { data: registries = [], isLoading, isError } = useRegistries({
-    initialData: initialRegistries,
-  })
+  const { data: registries = [], isLoading, isError } = useRegistries(registriesQueryOptions)
 
   // Mutations
   const deleteRegistry = useDeleteRegistry()
   const setDefaultRegistry = useSetDefaultRegistry()
 
   // Handle delete
-  const handleDelete = useCallback((id: string) => {
+  const handleDelete = useCallback((id: string, callbacks?: MutationCallbacks) => {
+    if (callbacks) {
+      deleteRegistry.mutate(id, callbacks)
+      return
+    }
+
     deleteRegistry.mutate(id)
   }, [deleteRegistry])
 
   // Handle set default
-  const handleSetDefault = useCallback((id: string) => {
-    const registry = registries.find(item => item.id === id)
-    if (!registry) return
+  const handleSetDefault = useCallback((id: string, callbacks?: MutationCallbacks) => {
+    if (!registries.some(item => item.id === id)) return
 
-    setDefaultRegistry.mutate({ id, registry })
+    if (callbacks) {
+      setDefaultRegistry.mutate({ id }, callbacks)
+      return
+    }
+
+    setDefaultRegistry.mutate({ id })
   }, [registries, setDefaultRegistry])
 
   // Computed values
@@ -59,6 +76,8 @@ export function useRegistriesState({ initialRegistries = [] }: UseRegistriesStat
     // Actions
     handleDelete,
     handleSetDefault,
+    isDeleting: deleteRegistry.isPending,
+    isSettingDefault: setDefaultRegistry.isPending,
 
     // Computed
     hasRegistries,

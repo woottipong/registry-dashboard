@@ -2,7 +2,7 @@ import { randomUUID } from "crypto"
 import fs from "fs"
 import { isIP } from "net"
 import path from "path"
-import { z } from "zod"
+import * as z from "zod"
 import { config } from "@/lib/config"
 import { decryptCredential, encryptCredential } from "@/lib/crypto"
 import type { RegistryConnection } from "@/types/registry"
@@ -262,6 +262,24 @@ export function updateRegistry(id: string, payload: RegistryInput): RegistryConn
   store.set(id, updated)
   writeStore(store)
   return updated
+}
+
+export function setDefaultRegistry(id: string): RegistryConnection | undefined {
+  const store = readStore()
+  const existing = store.get(id)
+  if (!existing) {
+    return undefined
+  }
+
+  for (const registry of store.values()) {
+    registry.isDefault = registry.id === id
+    if (registry.id === id) {
+      registry.updatedAt = new Date().toISOString()
+    }
+  }
+
+  writeStore(store)
+  return store.get(id)
 }
 
 export function deleteRegistry(id: string): boolean {

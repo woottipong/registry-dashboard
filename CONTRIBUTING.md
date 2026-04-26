@@ -1,22 +1,18 @@
 # Contributing to Registry Dashboard
 
+Read [AGENTS.md](./AGENTS.md) first. It is the canonical guide for architecture, route shapes, commands, verification, and security guardrails.
+
 ## Development Setup
 
 ```bash
-# Install dependencies
-bun install
-
-# Copy environment config
+# Copy environment config, then edit secrets locally
 cp .env.example .env.local
 
-# Start local registry for testing
-docker compose up -d registry
-
-# Start dev server
-bun dev
+# Start the Docker dev stack
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open the UI using the `UI_PORT` value from your env. The default Docker dev compose port is `9002`.
 
 ## Code Style
 
@@ -29,9 +25,8 @@ Open [http://localhost:3000](http://localhost:3000).
 Run formatting before committing:
 
 ```bash
-bun run lint:fix
-bun run format
-bun run typecheck
+docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
+docker compose -f docker-compose.dev.yml exec ui bun run typecheck
 ```
 
 ## Architecture
@@ -47,9 +42,9 @@ Browser → /api/v1/* (Next.js) → Docker Registry V2 API
 ### Unit Tests (Vitest)
 
 ```bash
-bun test             # Run all unit tests
-bun run test:watch   # Watch mode
-bun run test:coverage
+docker compose -f docker-compose.dev.yml exec ui bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run test:watch
+docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
 ```
 
 Place test files next to source: `src/lib/__tests__/format.test.ts`
@@ -62,7 +57,7 @@ Guidelines:
 ### E2E Tests (Playwright)
 
 ```bash
-bun run test:e2e
+docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 ```
 
 Requires the dev server running (handled automatically). Uses the local registry from `docker compose`.
@@ -74,7 +69,7 @@ E2E tests live in `e2e/`. Cover critical flows: add registry → browse repos �
 1. Branch from `main`: `git checkout -b feat/my-feature`
 2. Make changes following the code style guide above
 3. Add/update tests for any new logic
-4. Run `bun run typecheck && bun test` — ensure both pass
+4. Run the required Docker verification from `AGENTS.md` — ensure typecheck, lint, and tests pass
 5. Open PR with a clear description of what changed and why
 
 ## Adding a New Registry Provider

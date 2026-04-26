@@ -34,7 +34,9 @@ interface UseDashboardDataOptions {
 }
 
 export function useDashboardData({ initialRegistries }: UseDashboardDataOptions = {}) {
-  const registriesQuery = useRegistries({ initialData: initialRegistries })
+  const registriesQuery = useRegistries(
+    initialRegistries !== undefined ? { initialData: initialRegistries } : undefined,
+  )
   const memoizedRegistries = useMemo(() => registriesQuery.data ?? [], [registriesQuery.data])
 
   // Eager registries load immediately; deferred wait until eager ones complete
@@ -67,7 +69,10 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     })),
   })
 
-  const repoQueries = [...eagerQueries, ...deferredQueries]
+  const repoQueries = useMemo(
+    () => [...eagerQueries, ...deferredQueries],
+    [eagerQueries, deferredQueries],
+  )
 
   const isLoadingRegistries = registriesQuery.isLoading
   const isLoadingRepos = repoQueries.some((q) => q.isLoading)

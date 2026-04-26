@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import Image from "next/image"
 import { getSession } from "@/lib/session"
 import { LoginForm } from "./login-form"
 
@@ -11,34 +12,36 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden selection:bg-indigo-500/30">
-      {/* Soft gradient background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-black"></div>
+    <main className="min-h-screen bg-background px-4 py-10 selection:bg-primary/20 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
+        <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <section className="hidden flex-col justify-center lg:flex">
+            <div className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="relative inline-flex size-11 shrink-0 overflow-hidden rounded-2xl border border-border/70 bg-card">
+                  <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-cover" />
+                </div>
+                <p className="text-sm font-medium tracking-tight text-foreground/76">Registry Dashboard</p>
+              </div>
 
-      {/* Dynamic Grid Background for depth */}
-      <div
-        className="absolute inset-0 z-0 opacity-[0.2]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, #1e293b 1px, transparent 1px),
-            linear-gradient(to bottom, #1e293b 1px, transparent 1px)
-          `,
-          backgroundSize: '4rem 4rem',
-          maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, #000 70%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, #000 70%, transparent 100%)'
-        }}
-      />
+              <div className="max-w-xl space-y-4">
+                <h1 className="text-[2.6rem] font-semibold tracking-tight text-foreground">
+                  Sign in to access your registry workspace.
+                </h1>
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">
+                  Authenticate with the configured operator account to continue.
+                </p>
+              </div>
+            </div>
+          </section>
 
-      {/* Colorful atmospheric orbs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-screen animate-pulse duration-[8000ms]"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[40vw] h-[40vw] bg-sky-500/10 rounded-full blur-[100px] mix-blend-screen animate-pulse duration-[10000ms]"></div>
-
-      {/* Central spotlight behind the form */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[80px] z-0"></div>
-
-      <div className="relative z-10 w-full max-w-md">
-        <LoginForm />
+          <section className="flex items-center">
+            <div className="w-full">
+              <LoginForm />
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
+    </main>
   )
 }

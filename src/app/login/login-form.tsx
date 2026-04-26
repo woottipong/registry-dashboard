@@ -43,25 +43,16 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      {/* Header */}
-      <div className="text-center relative z-20">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl mb-6 relative overflow-hidden group">
-          <img src="/logo.svg" alt="Registry Dashboard" className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
-        </div>
-        <h1 className="text-[28px] font-semibold text-white mb-2 tracking-tight">
-          Registry Dashboard
-        </h1>
-        <p className="text-slate-400 text-sm tracking-wide">
-          Sign in to manage your container registries
-        </p>
+    <div className="w-full max-w-sm space-y-5">
+      <div className="space-y-2 lg:hidden">
+        <h1 className="text-[1.9rem] font-semibold tracking-tight text-foreground">Sign In</h1>
+        <p className="text-sm text-muted-foreground">Continue into the registry workspace.</p>
       </div>
 
-      {/* Login Form */}
-      <div className="relative z-20 bg-slate-900/40 backdrop-blur-3xl border border-slate-800/60 rounded-[24px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2.5">
-            <Label htmlFor="username" className="text-slate-400 font-medium text-[13px] ml-1">
+      <div className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="username" className="ml-1 text-[13px] font-medium text-muted-foreground">
               Username
             </Label>
             <Input
@@ -73,15 +64,15 @@ export function LoginForm() {
               placeholder="Enter your username"
               required
               disabled={isLoading}
-              className="bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-500 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 h-11 rounded-[14px] transition-all duration-200 text-sm px-4 shadow-inner"
+              className="h-11 rounded-xl border-border/70 bg-background text-sm shadow-none transition-all duration-200"
             />
           </div>
 
-          <div className="space-y-2.5">
-            <Label htmlFor="password" className="text-slate-400 font-medium text-[13px] ml-1">
+          <div className="space-y-2">
+            <Label htmlFor="password" className="ml-1 text-[13px] font-medium text-muted-foreground">
               Password
             </Label>
-            <div className="relative group">
+            <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -91,39 +82,39 @@ export function LoginForm() {
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
-                className="bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-500 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 h-11 rounded-[14px] pr-12 transition-all duration-200 text-sm px-4 shadow-inner"
+                className="h-11 rounded-xl border-border/70 bg-background pr-12 text-sm shadow-none transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOffIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+                  <EyeOffIcon className="size-[18px]" aria-hidden="true" />
                 ) : (
-                  <EyeIcon className="w-[18px] h-[18px]" aria-hidden="true" />
+                  <EyeIcon className="size-[18px]" aria-hidden="true" />
                 )}
               </button>
             </div>
           </div>
 
-          {error && (
-            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-[14px] p-3">
-              <AlertCircleIcon className="w-[18px] h-[18px] text-red-400 flex-shrink-0" />
-              <p className="text-red-400 text-sm font-medium">{error}</p>
+          {error ? (
+            <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-3">
+              <AlertCircleIcon className="size-[18px] shrink-0 text-destructive" />
+              <p className="text-sm font-medium text-destructive">{error}</p>
             </div>
-          )}
+          ) : null}
 
           <Button
             type="submit"
-            className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-[14px] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-600/20"
+            className="mt-2 h-11 w-full rounded-xl"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2Icon className="w-[18px] h-[18px] mr-2 motion-safe:animate-spin" />
+                <Loader2Icon className="mr-2 size-[18px] motion-safe:animate-spin" />
                 Signing In...
               </>
             ) : (

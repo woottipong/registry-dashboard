@@ -94,6 +94,12 @@ describe('useRegistriesState', () => {
     expect(result.current.hasError).toBe(false)
   })
 
+  it('should not pass empty initialData when no initial registries are provided', () => {
+    renderHook(() => useRegistriesState())
+
+    expect(mockUseRegistries).toHaveBeenCalledWith(undefined)
+  })
+
   it('should handle delete registry', () => {
     const mockMutate = vi.fn()
     mockUseDeleteRegistry.mockReturnValue({
@@ -103,9 +109,7 @@ describe('useRegistriesState', () => {
     const { result } = renderHook(() => useRegistriesState())
     result.current.handleDelete('registry-1')
 
-    expect(mockMutate).toHaveBeenCalledWith('registry-1', {
-      onSuccess: expect.any(Function),
-    })
+    expect(mockMutate).toHaveBeenCalledWith('registry-1')
   })
 
   it('should handle set default registry', () => {
@@ -119,7 +123,7 @@ describe('useRegistriesState', () => {
 
     // Implementation calls mutate with only the data argument (no callback)
     expect(mockMutate).toHaveBeenCalledWith(
-      { id: 'registry-1', registry: mockRegistries[0] },
+      { id: 'registry-1' },
     )
   })
 

@@ -1,5 +1,5 @@
 import { RegistryHttpClient } from "@/lib/registry-client"
-import { z } from "zod"
+import * as z from "zod"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
@@ -9,6 +9,14 @@ const INDEX_MEDIA_TYPES = new Set([
   "application/vnd.oci.image.index.v1+json",
   "application/vnd.docker.distribution.manifest.list.v2+json",
 ])
+
+const MANIFEST_ACCEPT_HEADER = [
+  "application/vnd.oci.image.index.v1+json",
+  "application/vnd.oci.image.manifest.v1+json",
+  "application/vnd.docker.distribution.manifest.list.v2+json",
+  "application/vnd.docker.distribution.manifest.v2+json",
+  "application/json",
+].join(", ")
 
 interface CatalogResponse {
   repositories?: string[]
@@ -268,14 +276,30 @@ export class GenericProvider implements RegistryProvider {
   }
 
   async getManifest(repo: string, ref: string): Promise<ImageManifest> {
-    const acceptHeader =
-      "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json"
-
-    const { body: manifest, contentDigest } = await this.client.requestWithHeaders<
-      Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }
+    const { body: raw, contentDigest } = await this.client.requestWithHeaders<
+      (Omit<ImageManifest, "digest" | "totalSize"> | ImageIndex) & { digest?: string }
     >(`/v2/${repo}/manifests/${ref}`, {
-      headers: { Accept: acceptHeader },
+      headers: { Accept: MANIFEST_ACCEPT_HEADER },
     })
+
+    if (INDEX_MEDIA_TYPES.has(raw.mediaType)) {
+      const index = raw as ImageIndex & { digest?: string }
+      const preferred =
+        index.manifests.find(
+          (manifest) => manifest.platform?.os === "linux" && manifest.platform?.architecture === "amd64",
+        ) ?? index.manifests[0]
+
+      if (!preferred) {
+        throw new Error(`Manifest index for ${repo}:${ref} has no platform manifests`)
+      }
+
+      return this.getManifest(repo, preferred.digest)
+    }
+
+    const manifest = raw as Omit<ImageManifest, "digest" | "totalSize"> & { digest?: string }
+    if (!manifest.config || !manifest.layers) {
+      throw new Error(`Unexpected manifest format for ${repo}:${ref} — missing config or layers`)
+    }
 
     const totalSize = manifest.config.size + manifest.layers.reduce((sum, layer) => sum + layer.size, 0)
 
@@ -302,13 +326,11 @@ export class GenericProvider implements RegistryProvider {
     }
 
     try {
-      const acceptHeader =
-        "application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/json"
       const base = this.connection.url.replace(/\/$/, "")
       const url = `${base}/v2/${repo}/manifests/${ref}`
 
       // Build auth header manually from connection credentials
-      const headers: Record<string, string> = { Accept: acceptHeader }
+      const headers: Record<string, string> = { Accept: MANIFEST_ACCEPT_HEADER }
       if (this.connection.authType === "basic") {
         const { username = "", password = "" } = this.connection.credentials ?? {}
         headers["Authorization"] = `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`

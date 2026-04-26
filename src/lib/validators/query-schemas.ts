@@ -1,4 +1,4 @@
-import { z } from "zod"
+import * as z from "zod"
 
 /**
  * Shared Zod schema for list-style query parameters used across the v1 API
