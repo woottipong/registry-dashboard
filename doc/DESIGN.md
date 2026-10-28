@@ -1,6 +1,6 @@
 # Operational UI tokens
 
-The application UI uses English only. User-provided names may use any script.
+The application UI uses English only. The application uses a dark theme. User-provided names may use any script.
 
 The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and `rounded-control` (8px) for controls and interactive rows. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for theme-aware surfaces and links. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
 
@@ -10,7 +10,7 @@ The older bento reference below describes the original visual direction; the ope
 
 # Build a dashboard web page in the "Bento Grids (Apple-style)" UI style
 
-Platform: Web (responsive, 1440px desktop down to 375px) · Stack: Next.js + shadcn/ui · Mode: light
+Platform: Web (responsive, 1440px desktop down to 375px) · Stack: Next.js + shadcn/ui · Mode: dark
 
 ## The style in one line
 The Apple keynote slide as a web page: big 28–32px rounded white tiles on a #F5F5F7 grey canvas, huge tight headlines and studio-lit product renders.
@@ -31,7 +31,7 @@ The Apple keynote summary slide as a product page: a light grey #F5F5F7 canvas (
 - Orange #B64400 sentence-case eyebrow ('New · …'), no caps or tracking; multicolour SF-Symbols-style 40px line icons with no icon background
 
 ## Design tokens — use these exact values
-Colours (light mode):
+Historical palette (not used by the application):
   - background #F5F5F7
   - surface #FFFFFF
   - surface-2 #FBFBFD

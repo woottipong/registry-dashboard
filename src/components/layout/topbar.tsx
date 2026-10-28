@@ -5,7 +5,6 @@ import { MenuIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { logout } from "@/lib/logout"
 import {
   DropdownMenu,
@@ -63,8 +62,6 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

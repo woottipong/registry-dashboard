@@ -37,13 +37,9 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   if (!isLoadingRegistries && !isRegistryError && registries.length === 0) {
     return (
       <section className="mx-auto flex max-w-5xl flex-col items-center justify-center py-10">
-        <div className="relative w-full max-w-2xl overflow-hidden rounded-panel bg-white p-10 text-center text-foreground shadow-[0_12px_44px_rgba(0,0,0,0.06)] border border-black/[0.04] dark:bento-stage-card dark:text-white dark:border-white/10 dark:shadow-2xl">
-          {/* Light Mode: Apple 3D blue squircle render */}
-          <div className="relative mx-auto my-6 flex size-24 items-center justify-center rounded-[24px] bg-gradient-to-b from-[#E8F1FF] to-[#D5E5FF] shadow-[0_8px_24px_rgba(0,113,227,0.18)] ring-1 ring-primary/20 dark:hidden">
-            <DatabaseIcon className="size-10 text-primary" />
-          </div>
-          {/* Dark Mode: Studio glossy sphere render */}
-          <div className="relative mx-auto my-6 hidden size-28 items-center justify-center dark:flex">
+        <div className="relative w-full max-w-2xl overflow-hidden rounded-panel p-10 text-center border bento-stage-card text-white border-white/10 shadow-2xl">
+          {/* Studio glossy sphere render */}
+          <div className="relative mx-auto my-6 flex size-28 items-center justify-center">
             <div className="absolute -bottom-4 h-6 w-24 rounded-full bg-black/80 blur-md" />
             <div
               className="relative size-24 rounded-full shadow-[inset_0_-8px_16px_rgba(0,0,0,0.8),inset_0_4px_12px_rgba(255,255,255,0.4)]"
@@ -57,10 +53,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground dark:text-white">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl text-white">
             {"Add registry"}
           </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground dark:text-neutral-400">
+          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-400">
             {"Container registries, repositories, and tag telemetry."}
           </p>
 
@@ -121,7 +117,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           { label: "Tags", value: isRegistryError || failedRegistryIds.length > 0 || hasUnknownTagCounts ? null : totalTags, href: "/repos", icon: TagIcon, loading: isLoadingRegistries || isLoadingRepos },
           { label: "Providers", value: isRegistryError && registries.length === 0 ? null : providerCount, href: "/registries", icon: ShieldCheckIcon, loading: isLoadingRegistries },
         ].map(({ label, value, href, icon: Icon, loading }) => (
-          <Link key={label} href={href} className="group rounded-panel border border-panel-border bg-card p-4 transition-colors hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:border-white/25">
+          <Link key={label} href={href} className="group rounded-panel border border-panel-border bg-card p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:border-white/25">
             <div className="flex items-center justify-between gap-2 text-muted-foreground">
               <span className="flex min-w-0 items-center gap-2 text-xs font-medium"><Icon className="size-4 shrink-0" /><span className="truncate">{label}</span></span>
               <ArrowUpRightIcon className="size-3.5 shrink-0 opacity-50 group-hover:opacity-100" />
@@ -274,9 +270,9 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 chartData.slice(0, 5).map((repo, index) => {
                   const registry = registriesWithStats.find((item) => item.id === repo.registryId)
                   const rankColors = [
-                    "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
-                    "bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20",
-                    "bg-amber-700/10 text-amber-700 dark:text-amber-500 ring-1 ring-amber-700/20",
+                    "bg-amber-500/10 ring-1 ring-amber-500/20 text-amber-400",
+                    "bg-slate-500/10 ring-1 ring-slate-500/20 text-slate-300",
+                    "bg-amber-700/10 ring-1 ring-amber-700/20 text-amber-500",
                   ]
                   const rankStyle = rankColors[index] || "bg-secondary text-muted-foreground"
 
@@ -343,10 +339,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             ) : (
               activities.slice(0, 6).map((item) => {
                 const typeBadgeStyle = {
-                  pull: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-                  push: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-                  delete: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-                  inspect: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+                  pull: "bg-blue-500/10 text-blue-400",
+                  push: "bg-emerald-500/10 text-emerald-400",
+                  delete: "bg-rose-500/10 text-rose-400",
+                  inspect: "bg-purple-500/10 text-purple-400",
                 }[item.type as "pull" | "push" | "delete" | "inspect"] || "bg-secondary text-foreground"
 
                 return (

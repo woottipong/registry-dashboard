@@ -318,7 +318,7 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
             className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-control bg-secondary/25 p-4 text-left transition-all duration-200 hover:bg-secondary/60 hover:-translate-y-0.5 hover:shadow-xs"
           >
             <div className="flex min-w-0 items-center gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 group-hover:scale-105 transition-transform text-blue-400">
                 <FolderIcon className="size-5" />
               </div>
               <div className="min-w-0">
@@ -393,7 +393,7 @@ function NoRegistryState() {
           <Link href="/registries/new">{"Add registry"}</Link>
         </Button>
       }
-      className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+      className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
     />
   )
 }

@@ -47,7 +47,7 @@ function SidebarBody() {
           href="/"
           className="group flex items-center gap-2.5 rounded-[7px] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-white dark:bg-[#1C1C1E] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border border-black/[0.06] dark:border-white/[0.08] transition-transform duration-150 group-hover:scale-105">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-[#1C1C1E] border-white/[0.08]">
             <Image src="/logo.svg" alt="Registry" width={18} height={18} className="rounded-xs" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -78,15 +78,15 @@ function SidebarBody() {
                   className={cn(
                     "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] font-medium transition-colors duration-150",
                     active
-                      ? "bg-black/[0.06] dark:bg-white/[0.08] text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-black/[0.035] dark:hover:bg-white/[0.04] hover:text-foreground",
+                      ? "text-foreground font-semibold bg-white/[0.08]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
                   )}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Icon
                       className={cn(
                         "size-4 shrink-0 transition-colors",
-                        active ? "text-[#0071E3] dark:text-[#2997FF]" : "text-muted-foreground/80 group-hover:text-foreground",
+                        active ? "text-[#2997FF]" : "text-muted-foreground/80 group-hover:text-foreground",
                       )}
                     />
                     <span className="truncate">{label}</span>
@@ -105,7 +105,7 @@ function SidebarBody() {
             </p>
             <Link
               href="/registries/new"
-              className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground/70 transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/10 dark:hover:text-primary"
+              className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground/70 transition-colors hover:bg-white/10 hover:text-primary"
               title={"Add registry"}
               aria-label={"Add registry"}
             >
@@ -131,8 +131,8 @@ function SidebarBody() {
                     className={cn(
                       "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] transition-colors duration-150",
                       active
-                        ? "bg-black/[0.06] dark:bg-white/[0.08] text-foreground font-semibold"
-                        : "text-muted-foreground hover:bg-black/[0.035] dark:hover:bg-white/[0.04] hover:text-foreground",
+                        ? "text-foreground font-semibold bg-white/[0.08]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
                     )}
                   >
                     <div className="flex flex-1 items-center gap-2.5 min-w-0">
@@ -141,7 +141,7 @@ function SidebarBody() {
                           "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] transition-colors",
                           active
                             ? "bg-primary/10 text-primary"
-                            : "bg-black/[0.04] dark:bg-white/10 text-muted-foreground group-hover:text-foreground",
+                            : "text-muted-foreground group-hover:text-foreground bg-white/10",
                         )}
                       >
                         {isDockerHub ? <ServerIcon className="size-3" /> : <DatabaseIcon className="size-3" />}
@@ -149,7 +149,7 @@ function SidebarBody() {
                       <span className="truncate text-xs">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
+                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground bg-white/[0.06]">
                         {"Default"}
                       </span>
                     )}

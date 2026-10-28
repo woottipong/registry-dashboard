@@ -293,9 +293,9 @@ function SummaryStat({
   color?: "blue" | "emerald" | "purple"
 }) {
   const iconColorMap = {
-    blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    blue: "bg-blue-500/10 text-blue-400",
+    emerald: "bg-emerald-500/10 text-emerald-400",
+    purple: "bg-purple-500/10 text-purple-400",
   }
 
   return (

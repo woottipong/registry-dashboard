@@ -72,7 +72,7 @@ export function RegistrySelector({
                 "px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 flex items-center gap-2 cursor-pointer",
                 isActive
                   ? "bg-primary text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10",
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/10",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
               aria-label={`Select ${registry.name} registry`}
@@ -105,7 +105,7 @@ interface RepositoryLoadingProps {
 
 export function RepositoryLoading({ count = 8 }: RepositoryLoadingProps) {
   return (
-    <div className="rounded-[28px] border-0 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+    <div className="rounded-[28px] border-0 bg-card p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, index) => (
           <div key={index} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">

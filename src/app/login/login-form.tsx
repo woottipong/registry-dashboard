@@ -49,7 +49,7 @@ export function LoginForm() {
         <p className="text-sm text-muted-foreground">Continue into the registry workspace.</p>
       </div>
 
-      <div className="rounded-[32px] bg-white dark:bg-[#1C1C1E] p-8 shadow-[0_12px_44px_rgba(0,0,0,0.06)] border border-black/[0.04] dark:border-white/[0.08]">
+      <div className="rounded-[32px] p-8 shadow-[0_12px_44px_rgba(0,0,0,0.06)] border bg-[#1C1C1E] border-white/[0.08]">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">

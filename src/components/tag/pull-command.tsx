@@ -38,13 +38,13 @@ export function PullCommand({ commands, className }: PullCommandProps) {
             <Button
               variant="secondary"
               size="sm"
-              className="h-7 shrink-0 rounded-full px-3 text-xs font-medium bg-card text-foreground shadow-2xs hover:bg-black/5 dark:hover:bg-white/10"
+              className="h-7 shrink-0 rounded-full px-3 text-xs font-medium bg-card text-foreground shadow-2xs hover:bg-white/10"
               onClick={() => copy(command, index)}
               aria-label="Copy to clipboard"
             >
               {copiedIndex === index ? (
                 <>
-                  <CheckIcon className="size-3 text-[#1D8838] dark:text-[#30D158]" />
+                  <CheckIcon className="size-3 text-[#30D158]" />
                   <span>Copied</span>
                 </>
               ) : (

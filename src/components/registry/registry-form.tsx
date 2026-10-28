@@ -302,7 +302,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               </div>
 
               {/* Subtle Divider */}
-              <div className="border-t border-black/[0.06] dark:border-white/[0.06]" />
+              <div className="border-t border-white/[0.06]" />
 
               {/* Section 2: Authentication */}
               <div className="space-y-4">
@@ -342,7 +342,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                                   className={cn(
                                     "relative flex cursor-pointer flex-col justify-between rounded-control border p-3.5 transition-all select-none",
                                     isSelected
-                                      ? "border-primary/50 bg-primary/[0.04] dark:bg-primary/[0.08] shadow-xs ring-1 ring-primary/20"
+                                      ? "border-primary/50 shadow-xs ring-1 ring-primary/20 bg-primary/[0.08]"
                                       : "border-border/60 bg-muted/20 hover:border-primary/30 hover:bg-muted/40",
                                   )}
                                 >
@@ -442,7 +442,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             </div>
 
             {/* Integrated Action Dock */}
-            <div className="border-t border-black/[0.06] dark:border-white/[0.08] bg-black/[0.015] dark:bg-white/[0.02] px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="border-t px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-white/[0.08] bg-white/[0.02]">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <LockKeyholeIcon className="size-3.5 text-primary shrink-0" />
                 <span>{"AES-256-GCM encrypted and stored safely on server"}</span>

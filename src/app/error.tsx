@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: ErrorPageProps) {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-[28px] border-0 bg-card p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-6">
+      <div className="w-full max-w-md rounded-[28px] border-0 bg-card p-8 text-center space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircleIcon className="size-7 text-destructive" />
         </div>

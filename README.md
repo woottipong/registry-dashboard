@@ -7,7 +7,7 @@ A modern, self-hosted web dashboard for browsing and managing Docker container i
 - **🎨 Modern UI**: Beautiful, responsive interface with smooth animations and hover effects
 - **🔍 Advanced Search**: Real-time search with keyboard shortcuts and search hints
 - **📊 Interactive Dashboard**: Live statistics and registry status monitoring
-- **🌙 Dark/Light Theme**: Automatic theme support with CSS custom properties
+- **🌙 Dark Theme**: A consistent dark interface
 - **📱 Mobile Responsive**: Optimized for desktop and mobile devices
 - **⚡ Fast & Lightweight**: Built with Next.js 16 and optimized for performance
 - **🔒 Secure**: Encrypted credential storage and secure API design
