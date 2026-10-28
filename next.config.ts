@@ -49,6 +49,8 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
 
+  devIndicators: false,
+
   async headers() {
     return [
       {

@@ -203,7 +203,7 @@ export function RepositoriesClient({
               )}
             </Panel>
           ) : (
-            <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
               <div className="space-y-4 pb-4">
                 <div className="space-y-1">
                   <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
@@ -282,7 +282,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
       <div className="mb-4">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useSyncExternalStore } from "react"
 
 export type Language = "en" | "th"
 
@@ -59,6 +59,40 @@ const translations: Record<Language, Record<string, string>> = {
     "repos.noRegistries": "No registry connected",
     "repos.noRegistriesDesc": "Connect a Docker registry to start browsing your container images.",
 
+    // Registry Form
+    "registryForm.titleCreate": "Add Registry",
+    "registryForm.titleEdit": "Edit Registry",
+    "registryForm.subtitle": "Configure the endpoint, provider, and credentials used by the dashboard.",
+    "registryForm.connection": "Connection",
+    "registryForm.connectionDesc": "Name and route registry traffic through the server-side proxy.",
+    "registryForm.name": "Name",
+    "registryForm.namePlaceholder": "e.g. Production Cluster",
+    "registryForm.url": "Endpoint URL",
+    "registryForm.urlPlaceholder": "https://registry.example.com",
+    "registryForm.provider": "Provider Type",
+    "registryForm.namespace": "Default Namespace",
+    "registryForm.namespacePlaceholder": "e.g. library",
+    "registryForm.optional": "Optional",
+    "registryForm.auth": "Authentication",
+    "registryForm.authDesc": "Credentials stay server-side and are never exposed to the browser.",
+    "registryForm.authAnonymous": "Anonymous",
+    "registryForm.authAnonymousNote": "Public pull access",
+    "registryForm.authBasic": "Basic Auth",
+    "registryForm.authBasicNote": "Username + password / PAT",
+    "registryForm.authBearer": "Bearer Token",
+    "registryForm.authBearerNote": "Token-based access",
+    "registryForm.username": "Username",
+    "registryForm.usernamePlaceholder": "Enter username",
+    "registryForm.password": "Password / PAT",
+    "registryForm.passwordPlaceholder": "••••••••",
+    "registryForm.token": "Bearer Token",
+    "registryForm.tokenPlaceholder": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "registryForm.securityNotice": "AES-256-GCM encrypted and stored safely on server",
+    "registryForm.addRegistry": "Add Registry",
+    "registryForm.saveChanges": "Save Changes",
+    "registryForm.saving": "Saving…",
+    "registryForm.testing": "Testing…",
+
     // General
     "common.clear": "Clear",
     "common.test": "Test",
@@ -115,6 +149,40 @@ const translations: Record<Language, Record<string, string>> = {
     "repos.noRegistries": "ยังไม่ได้เชื่อมต่อ Registry",
     "repos.noRegistriesDesc": "เชื่อมต่อ Docker Registry เพื่อเริ่มจัดการคอนเทนเนอร์อิมเมจ",
 
+    // Registry Form
+    "registryForm.titleCreate": "เพิ่ม Registry",
+    "registryForm.titleEdit": "แก้ไข Registry",
+    "registryForm.subtitle": "กำหนดค่า Endpoint, ผู้ให้บริการ และสิทธิ์การเข้าถึงสำหรับใช้งานในแดชบอร์ด",
+    "registryForm.connection": "การเชื่อมต่อ",
+    "registryForm.connectionDesc": "กำหนดชื่อและปลายทางเพื่อส่งทราฟฟิกผ่าน Server-side Proxy",
+    "registryForm.name": "ชื่อ Registry",
+    "registryForm.namePlaceholder": "เช่น Production Cluster",
+    "registryForm.url": "URL ปลายทาง",
+    "registryForm.urlPlaceholder": "https://registry.example.com",
+    "registryForm.provider": "ประเภทผู้ให้บริการ",
+    "registryForm.namespace": "เนมสเปซเริ่มต้น",
+    "registryForm.namespacePlaceholder": "เช่น library",
+    "registryForm.optional": "ไม่บังคับ",
+    "registryForm.auth": "การยืนยันตัวตน",
+    "registryForm.authDesc": "ข้อมูลรับรองจะถูกเก็บไว้ที่ฝั่งเซิร์ฟเวอร์และไม่เปิดเผยต่อเบราว์เซอร์",
+    "registryForm.authAnonymous": "ไม่ระบุตัวตน (Anonymous)",
+    "registryForm.authAnonymousNote": "สำหรับการดึงอิมเมจสาธารณะ",
+    "registryForm.authBasic": "ชื่อผู้ใช้และรหัสผ่าน (Basic Auth)",
+    "registryForm.authBasicNote": "ชื่อผู้ใช้ + รหัสผ่าน หรือ PAT",
+    "registryForm.authBearer": "Bearer Token",
+    "registryForm.authBearerNote": "ยืนยันตัวตนด้วย Token โดยตรง",
+    "registryForm.username": "ชื่อผู้ใช้",
+    "registryForm.usernamePlaceholder": "ระบุชื่อผู้ใช้",
+    "registryForm.password": "รหัสผ่าน / PAT",
+    "registryForm.passwordPlaceholder": "••••••••",
+    "registryForm.token": "Bearer Token",
+    "registryForm.tokenPlaceholder": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "registryForm.securityNotice": "ข้อมูลรับรองถูกเข้ารหัส AES-256-GCM ปลอดภัยฝั่งเซิร์ฟเวอร์",
+    "registryForm.addRegistry": "เพิ่ม Registry",
+    "registryForm.saveChanges": "บันทึกการเปลี่ยนแปลง",
+    "registryForm.saving": "กำลังบันทึก…",
+    "registryForm.testing": "กำลังทดสอบ…",
+
     // General
     "common.clear": "ล้าง",
     "common.test": "ทดสอบ",
@@ -133,30 +201,47 @@ const I18nContext = createContext<I18nContextType>({
 
 const STORAGE_KEY = "registry_dashboard_lang"
 
+let listeners: Array<() => void> = []
+function emitChange() {
+  for (const listener of listeners) {
+    listener()
+  }
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === "undefined") return "en"
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as Language | null
-      if (saved === "en" || saved === "th") return saved
-    } catch {
-      // Storage unavailable
-    }
-    return "en"
-  })
+  const language = useSyncExternalStore<Language>(
+    (callback) => {
+      listeners.push(callback)
+      window.addEventListener("storage", callback)
+      return () => {
+        listeners = listeners.filter((l) => l !== callback)
+        window.removeEventListener("storage", callback)
+      }
+    },
+    () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY) as Language | null
+        if (saved === "en" || saved === "th") return saved
+      } catch {
+        // Storage unavailable
+      }
+      return "en"
+    },
+    () => "en",
+  )
 
   useEffect(() => {
     document.documentElement.lang = language
   }, [language])
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang)
     try {
       localStorage.setItem(STORAGE_KEY, lang)
       document.documentElement.lang = lang
     } catch {
       // Storage unavailable
     }
+    emitChange()
   }
 
   const t = (key: string, fallback?: string): string => {

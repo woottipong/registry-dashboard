@@ -8,9 +8,13 @@ import * as z from "zod"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  GlobeIcon,
+  KeyRoundIcon,
+  Loader2Icon,
   LockKeyholeIcon,
   PlusIcon,
   ShieldCheckIcon,
+  UserIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -18,7 +22,6 @@ import { Input } from "@/components/ui/input"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,6 +30,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAddRegistry, usePingRegistry, useUpdateRegistry } from "@/hooks/use-registries"
+import { useI18n } from "@/contexts/i18n-context"
 import { cn } from "@/lib/utils"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
@@ -50,6 +54,7 @@ interface RegistryFormProps {
 
 export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const router = useRouter()
+  const { t } = useI18n()
   const addRegistry = useAddRegistry()
   const updateRegistry = useUpdateRegistry()
   const pingRegistry = usePingRegistry(initialValue?.id ?? "")
@@ -131,254 +136,352 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
     })
   }
 
+  const authOptions = [
+    {
+      value: "none",
+      label: t("registryForm.authAnonymous", "Anonymous"),
+      note: t("registryForm.authAnonymousNote", "Public pull access"),
+      icon: GlobeIcon,
+    },
+    {
+      value: "basic",
+      label: t("registryForm.authBasic", "Basic Auth"),
+      note: t("registryForm.authBasicNote", "Username + password / PAT"),
+      icon: UserIcon,
+    },
+    {
+      value: "bearer",
+      label: t("registryForm.authBearer", "Bearer Token"),
+      note: t("registryForm.authBearerNote", "Token-based access"),
+      icon: ShieldCheckIcon,
+    },
+  ] as const
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
-      <div className="flex flex-col gap-3 pb-2 lg:flex-row lg:items-end lg:justify-between">
+      {/* Page Header */}
+      <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {mode === "create" ? "Add Registry" : "Edit Registry"}
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {mode === "create"
+              ? t("registryForm.titleCreate", "Add Registry")
+              : t("registryForm.titleEdit", "Edit Registry")}
           </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Configure the endpoint, provider, and credentials used by the dashboard.
+          <p className="max-w-2xl text-xs sm:text-sm text-muted-foreground">
+            {t("registryForm.subtitle", "Configure the endpoint, provider, and credentials used by the dashboard.")}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" className="rounded-full shadow-xs" asChild>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="rounded-full shadow-xs text-xs h-8 px-3.5 gap-1.5" asChild>
             <Link href="/registries">
-              <ArrowLeftIcon data-icon="inline-start" />
-              Registries
+              <ArrowLeftIcon className="size-3.5" />
+              <span>{t("repos.allRegistries", "Registries")}</span>
             </Link>
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-full shadow-xs"
-            onClick={testConnection}
-            disabled={pingRegistry.isPending || !canPing}
-          >
-            <ShieldCheckIcon data-icon="inline-start" />
-            {pingRegistry.isPending ? "Testing..." : "Test"}
-          </Button>
+          {canPing ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full shadow-xs text-xs h-8 px-3.5 gap-1.5"
+              onClick={testConnection}
+              disabled={pingRegistry.isPending}
+            >
+              {pingRegistry.isPending ? (
+                <Loader2Icon className="size-3.5 animate-spin" />
+              ) : (
+                <ShieldCheckIcon className="size-3.5 text-primary" />
+              )}
+              <span>{pingRegistry.isPending ? t("registryForm.testing", "Testing…") : t("common.test", "Test")}</span>
+            </Button>
+          ) : null}
         </div>
       </div>
 
+      {/* Main Unified Bento Card */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
-            <div>
-              <h2 className="text-base font-semibold tracking-tight">Connection</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Name and route registry traffic through the server-side proxy.</p>
-            </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+          <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="p-6 sm:p-7 space-y-6">
+              {/* Section 1: Connection */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <GlobeIcon className="size-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                      {t("registryForm.connection", "Connection")}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {t("registryForm.connectionDesc", "Name and route registry traffic through the server-side proxy.")}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="grid gap-4 pt-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. Production Cluster"
-                        className="h-10 rounded-xl"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid gap-4 sm:grid-cols-2 pt-1">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium">{t("registryForm.name", "Name")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t("registryForm.namePlaceholder", "e.g. Production Cluster")}
+                            className="h-9 rounded-lg text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://registry.example.com"
-                        className="h-10 rounded-xl"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium">{t("registryForm.url", "URL")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t("registryForm.urlPlaceholder", "https://registry.example.com")}
+                            className="h-9 rounded-lg text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="provider"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Provider</FormLabel>
-                    <Select onValueChange={handleProviderChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-10 w-full rounded-xl">
-                          <SelectValue placeholder="Select a provider" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
-                        <SelectItem value="dockerhub">Docker Hub</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="provider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium">{t("registryForm.provider", "Provider")}</FormLabel>
+                        <Select onValueChange={handleProviderChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-9 w-full rounded-lg text-sm">
+                              <SelectValue placeholder="Select a provider" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
+                            <SelectItem value="dockerhub">Docker Hub</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="namespace"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Default Namespace{" "}
-                      <span className="font-normal text-muted-foreground">(Optional)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. library"
-                        className="h-10 rounded-xl"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription className="text-[11px]">
-                      Optional default namespace.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                  <FormField
+                    control={form.control}
+                    name="namespace"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium">
+                          {t("registryForm.namespace", "Default Namespace")}{" "}
+                          <span className="font-normal text-muted-foreground ml-1 text-xs">
+                            ({t("registryForm.optional", "Optional")})
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t("registryForm.namespacePlaceholder", "e.g. library")}
+                            className="h-9 rounded-lg text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-            <div className="pb-3 pt-6">
-              <h2 className="text-base font-semibold tracking-tight">Authentication</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Credentials stay server-side and are never exposed to the browser.</p>
-            </div>
+              {/* Subtle Divider */}
+              <div className="border-t border-black/[0.06] dark:border-white/[0.06]" />
 
-            <div className="space-y-4 pt-1">
-              <FormField
-                control={form.control}
-                name="authType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="grid gap-3 md:grid-cols-3"
-                      >
-                        {([
-                          { value: "none", label: "Anonymous", note: "Public pull access" },
-                          { value: "basic", label: "Basic Auth", note: "Username + password" },
-                          { value: "bearer", label: "Bearer Token", note: "Token-based access" },
-                        ] as const).map((option) => (
-                          <label
-                            key={option.value}
-                            htmlFor={`auth-${option.value}`}
-                            className={cn(
-                              "flex cursor-pointer flex-col gap-1.5 rounded-2xl border p-4 transition-all",
-                              field.value === option.value
-                                ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/20 shadow-xs"
-                                : "border-border/60 bg-secondary/30 text-muted-foreground hover:border-primary/30 hover:bg-secondary/50 hover:text-foreground",
-                            )}
+              {/* Section 2: Authentication */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <KeyRoundIcon className="size-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                      {t("registryForm.auth", "Authentication")}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {t("registryForm.authDesc", "Credentials stay server-side and are never exposed to the browser.")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-1">
+                  <FormField
+                    control={form.control}
+                    name="authType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid gap-3 sm:grid-cols-3"
                           >
-                            <div className="flex items-center gap-3">
-                              <RadioGroupItem value={option.value} id={`auth-${option.value}`} className="shrink-0" />
-                              <span className="font-medium text-foreground">{option.label}</span>
-                            </div>
-                            <p className="pl-7 text-xs text-muted-foreground">{option.note}</p>
-                          </label>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                            {authOptions.map((option) => {
+                              const isSelected = field.value === option.value
+                              const Icon = option.icon
+                              return (
+                                <label
+                                  key={option.value}
+                                  htmlFor={`auth-${option.value}`}
+                                  className={cn(
+                                    "relative flex cursor-pointer flex-col justify-between rounded-xl border p-3.5 transition-all select-none",
+                                    isSelected
+                                      ? "border-primary/50 bg-primary/[0.04] dark:bg-primary/[0.08] shadow-xs ring-1 ring-primary/20"
+                                      : "border-border/60 bg-muted/20 hover:border-primary/30 hover:bg-muted/40",
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                      <RadioGroupItem
+                                        value={option.value}
+                                        id={`auth-${option.value}`}
+                                        className="size-4 shrink-0"
+                                      />
+                                      <span className="text-xs font-semibold text-foreground tracking-tight">
+                                        {option.label}
+                                      </span>
+                                    </div>
+                                    <Icon
+                                      className={cn(
+                                        "size-3.5 shrink-0 transition-colors",
+                                        isSelected ? "text-primary" : "text-muted-foreground/60",
+                                      )}
+                                    />
+                                  </div>
+                                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{option.note}</p>
+                                </label>
+                              )
+                            })}
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {currentAuthType === "basic" ? (
-                <div className="grid gap-4 pt-2 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter username"
-                            className="h-10 rounded-xl"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password / PAT</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="h-10 rounded-xl"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {currentAuthType === "basic" ? (
+                    <div className="grid gap-4 pt-1 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 duration-150">
+                      <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">{t("registryForm.username", "Username")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder={t("registryForm.usernamePlaceholder", "Enter username")}
+                                className="h-9 rounded-lg text-sm"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">{t("registryForm.password", "Password / PAT")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder={t("registryForm.passwordPlaceholder", "••••••••")}
+                                className="h-9 rounded-lg text-sm"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  ) : null}
+
+                  {currentAuthType === "bearer" ? (
+                    <div className="pt-1 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 duration-150">
+                      <FormField
+                        control={form.control}
+                        name="token"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">{t("registryForm.token", "Bearer Token")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder={t("registryForm.tokenPlaceholder", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")}
+                                className="h-9 rounded-lg font-mono text-xs"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-
-              {currentAuthType === "bearer" ? (
-                <div className="pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
-                  <FormField
-                    control={form.control}
-                    name="token"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bearer Token</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                            className="h-10 rounded-xl font-mono text-sm"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ) : null}
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-3 rounded-[24px] border-0 bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground px-2">
-              <LockKeyholeIcon className="size-4 text-primary shrink-0" />
-              <span>Credentials are stored server-side and never exposed to the browser.</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="ghost" className="rounded-full" onClick={() => router.back()} disabled={loading}>
-                Cancel
-              </Button>
-              <Button type="submit" className="rounded-full shadow-xs" disabled={loading}>
-                {mode === "create" ? <PlusIcon data-icon="inline-start" /> : <ArrowRightIcon data-icon="inline-start" />}
-                {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
-              </Button>
+            {/* Integrated Action Dock */}
+            <div className="border-t border-black/[0.06] dark:border-white/[0.08] bg-black/[0.015] dark:bg-white/[0.02] px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <LockKeyholeIcon className="size-3.5 text-primary shrink-0" />
+                <span>{t("registryForm.securityNotice", "AES-256-GCM encrypted and stored safely on server")}</span>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full text-xs font-medium h-8 px-4"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  {t("common.cancel", "Cancel")}
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="rounded-full shadow-xs text-xs font-medium h-8 px-4 gap-1.5"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2Icon className="size-3.5 animate-spin" />
+                  ) : mode === "create" ? (
+                    <PlusIcon className="size-3.5" />
+                  ) : (
+                    <ArrowRightIcon className="size-3.5" />
+                  )}
+                  <span>
+                    {loading
+                      ? t("registryForm.saving", "Saving…")
+                      : mode === "create"
+                        ? t("registryForm.addRegistry", "Add Registry")
+                        : t("registryForm.saveChanges", "Save Changes")}
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </form>

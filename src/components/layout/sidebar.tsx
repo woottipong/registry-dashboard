@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useMounted } from "@/hooks/use-mounted"
 import { useI18n } from "@/contexts/i18n-context"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -27,6 +28,7 @@ function SidebarBody() {
   const searchParams = useSearchParams()
   const currentRegistryId = searchParams.get("registry")
   const { data: registries, isLoading } = useRegistries()
+  const isMounted = useMounted()
   const { t } = useI18n()
 
   function isActive(href: string, exact: boolean) {
@@ -119,7 +121,7 @@ function SidebarBody() {
           </div>
 
           <div className="flex flex-col gap-1">
-            {isLoading ? (
+            {!isMounted || isLoading ? (
               <div className="flex flex-col gap-1.5 px-1">
                 <Skeleton className="h-8 w-full rounded-[6px]" />
                 <Skeleton className="h-8 w-3/4 rounded-[6px]" />
@@ -140,7 +142,7 @@ function SidebarBody() {
                         : "text-muted-foreground hover:bg-black/[0.035] dark:hover:bg-white/[0.04] hover:text-foreground",
                     )}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex flex-1 items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
                           "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] transition-colors",
@@ -154,7 +156,7 @@ function SidebarBody() {
                       <span className="truncate text-xs">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="rounded-[4px] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
+                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
                         Default
                       </span>
                     )}
@@ -176,8 +178,8 @@ function SidebarBody() {
         </div>
       </div>
 
-      {/* Integrated Dock Footer with ample clearance */}
-      <div className="mt-auto border-t border-border/70 p-3.5 pb-12">
+      {/* Integrated Dock Footer */}
+      <div className="mt-auto border-t border-border/70 p-3.5 pb-4">
         <div className="flex items-center justify-between rounded-[8px] bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] px-3 py-2">
           <div className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -197,14 +199,14 @@ function SidebarBody() {
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-64 lg:border-r lg:border-border/70 lg:bg-sidebar">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-[280px] lg:border-r lg:border-border/70 lg:bg-sidebar">
         <div className="flex h-full flex-col">
           <SidebarBody />
         </div>
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent side="left" className="w-64 border-r border-border/70 bg-sidebar p-0" showCloseButton={false}>
+        <SheetContent side="left" className="w-[280px] border-r border-border/70 bg-sidebar p-0" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SidebarBody />
         </SheetContent>

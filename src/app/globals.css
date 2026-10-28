@@ -221,7 +221,7 @@
 }
 
 /* Studio stage dark gradient utility */
-.bento-stage-card {
+@utility bento-stage-card {
   background: radial-gradient(70% 60% at 50% 38%, var(--stage-highlight), var(--stage-mid) 45%, var(--stage-black) 80%);
 }
 

@@ -157,13 +157,22 @@ When acting on review feedback:
 All verification must run **inside the Docker dev container**, not on the host machine.
 The `ui` service container name is `registry-dashboard-ui-dev`.
 
-Default verification for code changes:
+### Tiered Verification Strategy
 
-```bash
-docker compose -f docker-compose.dev.yml exec ui bun run typecheck
-docker compose -f docker-compose.dev.yml exec ui bun run lint
-docker compose -f docker-compose.dev.yml exec ui bun run test
-```
+- **Fast-check (for UI, styling, copy, CSS, layout tweaks)**:
+  Run typecheck and lint only (~6–8 seconds):
+  ```bash
+  docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+  docker compose -f docker-compose.dev.yml exec ui bun run lint
+  ```
+
+- **Full Verification (for Logic, API, Providers, Crypto, Stores, or final check before commit/PR)**:
+  Run the full suite including all unit tests:
+  ```bash
+  docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+  docker compose -f docker-compose.dev.yml exec ui bun run lint
+  docker compose -f docker-compose.dev.yml exec ui bun run test
+  ```
 
 If the container is not running, start it first:
 

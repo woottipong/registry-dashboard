@@ -3,13 +3,13 @@
 import Link from "next/link"
 import {
   ArrowRightIcon,
+  ArrowUpRightIcon,
   ClockIcon,
   DatabaseIcon,
   FolderIcon,
   PlusIcon,
   ShieldCheckIcon,
   TagIcon,
-  TrendingUpIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -21,71 +21,6 @@ import type { RegistryConnection } from "@/types/registry"
 
 interface ModernDashboardClientProps {
   initialRegistries?: RegistryConnection[]
-}
-
-/**
- * Refined Area Sparkline with smooth subtle gradient matching Apple Bento aesthetics
- */
-function Sparkline({
-  data,
-  color = "#30D158",
-  id = "sparkline",
-  className = "",
-}: {
-  data: number[]
-  color?: string
-  id?: string
-  className?: string
-}) {
-  const min = Math.min(...data)
-  const max = Math.max(...data)
-  const range = max - min || 1
-  const width = 92
-  const height = 26
-  const paddingY = 4
-  const effectiveHeight = height - paddingY * 2
-
-  const points = data.map((val, idx) => {
-    const x = (idx / (data.length - 1)) * width
-    const y = height - paddingY - ((val - min) / range) * effectiveHeight
-    return { x, y }
-  })
-
-  // Generate smooth cubic bezier curve
-  const pathD = points.reduce((acc, pt, idx, arr) => {
-    if (idx === 0) return `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`
-    const prev = arr[idx - 1]
-    const cpX = (prev.x + pt.x) / 2
-    return `${acc} C ${cpX.toFixed(1)} ${prev.y.toFixed(1)}, ${cpX.toFixed(1)} ${pt.y.toFixed(1)}, ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`
-  }, "")
-
-  const areaD = `${pathD} L ${width} ${height} L 0 ${height} Z`
-  const gradId = `grad-${id}`
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className={`h-6 w-22 shrink-0 overflow-visible ${className}`}
-      fill="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.0" />
-        </linearGradient>
-      </defs>
-      <path d={areaD} fill={`url(#${gradId})`} />
-      <path
-        d={pathD}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
 }
 
 export function ModernDashboardClient({ initialRegistries }: ModernDashboardClientProps) {
@@ -145,25 +80,25 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-7 sm:gap-8">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1340px] flex-col gap-5 sm:gap-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-1">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-0.5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             {t("dashboard.title", "Overview")}
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {t("dashboard.subtitle", "Container registries, repositories, and tag telemetry.")}
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button size="sm" variant="outline" className="rounded-full shadow-xs" asChild>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="rounded-full shadow-xs text-xs h-8 px-3" asChild>
             <Link href="/repos">
               <FolderIcon data-icon="inline-start" className="size-3.5" />
               {t("dashboard.browseRepos", "Repositories")}
             </Link>
           </Button>
-          <Button size="sm" className="rounded-full shadow-xs" asChild>
+          <Button size="sm" className="rounded-full shadow-xs text-xs h-8 px-3" asChild>
             <Link href="/registries/new">
               <PlusIcon data-icon="inline-start" className="size-3.5" />
               {t("dashboard.addRegistry", "Add registry")}
@@ -172,165 +107,133 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </div>
       </div>
 
-      {/* KPI Cards Row (4 clean unified Apple Bento Tiles with generous 20px gap) */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Card 1: Registries (Clean White Bento Tile) */}
+      {/* KPI Cards Row (4 clean compact Bento Tiles) */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Card 1: Registries */}
         <Link
           href="/registries"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[14px] bg-white dark:bg-[#1C1C1E] p-4 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <DatabaseIcon className="size-3.5" />
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                <DatabaseIcon className="size-3" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{t("dashboard.registries", "Registries")}</span>
+              <span className="text-xs font-medium text-muted-foreground truncate">{t("dashboard.registries", "Registries")}</span>
             </div>
+            <ArrowUpRightIcon className="size-3.5 text-muted-foreground/30 transition-colors group-hover:text-foreground" />
           </div>
-
-          <div className="my-3 sm:my-3.5">
+          <div className="mt-3 flex items-baseline justify-between gap-2">
             {isLoadingRegistries ? (
-              <Skeleton className="h-9 w-16 rounded-xl" />
+              <Skeleton className="h-7 w-12 rounded-md" />
             ) : (
-              <div className="font-mono text-3xl sm:text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              <span className="font-mono text-2xl font-bold tracking-tight text-foreground tabular-nums">
                 {registries.length}
-              </div>
+              </span>
             )}
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
-              <TrendingUpIcon className="size-3.5 shrink-0" />
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#30D158]">
+              <span className="size-1.5 rounded-full bg-[#30D158]" />
               <span>{registries.length > 0 ? t("dashboard.live", "Live") : t("dashboard.standby", "Standby")}</span>
             </div>
-            <Sparkline
-              data={[1, 1.2, 1.3, 1.2, 1.5, 1.8, Math.max(registries.length, 2)]}
-              color="#30D158"
-              id="kpi-reg"
-            />
           </div>
         </Link>
 
-        {/* Card 2: Repositories (Apple White Bento Tile) */}
+        {/* Card 2: Repositories */}
         <Link
           href="/repos"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[14px] bg-white dark:bg-[#1C1C1E] p-4 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                <FolderIcon className="size-3.5" />
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <FolderIcon className="size-3" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{t("dashboard.repositories", "Repositories")}</span>
+              <span className="text-xs font-medium text-muted-foreground truncate">{t("dashboard.repositories", "Repositories")}</span>
             </div>
+            <ArrowUpRightIcon className="size-3.5 text-muted-foreground/30 transition-colors group-hover:text-foreground" />
           </div>
-
-          <div className="my-3 sm:my-3.5">
+          <div className="mt-3 flex items-baseline justify-between gap-2">
             {isLoadingRegistries || isLoadingRepos ? (
-              <Skeleton className="h-9 w-20 rounded-xl" />
+              <Skeleton className="h-7 w-16 rounded-md" />
             ) : (
-              <div className="font-mono text-3xl sm:text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              <span className="font-mono text-2xl font-bold tracking-tight text-foreground tabular-nums">
                 {totalRepositories.toLocaleString()}
-              </div>
+              </span>
             )}
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
-              <TrendingUpIcon className="size-3.5 shrink-0" />
-              <span>+{totalRepositories} {t("dashboard.indexed", "indexed")}</span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#30D158]">
+              <span className="size-1.5 rounded-full bg-[#30D158]" />
+              <span>{totalRepositories} {t("dashboard.indexed", "indexed")}</span>
             </div>
-            <Sparkline
-              data={[3, 4, 6, 7, 6, 9, Math.max(totalRepositories, 4)]}
-              color="#30D158"
-              id="kpi-repos"
-            />
           </div>
         </Link>
 
-        {/* Card 3: Tags & Versions (Apple White Bento Tile) */}
+        {/* Card 3: Tags */}
         <Link
           href="/repos"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[14px] bg-white dark:bg-[#1C1C1E] p-4 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                <TagIcon className="size-3.5" />
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <TagIcon className="size-3" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{t("dashboard.tags", "Tags")}</span>
+              <span className="text-xs font-medium text-muted-foreground truncate">{t("dashboard.tags", "Tags")}</span>
             </div>
+            <ArrowUpRightIcon className="size-3.5 text-muted-foreground/30 transition-colors group-hover:text-foreground" />
           </div>
-
-          <div className="my-3 sm:my-3.5">
+          <div className="mt-3 flex items-baseline justify-between gap-2">
             {isLoadingRegistries || isLoadingRepos ? (
-              <Skeleton className="h-9 w-20 rounded-xl" />
+              <Skeleton className="h-7 w-16 rounded-md" />
             ) : (
-              <div className="font-mono text-3xl sm:text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              <span className="font-mono text-2xl font-bold tracking-tight text-foreground tabular-nums">
                 {totalTags.toLocaleString()}
-              </div>
+              </span>
             )}
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
-              <TrendingUpIcon className="size-3.5 shrink-0" />
-              <span>+{totalTags} {t("dashboard.tags", "active")}</span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#30D158]">
+              <span className="size-1.5 rounded-full bg-[#30D158]" />
+              <span>{totalTags} {t("dashboard.tags", "Tags")}</span>
             </div>
-            <Sparkline
-              data={[5, 7, 8, 12, 11, 15, Math.max(totalTags, 6)]}
-              color="#30D158"
-              id="kpi-tags"
-            />
           </div>
         </Link>
 
-        {/* Card 4: Providers (Apple White Bento Tile) */}
+        {/* Card 4: Providers */}
         <Link
           href="/registries"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[14px] bg-white dark:bg-[#1C1C1E] p-4 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                <ShieldCheckIcon className="size-3.5" />
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <ShieldCheckIcon className="size-3" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{t("dashboard.providers", "Providers")}</span>
+              <span className="text-xs font-medium text-muted-foreground truncate">{t("dashboard.providers", "Providers")}</span>
             </div>
+            <ArrowUpRightIcon className="size-3.5 text-muted-foreground/30 transition-colors group-hover:text-foreground" />
           </div>
-
-          <div className="my-3 sm:my-3.5">
+          <div className="mt-3 flex items-baseline justify-between gap-2">
             {isLoadingRegistries ? (
-              <Skeleton className="h-9 w-16 rounded-xl" />
+              <Skeleton className="h-7 w-12 rounded-md" />
             ) : (
-              <div className="font-mono text-3xl sm:text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              <span className="font-mono text-2xl font-bold tracking-tight text-foreground tabular-nums">
                 {providerCount}
-              </div>
+              </span>
             )}
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
-              <TrendingUpIcon className="size-3.5 shrink-0" />
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#30D158]">
+              <span className="size-1.5 rounded-full bg-[#30D158]" />
               <span>{t("dashboard.operational", "100% operational")}</span>
             </div>
-            <Sparkline
-              data={[1, 1.2, 1.1, 1.4, 1.6, 1.8, Math.max(providerCount, 2)]}
-              color="#30D158"
-              id="kpi-prov"
-            />
           </div>
         </Link>
       </div>
 
-      {/* Bento Grid: 2-Column Section with generous gap */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Bento Grid: 2-Column Section */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
         {/* Registry Inventory Tile */}
-        <div className="flex flex-col justify-between rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08]">
+        <div className="flex flex-col justify-between rounded-[16px] bg-white dark:bg-[#1C1C1E] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08]">
           <div>
-            <div className="flex items-center justify-between pb-5">
+            <div className="flex items-center justify-between pb-3.5">
               <div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground">{t("dashboard.inventoryTitle", "Registry inventory")}</h2>
+                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.inventoryTitle", "Registry inventory")}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.inventorySubtitle", "Repository volume by connected endpoint")}</p>
               </div>
               <Link
@@ -368,10 +271,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </div>
             )}
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {isLoadingRegistries ? (
                 Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-14 w-full rounded-2xl" />
+                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
                 ))
               ) : (
                 registriesWithStats.map((registry) => {
@@ -379,37 +282,37 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     <Link
                       key={registry.id}
                       href={`/repos?registry=${registry.id}`}
-                      className="group flex items-center justify-between rounded-2xl bg-secondary/25 p-3.5 transition-all hover:bg-secondary/60 hover:shadow-xs"
+                      className="group flex items-center justify-between rounded-xl bg-secondary/25 p-2.5 sm:p-3 transition-all hover:bg-secondary/60 hover:shadow-xs"
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground/70 group-hover:text-primary transition-colors">
-                          <DatabaseIcon className="size-4" />
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground/70 group-hover:text-primary transition-colors">
+                          <DatabaseIcon className="size-3.5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-semibold tracking-tight text-foreground">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="truncate text-xs sm:text-sm font-semibold tracking-tight text-foreground">
                               {registry.name}
                             </p>
                             {registry.isDefault && (
-                              <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-[10px] font-medium text-foreground">
+                              <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[9px] font-medium text-foreground">
                                 Default
                               </span>
                             )}
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">
                               {registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"}
                             </span>
                           </div>
-                          <p className="truncate font-mono text-xs text-muted-foreground mt-0.5">
+                          <p className="truncate font-mono text-[11px] text-muted-foreground mt-0.5">
                             {registry.url}
                           </p>
                         </div>
                       </div>
 
-                      <div className="ml-4 shrink-0 text-right">
+                      <div className="ml-3 shrink-0 text-right">
                         <div className="font-mono text-xs font-semibold text-foreground">
-                          {registry.repoCount} <span className="font-normal text-muted-foreground text-[11px]">repos</span>
+                          {registry.repoCount} <span className="font-normal text-muted-foreground text-[10px]">repos</span>
                         </div>
-                        <div className="font-mono text-[11px] text-muted-foreground">
+                        <div className="font-mono text-[10px] text-muted-foreground">
                           {registry.tagCount} tags
                         </div>
                       </div>
@@ -421,18 +324,18 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </div>
 
           {defaultRegistry && (
-            <p className="mt-4 text-[11px] text-muted-foreground">
+            <p className="mt-3 text-[11px] text-muted-foreground">
               Default registry: <span className="font-medium text-foreground">{defaultRegistry.name}</span>
             </p>
           )}
         </div>
 
         {/* Top Repositories Tile */}
-        <div className="flex flex-col justify-between rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08]">
+        <div className="flex flex-col justify-between rounded-[16px] bg-white dark:bg-[#1C1C1E] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08]">
           <div>
-            <div className="flex items-center justify-between pb-5">
+            <div className="flex items-center justify-between pb-3.5">
               <div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground">{t("dashboard.topReposTitle", "Top repositories")}</h2>
+                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.topReposTitle", "Top repositories")}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.topReposSubtitle", "Highest tag volume across connected registries")}</p>
               </div>
               <Link
@@ -444,13 +347,13 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </Link>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {isLoadingRegistries || isLoadingRepos ? (
                 Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-2xl" />
+                  <Skeleton key={i} className="h-10 w-full rounded-xl" />
                 ))
               ) : chartData.length === 0 ? (
-                <p className="py-8 text-center text-xs text-muted-foreground">
+                <p className="py-6 text-center text-xs text-muted-foreground">
                   No repository ranking data available yet.
                 </p>
               ) : (
@@ -467,26 +370,26 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     <Link
                       key={`${repo.registryId}-${repo.name}`}
                       href={`/repos/${repo.registryId}/${repo.name}`}
-                      className="group flex items-center justify-between rounded-2xl bg-secondary/25 p-3 transition-all hover:bg-secondary/60 hover:shadow-xs"
+                      className="group flex items-center justify-between rounded-xl bg-secondary/25 p-2.5 transition-all hover:bg-secondary/60 hover:shadow-xs"
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${rankStyle}`}>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${rankStyle}`}>
                           {index + 1}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                          <p className="truncate text-xs sm:text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
                             {repo.name}
                           </p>
-                          <p className="truncate text-[11px] text-muted-foreground">
+                          <p className="truncate text-[10px] text-muted-foreground">
                             {registry?.name ?? repo.registryId}
                           </p>
                         </div>
                       </div>
 
                       <div className="ml-3 shrink-0">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 font-mono text-xs font-medium text-foreground">
-                          <TagIcon className="size-3 text-muted-foreground" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-mono text-[11px] font-medium text-foreground">
+                          <TagIcon className="size-2.5 text-muted-foreground" />
                           {repo.tagCount}
                         </span>
                       </div>
@@ -497,31 +400,31 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <p className="mt-4 text-[11px] text-muted-foreground">
+          <p className="mt-3 text-[11px] text-muted-foreground">
             Ranked by total tag manifests indexed
           </p>
         </div>
       </div>
 
       {/* Recent Activity Feed (Full-width Bento card) */}
-      <div className="flex flex-col rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08]">
-        <div className="flex items-center justify-between pb-4">
+      <div className="flex flex-col rounded-[16px] bg-white dark:bg-[#1C1C1E] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08]">
+        <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-2">
-            <ClockIcon className="size-4 text-muted-foreground" />
-            <h2 className="text-base font-semibold tracking-tight text-foreground">{t("dashboard.recentActivityTitle", "Recent activity")}</h2>
+            <ClockIcon className="size-3.5 text-muted-foreground" />
+            <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.recentActivityTitle", "Recent activity")}</h2>
           </div>
-          <span className="text-xs text-muted-foreground">{t("dashboard.liveOperations", "Live operations stream")}</span>
+          <span className="text-[11px] text-muted-foreground">{t("dashboard.liveOperations", "Live operations stream")}</span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {!isMounted || isLoadingActivity ? (
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full rounded-xl" />
-              <Skeleton className="h-10 w-full rounded-xl" />
-              <Skeleton className="h-10 w-full rounded-xl" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
             </div>
           ) : activities.length === 0 ? (
-            <p className="py-6 text-center text-xs text-muted-foreground">
+            <p className="py-5 text-center text-xs text-muted-foreground">
               {t("dashboard.noActivity", "No recent activity recorded yet. Activity will appear here when images or registries are accessed.")}
             </p>
           ) : (
@@ -536,10 +439,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl bg-secondary/25 px-3.5 py-2.5 text-xs transition-colors hover:bg-secondary/50"
+                  className="flex items-center justify-between rounded-lg bg-secondary/25 px-3 py-2 text-xs transition-colors hover:bg-secondary/50"
                 >
-                  <div className="flex items-center gap-2.5 truncate">
-                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${typeBadgeStyle}`}>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${typeBadgeStyle}`}>
                       {item.type}
                     </span>
                     <span className="truncate font-mono text-xs text-foreground font-medium">
@@ -549,7 +452,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                       <span className="font-mono text-xs text-muted-foreground">:{item.tag}</span>
                     )}
                   </div>
-                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                     {new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
