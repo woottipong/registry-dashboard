@@ -82,8 +82,8 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold tracking-tight text-foreground">{repo.name}</span>
-                    {repo.isOfficial ? <Badge variant="outline" className="rounded-full text-[10px] px-2">Official</Badge> : null}
-                    {repo.isPrivate ? <Badge variant="secondary" className="rounded-full text-[10px] px-2">Private</Badge> : null}
+                    {repo.isOfficial ? <Badge variant="outline" className="rounded-full text-xs px-2">Official</Badge> : null}
+                    {repo.isPrivate ? <Badge variant="secondary" className="rounded-full text-xs px-2">Private</Badge> : null}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">{repo.fullName}</p>
                 </div>

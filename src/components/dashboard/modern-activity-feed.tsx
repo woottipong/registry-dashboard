@@ -77,7 +77,7 @@ export function ModernActivityItem({ activity }: ModernActivityItemProps) {
           </p>
         )}
 
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="font-mono">
             {activity.registry}
           </span>

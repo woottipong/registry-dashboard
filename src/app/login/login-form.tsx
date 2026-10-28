@@ -49,7 +49,7 @@ export function LoginForm() {
         <p className="text-sm text-muted-foreground">Continue into the registry workspace.</p>
       </div>
 
-      <div className="rounded-[32px] p-8 shadow-[0_12px_44px_rgba(0,0,0,0.06)] border bg-[#1C1C1E] border-white/[0.08]">
+      <div className="rounded-panel p-8 shadow-[0_12px_44px_rgba(0,0,0,0.06)] border bg-[#1C1C1E] border-white/[0.08]">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">
@@ -109,7 +109,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="mt-2 h-11 w-full rounded-full font-medium shadow-xs"
+            className="mt-2 h-11 w-full rounded-control font-medium shadow-xs"
             disabled={isLoading}
           >
             {isLoading ? (

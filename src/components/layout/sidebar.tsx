@@ -54,7 +54,7 @@ function SidebarBody() {
             <span className="truncate text-[13px] font-semibold tracking-tight text-foreground leading-tight">
               Registry Dashboard
             </span>
-            <span className="truncate text-[10px] text-muted-foreground font-mono leading-none mt-0.5">
+            <span className="truncate text-xs text-muted-foreground font-mono leading-none mt-0.5">
               Docker Registry V2
             </span>
           </div>
@@ -65,7 +65,7 @@ function SidebarBody() {
       <div className="flex flex-1 flex-col gap-6 px-3.5 py-4 overflow-y-auto">
         {/* Main Platform Section */}
         <div className="flex flex-col gap-1.5">
-          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+          <p className="px-2.5 pb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {"Main"}
           </p>
           <nav className="flex flex-col gap-1">
@@ -100,12 +100,12 @@ function SidebarBody() {
         {/* Endpoints / Registry Shortcuts Section */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between px-2.5 pb-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {"Registry shortcuts"}
             </p>
             <Link
               href="/registries/new"
-              className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground/70 transition-colors hover:bg-white/10 hover:text-primary"
+              className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground transition-colors hover:bg-white/10 hover:text-primary"
               title={"Add registry"}
               aria-label={"Add registry"}
             >
@@ -138,7 +138,7 @@ function SidebarBody() {
                     <div className="flex flex-1 items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
-                          "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] transition-colors",
+                          "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-xs transition-colors",
                           active
                             ? "bg-primary/10 text-primary"
                             : "text-muted-foreground group-hover:text-foreground bg-white/10",
@@ -149,7 +149,7 @@ function SidebarBody() {
                       <span className="truncate text-xs">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground bg-white/[0.06]">
+                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-xs text-muted-foreground bg-white/[0.06]">
                         {"Default"}
                       </span>
                     )}

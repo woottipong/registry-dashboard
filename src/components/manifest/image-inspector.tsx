@@ -196,7 +196,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         </div>
       </div>
 
-      <div className="rounded-[28px] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border bg-[#1C1C1E] border-white/[0.06]">
+      <div className="rounded-panel p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border bg-[#1C1C1E] border-white/[0.06]">
         <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Manifest Workspace</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">Review layers, configuration, history, and raw manifest data.</p>

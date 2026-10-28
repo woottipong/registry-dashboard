@@ -2,7 +2,7 @@
 
 The application UI uses English only. The application uses a dark theme. User-provided names may use any script.
 
-The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and `rounded-control` (8px) for controls and interactive rows. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for theme-aware surfaces and links. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
+The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and dialogs, and `rounded-control` (8px) for controls and interactive rows. The radius scale stays between 6px and 16px; use fully rounded shapes only for dots and compact status badges. Use at least 12px for readable metadata. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for dark surfaces and links. The blue link and focus tokens indicate actions and selection; reserve other colors for status and data. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
 
 The older bento reference below describes the original visual direction; the operational UI tokens above take precedence for the application screens.
 

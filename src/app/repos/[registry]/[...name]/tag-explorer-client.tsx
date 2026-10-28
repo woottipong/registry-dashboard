@@ -199,7 +199,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-full">
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-control">
             <ChevronLeftIcon data-icon="inline-start" />
             Repositories
           </Button>
@@ -255,7 +255,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               icon={<TagIcon className="size-5" />}
               title={search ? "No matching tags" : "No tags yet"}
               description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
-              action={search ? <Button variant="outline" className="rounded-full shadow-xs" onClick={handleClearSearch}>Clear search</Button> : undefined}
+              action={search ? <Button variant="outline" className="rounded-control shadow-xs" onClick={handleClearSearch}>Clear search</Button> : undefined}
               className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
             />
           ) : (
@@ -281,7 +281,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full shadow-xs"
+                      className="rounded-control shadow-xs"
                       disabled={page <= 1 || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       aria-label="Previous page"
@@ -292,7 +292,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full shadow-xs"
+                      className="rounded-control shadow-xs"
                       disabled={page >= totalPages || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       aria-label="Next page"

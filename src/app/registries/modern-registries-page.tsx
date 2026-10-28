@@ -141,9 +141,9 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         </div>
 
         <div className="grid gap-5 sm:grid-cols-3">
-          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} color="blue" />
-          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} color="emerald" />
-          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} color="purple" />
+          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} />
+          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} />
+          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} />
         </div>
 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
@@ -283,32 +283,22 @@ function SummaryStat({
   mono = true,
   compact = false,
   icon: Icon,
-  color = "blue",
 }: {
   label: string
   value: string
   mono?: boolean
   compact?: boolean
   icon?: React.ComponentType<{ className?: string }>
-  color?: "blue" | "emerald" | "purple"
 }) {
-  const iconColorMap = {
-    blue: "bg-blue-500/10 text-blue-400",
-    emerald: "bg-emerald-500/10 text-emerald-400",
-    purple: "bg-purple-500/10 text-purple-400",
-  }
-
   return (
     <div className={`flex flex-col justify-between rounded-panel bg-card shadow-panel border border-panel-border ${compact ? "p-4" : "p-6"}`}>
       <div className="flex items-center gap-2.5 text-muted-foreground">
         {Icon ? (
-          <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg ${iconColorMap[color]}`}>
-            <Icon className="size-3.5" />
-          </div>
+          <Icon className="size-4 shrink-0" />
         ) : null}
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <p className={`mt-3 truncate font-semibold tracking-tight text-foreground ${mono ? "font-mono text-2xl sm:text-3xl tabular-nums" : "text-base sm:text-lg"}`}>
+      <p className={`mt-3 truncate font-semibold tracking-tight text-foreground ${mono ? "text-2xl tabular-nums" : "text-base sm:text-lg"}`}>
         {value}
       </p>
     </div>

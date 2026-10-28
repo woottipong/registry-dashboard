@@ -137,7 +137,7 @@ export function RepositoriesClient({
           <div className="flex flex-col gap-6 pb-2">
             {selectedNamespace !== null ? (
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit rounded-full">
+                <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit rounded-control">
                   <ChevronLeftIcon data-icon="inline-start" />
                   {"Namespaces"}
                 </Button>
@@ -171,7 +171,7 @@ export function RepositoriesClient({
                       variant={selectedRegistry === registry.id ? "default" : "ghost"}
                       size="sm"
                       onClick={() => handleRegistryChange(registry.id)}
-                      className={selectedRegistry === registry.id ? "rounded-full shadow-xs px-3.5 h-8 text-xs font-medium" : "rounded-full px-3.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground"}
+                      className={selectedRegistry === registry.id ? "rounded-control shadow-xs px-3.5 h-8 text-xs font-medium" : "rounded-full px-3.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground"}
                     >
                       <span className="truncate">{registry.name}</span>
                     </Button>
@@ -325,7 +325,7 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
                 <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {label}{isRoot ? "" : "/"}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Namespace collection
                 </p>
               </div>
@@ -333,7 +333,7 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
 
             <div className="flex shrink-0 items-center gap-2.5">
               <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 font-mono text-xs font-semibold text-foreground">
-                {namespace.repositoryCount} <span className="font-normal text-muted-foreground ml-1 text-[11px]">repos</span>
+                {namespace.repositoryCount} <span className="font-normal text-muted-foreground ml-1 text-xs">repos</span>
               </span>
               <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
             </div>
@@ -389,7 +389,7 @@ function NoRegistryState() {
       title={"No registry connected"}
       description={"Connect a Docker registry to start browsing your container images."}
       action={
-        <Button className="rounded-full shadow-xs" asChild>
+        <Button className="rounded-control shadow-xs" asChild>
           <Link href="/registries/new">{"Add registry"}</Link>
         </Button>
       }
@@ -419,7 +419,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         title="Failed to load"
         description="Unable to fetch data from the selected registry."
         action={
-          <Button variant="outline" className="rounded-full shadow-xs" onClick={onRetry}>
+          <Button variant="outline" className="rounded-control shadow-xs" onClick={onRetry}>
             Retry
           </Button>
         }

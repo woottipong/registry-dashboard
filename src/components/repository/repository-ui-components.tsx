@@ -105,7 +105,7 @@ interface RepositoryLoadingProps {
 
 export function RepositoryLoading({ count = 8 }: RepositoryLoadingProps) {
   return (
-    <div className="rounded-[28px] border-0 bg-card p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+    <div className="rounded-panel border-0 bg-card p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, index) => (
           <div key={index} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">

@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: ErrorPageProps) {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-[28px] border-0 bg-card p-8 text-center space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+      <div className="w-full max-w-md rounded-panel border-0 bg-card p-8 text-center space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircleIcon className="size-7 text-destructive" />
         </div>
@@ -32,7 +32,7 @@ export default function GlobalError({ error, reset }: ErrorPageProps) {
           ) : null}
         </div>
         <div className="pt-2">
-          <Button className="w-full rounded-full shadow-xs" onClick={reset}>
+          <Button className="w-full rounded-control shadow-xs" onClick={reset}>
             <RefreshCwIcon className="mr-2 size-4" />
             Try again
           </Button>

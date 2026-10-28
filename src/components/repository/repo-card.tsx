@@ -52,11 +52,11 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
       <CardHeader className="space-y-4 pb-4">
         <div className="flex flex-wrap gap-2">
           {repository.isOfficial && (
-            <Badge variant="outline" className="text-chart-2 border-chart-2/30 bg-chart-2/10 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider">
+            <Badge variant="outline" className="text-chart-2 border-chart-2/30 bg-chart-2/10 px-2 py-0.5 text-xs uppercase font-bold tracking-wider">
               Official
             </Badge>
           )}
-          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider">
+          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 px-2 py-0.5 text-xs uppercase font-bold tracking-wider">
             {repository.tagCount ?? 0} Tags
           </Badge>
         </div>
@@ -69,11 +69,11 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
       <CardContent className="flex-1 space-y-4">
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-border/50 bg-secondary/30 p-3 space-y-1">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider text-center">Pulls</p>
+            <p className="text-xs uppercase font-bold text-muted-foreground tracking-wider text-center">Pulls</p>
             <p className="text-sm font-bold text-center">{typeof repository.pullCount === "number" ? repository.pullCount.toLocaleString() : "-"}</p>
           </div>
           <div className="rounded-2xl border border-border/50 bg-secondary/30 p-3 space-y-1">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider text-center">Stars</p>
+            <p className="text-xs uppercase font-bold text-muted-foreground tracking-wider text-center">Stars</p>
             <p className="text-sm font-bold text-center">{typeof repository.starCount === "number" ? repository.starCount.toLocaleString() : "-"}</p>
           </div>
         </div>

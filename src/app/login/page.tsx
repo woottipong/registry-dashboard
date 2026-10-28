@@ -15,7 +15,7 @@ export default async function LoginPage() {
     <main className="min-h-screen bg-background px-4 py-8 selection:bg-primary/20 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="w-full max-w-5xl">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_420px] items-stretch">
-          <section className="relative hidden flex-col justify-between overflow-hidden rounded-[32px] bg-linear-to-b from-black to-[#111113] p-10 text-white shadow-xl lg:flex border border-white/10">
+          <section className="relative hidden flex-col justify-between overflow-hidden rounded-panel bg-linear-to-b from-black to-[#111113] p-10 text-white shadow-xl lg:flex border border-white/10">
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-3">
                 <div className="relative inline-flex size-10 shrink-0 overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-sm">

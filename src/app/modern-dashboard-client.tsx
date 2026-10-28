@@ -74,14 +74,14 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1340px] flex-col gap-5 sm:gap-6">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-5 sm:gap-6">
       {/* Header */}
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-0.5">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {"Overview"}
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {"Container registries, repositories, and tag telemetry."}
           </p>
         </div>
@@ -160,7 +160,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               <div className="mb-4 space-y-1.5 rounded-control bg-secondary/30 p-3">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="font-medium">{"Repository share"}</span>
-                  <span className="font-mono text-[11px]">{totalRepositories} {"total"}</span>
+                  <span className="font-mono text-xs">{totalRepositories} {"total"}</span>
                 </div>
                 <div className="flex h-2 w-full gap-1 overflow-hidden rounded-full bg-secondary/50">
                   {registriesWithStats.map((reg, idx) => {
@@ -204,15 +204,15 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                               {registry.name}
                             </p>
                             {registry.isDefault && (
-                              <span className="rounded bg-foreground/10 px-1.5 py-0.5 text-[11px] font-medium text-foreground">
+                              <span className="rounded bg-foreground/10 px-1.5 py-0.5 text-xs font-medium text-foreground">
                                 {"Default"}
                               </span>
                             )}
-                            <span className="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                               {registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"}
                             </span>
                           </div>
-                          <p className="truncate font-mono text-[11px] text-muted-foreground mt-0.5">
+                          <p className="truncate font-mono text-xs text-muted-foreground mt-0.5">
                             {registry.url}
                           </p>
                         </div>
@@ -283,7 +283,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                       className="group flex items-center justify-between rounded-control border-b border-border/60 px-1 py-3 transition-colors last:border-0 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${rankStyle}`}>
+                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${rankStyle}`}>
                           {index + 1}
                         </div>
 
@@ -298,7 +298,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                       </div>
 
                       <div className="ml-3 shrink-0">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-mono text-[11px] font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-mono text-xs font-medium text-foreground">
                           <TagIcon className="size-2.5 text-muted-foreground" />
                           {repo.tagCount}
                         </span>
@@ -351,7 +351,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     className="flex items-center justify-between border-b border-border/60 px-1 py-2.5 text-xs last:border-0"
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[11px] font-semibold uppercase ${typeBadgeStyle}`}>
+                      <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-semibold uppercase ${typeBadgeStyle}`}>
                         {item.type}
                       </span>
                       <span className="truncate font-mono text-xs text-foreground font-medium">

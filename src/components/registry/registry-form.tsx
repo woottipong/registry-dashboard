@@ -364,7 +364,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                                       )}
                                     />
                                   </div>
-                                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{option.note}</p>
+                                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{option.note}</p>
                                 </label>
                               )
                             })}

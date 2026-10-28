@@ -101,13 +101,13 @@ export function RegistryCard({
             <div className="flex flex-wrap items-center gap-1.5">
               <RegistryFlag label={providerLabel} />
               {registry.isDefault ? (
-                <span className="rounded-full bg-foreground/10 px-2.5 py-0.5 text-[10px] font-medium text-foreground">
+                <span className="rounded-full bg-foreground/10 px-2.5 py-0.5 text-xs font-medium text-foreground">
                   Default
                 </span>
               ) : null}
               <ConnectionStatus state={status} latencyMs={latencyMs} compact />
               {status === null ? (
-                <span className="inline-flex h-5 items-center rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground">
+                <span className="inline-flex h-5 items-center rounded-full bg-secondary px-2 text-xs font-medium text-muted-foreground">
                   Not tested
                 </span>
               ) : null}
@@ -118,7 +118,7 @@ export function RegistryCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 rounded-full"
+                className="shrink-0 rounded-control"
                 aria-label="Registry actions"
               >
                 <MoreHorizontalIcon />
@@ -232,7 +232,7 @@ function RegistryFlag({ label }: { label: string }) {
 
 function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
   return (
-    <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border-0 bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground">
+    <span className="inline-flex min-h-8 items-center gap-1.5 rounded-control border-0 bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground">
       {Icon ? <Icon className="size-3 text-muted-foreground" /> : null}
       <span>{label}</span>
     </span>
@@ -241,7 +241,7 @@ function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl bg-secondary/40 p-3.5">
+    <div className="flex flex-col gap-1 border-t border-border/60 pt-3">
       <p className="text-xs font-medium text-muted-foreground">
         {label}
       </p>

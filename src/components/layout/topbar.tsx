@@ -47,7 +47,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 rounded-full lg:hidden"
+            className="size-8 rounded-control lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open menu"
           >
