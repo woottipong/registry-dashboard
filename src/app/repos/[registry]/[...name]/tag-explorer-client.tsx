@@ -199,12 +199,12 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
     <section className="mx-auto flex max-w-6xl flex-col gap-4">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-full">
             <ChevronLeftIcon data-icon="inline-start" />
             Repositories
           </Button>
-          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
-          <Badge variant="secondary">{tagCountDisplay}</Badge>
+          {registryQuery.data ? <Badge variant="outline" className="rounded-full">{registryQuery.data.name}</Badge> : null}
+          <Badge variant="secondary" className="rounded-full">{tagCountDisplay}</Badge>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -216,18 +216,18 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
           </div>
 
           <div className="relative w-full lg:max-w-md">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={handleSearchChange}
-              className="pl-9 pr-9"
+              className="pl-9.5 pr-9 rounded-xl h-10"
               placeholder="Filter tags"
             />
             {search ? (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-8 w-8 p-0"
+                className="absolute right-1 top-1 h-8 w-8 rounded-full p-0"
                 onClick={handleClearSearch}
               >
                 <XIcon className="size-3.5" />
@@ -237,26 +237,26 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border/70 bg-card/80">
-        <div className="px-5 pt-5">
+      <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+        <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
         </div>
-        <div className="px-5 pb-4 pt-5">
+        <div>
           {tagsQuery.isError ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
               title="Failed to load tags"
               description={tagsQuery.error?.message ?? "Unable to fetch tags."}
-              className="rounded-lg bg-background/70"
+              className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
             />
           ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
               title={search ? "No matching tags" : "No tags yet"}
               description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
-              action={search ? <Button onClick={handleClearSearch}>Clear search</Button> : undefined}
-              className="rounded-lg bg-background/70"
+              action={search ? <Button variant="outline" className="rounded-full shadow-xs" onClick={handleClearSearch}>Clear search</Button> : undefined}
+              className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
             />
           ) : (
             <>
@@ -281,6 +281,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="rounded-full shadow-xs"
                       disabled={page <= 1 || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       aria-label="Previous page"
@@ -291,6 +292,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="rounded-full shadow-xs"
                       disabled={page >= totalPages || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       aria-label="Next page"
@@ -338,15 +340,15 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             transition={{ type: "spring", damping: 22, stiffness: 320 }}
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
           >
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
-              <span className="text-sm font-medium tabular-nums">
+            <div className="flex items-center gap-3 rounded-full bg-[#1D1D1F] px-4 py-2 text-white shadow-2xl shadow-black/40 ring-1 ring-white/10">
+              <span className="text-xs font-medium tabular-nums text-neutral-200">
                 {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
               </span>
-              <div className="h-4 w-px bg-border" />
+              <div className="h-4 w-px bg-white/20" />
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-3 text-muted-foreground hover:text-foreground"
+                className="h-7 px-3 text-xs text-neutral-300 hover:text-white hover:bg-white/10 rounded-full"
                 onClick={() => setRowSelection({})}
               >
                 Clear
@@ -354,10 +356,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-7 px-4"
+                className="h-7 px-3.5 text-xs rounded-full"
                 onClick={() => handleBulkDeleteClick(selectedRowTags)}
               >
-                <Trash2Icon className="size-3.5" />
+                <Trash2Icon className="size-3" />
                 Delete
               </Button>
             </div>

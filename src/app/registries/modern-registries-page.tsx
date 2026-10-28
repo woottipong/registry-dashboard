@@ -2,7 +2,16 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { ArrowRightIcon, PlusIcon, SearchIcon, ServerIcon, Trash2Icon } from "lucide-react"
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  DatabaseIcon,
+  PlusIcon,
+  SearchIcon,
+  ServerIcon,
+  ShieldCheckIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/empty-state"
@@ -131,38 +140,38 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <SummaryStat label="Registries" value={String(registries.length)} />
-          <SummaryStat label="Providers" value={String(providerCount)} />
-          <SummaryStat label="Default" value={defaultRegistry?.name ?? "Unset"} mono={false} />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} color="blue" />
+          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} color="emerald" />
+          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} color="purple" />
         </div>
 
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, URL, or namespace"
-              className="pl-9"
+              className="pl-9.5 rounded-xl h-10"
             />
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px] rounded-xl h-10">
                 <SelectValue placeholder="Provider" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">All providers</SelectItem>
                 <SelectItem value="generic">Registry V2</SelectItem>
                 <SelectItem value="dockerhub">Docker Hub</SelectItem>
               </SelectContent>
             </Select>
             <Select value={authFilter} onValueChange={setAuthFilter}>
-              <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px] rounded-xl h-10">
                 <SelectValue placeholder="Auth" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">All auth</SelectItem>
                 <SelectItem value="none">Anonymous</SelectItem>
                 <SelectItem value="basic">Basic Auth</SelectItem>
@@ -170,7 +179,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               </SelectContent>
             </Select>
             {hasActiveFilters ? (
-              <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
+              <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="rounded-full h-10">
                 Clear
               </Button>
             ) : null}
@@ -186,11 +195,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="Failed to load registries"
           description="We couldn't load your registry connections. Try refreshing the page."
           action={
-            <Button variant="outline" onClick={() => router.refresh()}>
+            <Button variant="outline" className="rounded-full shadow-xs" onClick={() => router.refresh()}>
               Try again
             </Button>
           }
-          className="rounded-3xl bg-card/80 p-14"
+          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-12 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
         />
       ) : isEmpty ? (
         <EmptyState
@@ -198,12 +207,12 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="No registries connected"
           description="Add your first registry to start browsing repositories, verifying connectivity, and managing tags from one place."
           action={
-            <Button onClick={handleAddRegistry}>
+            <Button className="rounded-full shadow-xs" onClick={handleAddRegistry}>
               <PlusIcon data-icon="inline-start" />
               Add Registry
             </Button>
           }
-          className="rounded-3xl bg-card/80 p-14"
+          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-12 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
         />
       ) : filteredRegistries.length === 0 ? (
         <EmptyState
@@ -211,11 +220,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="No registries match"
           description="Adjust the search or filters to see registry connections."
           action={
-            <Button variant="outline" onClick={resetFilters}>
+            <Button variant="outline" className="rounded-full shadow-xs" onClick={resetFilters}>
               Clear filters
             </Button>
           }
-          className="rounded-lg bg-card/80 p-10"
+          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
         />
       ) : (
         <div className="grid items-start gap-3 xl:grid-cols-2">
@@ -273,18 +282,33 @@ function SummaryStat({
   value,
   mono = true,
   compact = false,
+  icon: Icon,
+  color = "blue",
 }: {
   label: string
   value: string
   mono?: boolean
   compact?: boolean
+  icon?: React.ComponentType<{ className?: string }>
+  color?: "blue" | "emerald" | "purple"
 }) {
+  const iconColorMap = {
+    blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  }
+
   return (
-    <div className={`rounded-lg border border-border/70 bg-card/60 ${compact ? "px-3 py-2.5" : "px-3.5 py-3"}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-        {label}
-      </p>
-      <p className={`mt-1 ${compact ? "text-sm" : "text-base"} font-semibold tracking-tight text-foreground ${mono ? "font-mono" : ""}`}>
+    <div className={`flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08] ${compact ? "p-3.5" : "p-5"}`}>
+      <div className="flex items-center gap-2.5 text-muted-foreground">
+        {Icon ? (
+          <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg ${iconColorMap[color]}`}>
+            <Icon className="size-3.5" />
+          </div>
+        ) : null}
+        <span className="text-xs font-medium">{label}</span>
+      </div>
+      <p className={`mt-2.5 truncate font-semibold tracking-tight text-foreground ${mono ? "font-mono text-2xl sm:text-3xl tabular-nums" : "text-base sm:text-lg"}`}>
         {value}
       </p>
     </div>

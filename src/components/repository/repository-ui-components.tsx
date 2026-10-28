@@ -60,7 +60,7 @@ export function RegistrySelector({
 }: RegistrySelectorProps) {
   return (
     <div className="flex overflow-x-auto pb-2 sm:pb-0 scrollbar-none gap-2 min-w-0">
-      <div className="flex bg-muted p-1 rounded-2xl border border-border">
+      <div className="flex bg-secondary/60 p-1 rounded-full border-0">
         {registries.map((registry) => {
           const isActive = selectedRegistry === registry.id
           return (
@@ -69,18 +69,18 @@ export function RegistrySelector({
               onClick={() => onRegistryChange(registry.id)}
               disabled={disabled}
               className={cn(
-                "px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer",
+                "px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 flex items-center gap-2 cursor-pointer",
                 isActive
-                  ? "bg-primary text-white shadow-lg shadow-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar",
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
               aria-label={`Select ${registry.name} registry`}
               aria-pressed={isActive}
             >
               <div className={cn(
-                "size-2 rounded-full",
-                isActive ? "bg-white" : "bg-muted-foreground/30"
+                "size-1.5 rounded-full",
+                isActive ? "bg-white" : "bg-muted-foreground/40"
               )} />
               {registry.name}
             </button>
@@ -89,9 +89,9 @@ export function RegistrySelector({
         <Button
           variant="ghost"
           size="sm"
-          className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary border border-dashed border-border ml-1 flex items-center gap-2"
+          className="px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-primary ml-1 flex items-center gap-1.5 h-auto"
         >
-          <PlusIcon className="size-3.5" />
+          <PlusIcon className="size-3" />
           <span>Connect</span>
         </Button>
       </div>
@@ -105,28 +105,24 @@ interface RepositoryLoadingProps {
 
 export function RepositoryLoading({ count = 8 }: RepositoryLoadingProps) {
   return (
-    <div className="animate-in fade-in duration-300">
-      <div className="rounded-lg border border-border bg-card shadow-sm">
-        <div className="p-6">
-          <div className="space-y-4">
-            {Array.from({ length: count }).map((_, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="h-8 w-8 rounded-lg bg-muted" />
-                  <div className="space-y-1 flex-1">
-                    <div className="h-4 w-32 bg-muted rounded" />
-                    <div className="h-3 w-24 bg-muted/60 rounded" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="h-4 w-12 bg-muted rounded" />
-                  <div className="h-4 w-16 bg-muted rounded" />
-                  <div className="h-6 w-16 bg-muted rounded" />
-                </div>
+    <div className="rounded-[28px] border-0 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+      <div className="space-y-4">
+        {Array.from({ length: count }).map((_, index) => (
+          <div key={index} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="size-8 rounded-full bg-secondary shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <div className="h-4 w-32 bg-secondary rounded-lg" />
+                <div className="h-3 w-24 bg-secondary/60 rounded-lg" />
               </div>
-            ))}
+            </div>
+            <div className="flex items-center gap-6 text-sm">
+              <div className="h-4 w-12 bg-secondary rounded-lg" />
+              <div className="h-4 w-16 bg-secondary rounded-lg" />
+              <div className="h-6 w-16 bg-secondary rounded-full" />
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   )

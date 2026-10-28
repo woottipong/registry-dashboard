@@ -57,10 +57,10 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
     <Table>
       <TableHeader className="bg-transparent">
         <TableRow className="border-b border-border/70 hover:bg-transparent">
-          <TableHead className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <TableHead className="px-5 py-3 text-xs font-medium text-muted-foreground">
             Repository
           </TableHead>
-          <TableHead className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <TableHead className="px-5 py-3 text-right text-xs font-medium text-muted-foreground">
             Tags
           </TableHead>
         </TableRow>
@@ -69,30 +69,30 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
         {repositories.map((repo) => (
           <TableRow
             key={repo.fullName}
-            className="cursor-pointer border-b border-border/60 hover:bg-muted/35"
+            className="cursor-pointer border-b border-border/60 hover:bg-secondary/40 transition-colors"
             onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
             onMouseEnter={() => setHoveredRepo(repo)}
             onMouseLeave={() => setHoveredRepo(null)}
           >
-            <TableCell className="px-5 py-3">
+            <TableCell className="px-5 py-3.5">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card">
-                  <BoxIcon className="size-4 text-muted-foreground" />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground">
+                  <BoxIcon className="size-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate font-medium">{repo.name}</span>
-                    {repo.isOfficial ? <Badge variant="outline">Official</Badge> : null}
-                    {repo.isPrivate ? <Badge variant="secondary">Private</Badge> : null}
+                    <span className="truncate text-sm font-semibold tracking-tight text-foreground">{repo.name}</span>
+                    {repo.isOfficial ? <Badge variant="outline" className="rounded-full text-[10px] px-2">Official</Badge> : null}
+                    {repo.isPrivate ? <Badge variant="secondary" className="rounded-full text-[10px] px-2">Private</Badge> : null}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">{repo.fullName}</p>
                 </div>
               </div>
             </TableCell>
 
-            <TableCell className="px-5 py-3 text-right">
-              <Badge variant="outline" className="h-6 justify-center whitespace-nowrap rounded-md px-2">
-                <TagsIcon className="size-3.5" />
+            <TableCell className="px-5 py-3.5 text-right">
+              <Badge variant="secondary" className="h-6 justify-center whitespace-nowrap rounded-full px-2.5 font-mono text-xs text-foreground">
+                <TagsIcon className="size-3" />
                 <span>{formatCount(repo.tagCount)}</span>
               </Badge>
             </TableCell>

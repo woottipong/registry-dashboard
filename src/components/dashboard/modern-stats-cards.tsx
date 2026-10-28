@@ -51,7 +51,7 @@ export function StatCard({
           <div className="p-1.5 rounded-lg bg-primary/10">
             <Icon className="size-4 text-primary" />
           </div>
-          <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          <div className="text-xs font-medium text-muted-foreground">
             {title}
           </div>
         </div>

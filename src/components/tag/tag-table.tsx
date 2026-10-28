@@ -202,7 +202,7 @@ export function TagTable({
   })
   if (isLoading) {
     return (
-      <div className="overflow-hidden rounded-lg border border-border/70">
+      <div className="overflow-hidden rounded-2xl border border-border/60">
         <Table>
           <TableHeader className="bg-transparent">
             <TableRow className="border-b border-border/70 hover:bg-transparent">
@@ -267,7 +267,7 @@ export function TagTable({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-lg border border-border/70">
+      <div className="overflow-hidden rounded-2xl border border-border/60">
         <Table>
           <TableHeader className="bg-transparent">
             {table.getHeaderGroups().map((headerGroup) => (

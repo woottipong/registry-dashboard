@@ -36,13 +36,13 @@ function getActivityColor(type: string) {
     case 'push':
       return 'text-chart-2 bg-chart-2/10'
     case 'pull':
-      return 'text-chart-5 bg-chart-5/10'
+      return 'text-[#0071E3] bg-[#0071E3]/10'
     case 'delete':
       return 'text-destructive bg-destructive/10'
     case 'create':
       return 'text-primary bg-primary/10'
     default:
-      return 'text-muted-foreground bg-muted/50'
+      return 'text-muted-foreground bg-secondary'
   }
 }
 
@@ -51,38 +51,39 @@ export function ModernActivityItem({ activity }: ModernActivityItemProps) {
   const IconComponent = ActivityIcons[activity.type as keyof typeof ActivityIcons] || ActivityIcons.default
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors">
+    <div className="flex items-start gap-3 rounded-2xl bg-secondary/35 p-3.5 transition-colors hover:bg-secondary/60">
       {/* Activity icon */}
       <div className={cn(
-        "p-2 rounded-lg flex-shrink-0",
+        "flex size-8 shrink-0 items-center justify-center rounded-full",
         iconColor
       )}>
         <IconComponent className="size-4" />
       </div>
 
       {/* Activity content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium text-sm text-foreground">
-            {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 flex items-center gap-2">
+          <span className="text-xs font-semibold capitalize text-foreground">
+            {activity.type}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="truncate text-xs text-muted-foreground">
             {activity.repository}
           </span>
         </div>
 
         {activity.tag && (
-          <p className="text-xs text-muted-foreground mb-2">
+          <p className="mb-1.5 text-xs text-muted-foreground font-mono">
             Tag: {activity.tag}
           </p>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground/60">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="font-mono">
             {activity.registry}
           </span>
+          <span>·</span>
           <span className="font-mono">
-            {new Date(activity.timestamp).toLocaleTimeString()}
+            {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
@@ -99,17 +100,16 @@ export function ModernActivityFeed({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
-        {Array.from({ length: 5 }).map((_, index) => (
+      <div className="flex flex-col gap-2.5 max-h-96 overflow-y-auto">
+        {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
-            className="flex items-start gap-3 p-3 rounded-lg border border-border"
+            className="flex items-start gap-3 rounded-2xl bg-secondary/30 p-3.5"
           >
-            <Skeleton className="size-8 rounded-lg shrink-0" />
+            <Skeleton className="size-8 rounded-full shrink-0" />
             <div className="flex-1 flex flex-col gap-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-48" />
-              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-32 rounded-lg" />
+              <Skeleton className="h-3 w-48 rounded-lg" />
             </div>
           </div>
         ))}
@@ -119,17 +119,15 @@ export function ModernActivityFeed({
 
   if (displayActivities.length === 0) {
     return (
-      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto items-center justify-center">
-        <div className="text-center py-8">
-          <ActivityIcon className="size-8 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No recent activity</p>
-        </div>
+      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto items-center justify-center py-8">
+        <ActivityIcon className="size-8 text-muted-foreground/30 mb-2" />
+        <p className="text-xs text-muted-foreground">No recent activity recorded</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
+    <div className="flex flex-col gap-2.5 max-h-96 overflow-y-auto pr-1">
       {displayActivities.map((activity) => (
         <ModernActivityItem
           key={`${activity.id}-${activity.timestamp}`}
@@ -139,7 +137,7 @@ export function ModernActivityFeed({
 
       {activities.length > maxItems && (
         <div className="text-center pt-2">
-          <Button variant="ghost" size="sm" className="text-xs text-primary">
+          <Button variant="ghost" size="sm" className="text-xs">
             View all {activities.length} activities
           </Button>
         </div>

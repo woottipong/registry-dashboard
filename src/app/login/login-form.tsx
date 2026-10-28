@@ -43,16 +43,16 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-5">
-      <div className="space-y-2 lg:hidden">
-        <h1 className="text-[1.9rem] font-semibold tracking-tight text-foreground">Sign In</h1>
+    <div className="w-full space-y-4">
+      <div className="space-y-1 lg:hidden">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sign In</h1>
         <p className="text-sm text-muted-foreground">Continue into the registry workspace.</p>
       </div>
 
-      <div className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+      <div className="rounded-[32px] bg-white dark:bg-[#1C1C1E] p-8 shadow-[0_12px_44px_rgba(0,0,0,0.06)] border border-black/[0.04] dark:border-white/[0.08]">
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="username" className="ml-1 text-[13px] font-medium text-muted-foreground">
+          <div className="space-y-1.5">
+            <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">
               Username
             </Label>
             <Input
@@ -64,12 +64,12 @@ export function LoginForm() {
               placeholder="Enter your username"
               required
               disabled={isLoading}
-              className="h-11 rounded-xl border-border/70 bg-background text-sm shadow-none transition-all duration-200"
+              className="h-11 rounded-xl text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="ml-1 text-[13px] font-medium text-muted-foreground">
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">
               Password
             </Label>
             <div className="relative">
@@ -82,13 +82,13 @@ export function LoginForm() {
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
-                className="h-11 rounded-xl border-border/70 bg-background pr-12 text-sm shadow-none transition-all duration-200"
+                className="h-11 rounded-xl pr-12 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 disabled={isLoading}
               >
                 {showPassword ? (
@@ -101,15 +101,15 @@ export function LoginForm() {
           </div>
 
           {error ? (
-            <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-3">
+            <div className="flex items-center gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-3">
               <AlertCircleIcon className="size-[18px] shrink-0 text-destructive" />
-              <p className="text-sm font-medium text-destructive">{error}</p>
+              <p className="text-xs font-medium text-destructive">{error}</p>
             </div>
           ) : null}
 
           <Button
             type="submit"
-            className="mt-2 h-11 w-full rounded-xl"
+            className="mt-2 h-11 w-full rounded-full font-medium shadow-xs"
             disabled={isLoading}
           >
             {isLoading ? (

@@ -16,9 +16,8 @@ interface ThemeBackdropProps {
 
 const springTransition = {
   type: "spring",
-  stiffness: 320,
-  damping: 28,
-  mass: 0.72,
+  stiffness: 380,
+  damping: 30,
 } as const
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
@@ -35,7 +34,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     return (
       <div
         className={cn(
-          "relative inline-flex h-9 w-[4.5rem] shrink-0 rounded-lg border border-border/70 bg-background",
+          "relative inline-flex h-8 w-16 shrink-0 rounded-full bg-black/5 dark:bg-white/10",
           className,
         )}
       />
@@ -49,50 +48,44 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-checked={isDark}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={cn(
-        "group relative inline-flex h-9 w-[4.5rem] shrink-0 cursor-pointer items-center rounded-lg border border-border/70 bg-background p-1 outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 hover:border-border hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "group relative inline-flex h-8 w-16 shrink-0 cursor-pointer items-center rounded-full bg-black/5 p-1 outline-none transition-colors dark:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         className,
       )}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
       onClick={handleToggle}
     >
       <span className="sr-only">Switch between light and dark mode</span>
 
-      <span className="absolute inset-1 rounded-md bg-muted/70" />
-
-      <span className="pointer-events-none absolute inset-y-1 left-2.5 z-0 flex items-center">
+      <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center">
         <SunMediumIcon
           className={cn(
-            "size-3.5 transition-all duration-200",
-            isDark ? "text-muted-foreground/55" : "text-primary",
+            "size-3.5 transition-colors duration-200",
+            isDark ? "text-muted-foreground/60" : "text-primary",
           )}
         />
       </span>
 
-      <span className="pointer-events-none absolute inset-y-1 right-2.5 z-0 flex items-center">
+      <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
         <MoonStarIcon
           className={cn(
-            "size-3.5 transition-all duration-200",
-            isDark ? "text-primary" : "text-muted-foreground/55",
+            "size-3.5 transition-colors duration-200",
+            isDark ? "text-primary" : "text-muted-foreground/60",
           )}
         />
       </span>
 
       <motion.span
-        className="absolute left-1 top-1 z-10 flex size-7 items-center justify-center rounded-md border border-border/80 bg-card shadow-sm"
-        animate={{ x: isDark ? 36 : 0 }}
+        className="z-10 flex size-6 items-center justify-center rounded-full bg-card shadow-[0_1px_4px_rgba(0,0,0,0.15)]"
+        animate={{ x: isDark ? 32 : 0 }}
         transition={springTransition}
       >
-        <motion.span
-          animate={prefersReducedMotion ? undefined : { rotate: isDark ? 18 : 0, scale: isDark ? 0.98 : 1 }}
-          transition={springTransition}
-          className="flex items-center justify-center"
-        >
+        <span className="flex items-center justify-center">
           {isDark ? (
-            <MoonStarIcon className="size-3.5 text-primary" />
+            <MoonStarIcon className="size-3 text-primary" />
           ) : (
-            <SunMediumIcon className="size-3.5 text-primary" />
+            <SunMediumIcon className="size-3 text-primary" />
           )}
-        </motion.span>
+        </span>
       </motion.span>
     </motion.button>
   )

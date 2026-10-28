@@ -3,7 +3,6 @@
 import { Suspense } from "react"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
-import { ThemeBackdrop } from "@/components/layout/theme-toggle"
 import { Topbar } from "@/components/layout/topbar"
 import { useUiStore } from "@/stores/ui-store"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -16,12 +15,12 @@ interface AppShellProps {
 function SidebarWrapper({ mobileOpen, onMobileOpenChange }: { mobileOpen?: boolean; onMobileOpenChange?: (open: boolean) => void }) {
   return (
     <Suspense fallback={
-      <div className="h-full w-64 border-r border-sidebar-border bg-sidebar p-5">
-        <Skeleton className="h-8 w-36" />
-        <div className="mt-6 flex flex-col gap-3">
-          <Skeleton className="h-10 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full rounded-xl" />
+      <div className="h-full w-64 bg-sidebar p-5">
+        <Skeleton className="h-8 w-36 rounded-full" />
+        <div className="mt-6 flex flex-col gap-2">
+          <Skeleton className="h-9 w-full rounded-full" />
+          <Skeleton className="h-9 w-full rounded-full" />
+          <Skeleton className="h-9 w-full rounded-full" />
         </div>
       </div>
     }>
@@ -40,20 +39,17 @@ export function AppShell({ children }: AppShellProps) {
   // Don't render the shell for login page
   if (pathname === "/login") {
     return (
-      <main className="relative isolate min-h-screen bg-background text-foreground transition-colors duration-700">
-        <ThemeBackdrop />
-        <div className="relative z-10 min-h-screen">{children}</div>
+      <main className="relative min-h-screen bg-background text-foreground">
+        <div className="min-h-screen">{children}</div>
       </main>
     )
   }
 
   return (
-    <div className="relative isolate flex min-h-screen bg-background text-foreground transition-colors duration-700">
-      <ThemeBackdrop />
-
+    <div className="relative flex min-h-screen bg-background text-foreground">
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:ml-64">
+      <div className="relative flex min-w-0 flex-1 flex-col lg:ml-64">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
         <main className="flex-1 p-4 lg:px-8 lg:py-6">{children}</main>
       </div>

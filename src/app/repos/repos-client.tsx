@@ -21,6 +21,7 @@ import { useDebounce } from "@/hooks/use-debounce"
 import { useNamespaces } from "@/hooks/use-namespaces"
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories } from "@/hooks/use-repositories"
+import { useI18n } from "@/contexts/i18n-context"
 import type { Namespace, RegistryConnection } from "@/types/registry"
 
 type SortOption =
@@ -45,6 +46,7 @@ export function RepositoriesClient({
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("tags-desc")
   const debouncedSearch = useDebounce(search)
+  const { t } = useI18n()
 
   const registriesQuery = useRegistries({ initialData: initialRegistries })
   const registries = registriesQuery.data ?? []
@@ -137,11 +139,11 @@ export function RepositoriesClient({
           <div className="flex flex-col gap-4 pb-2">
             {selectedNamespace !== null ? (
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit">
+                <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit rounded-full">
                   <ChevronLeftIcon data-icon="inline-start" />
-                  Namespaces
+                  {t("repos.namespaces", "Namespaces")}
                 </Button>
-                <Badge variant="outline" className="font-mono">
+                <Badge variant="outline" className="font-mono rounded-full">
                   {selectedNamespaceValue || "(root)"}
                 </Badge>
               </div>
@@ -154,41 +156,30 @@ export function RepositoriesClient({
                     ? selectedNamespaceValue
                       ? `${selectedNamespaceValue}/`
                       : "(root)"
-                    : "Repositories"}
+                    : t("repos.title", "Repositories")}
                 </h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
                   {selectedNamespace !== null
-                    ? "Browse repositories in the selected namespace."
-                    : "Choose a registry and namespace to browse repositories."}
+                    ? t("repos.browseNamespace", "Browse repositories in the selected namespace.")
+                    : t("repos.subtitle", "Choose a registry and namespace to browse repositories.")}
                 </p>
               </div>
 
-              {selectedNamespace === null ? (
-                <div className="flex flex-wrap gap-2">
+              {selectedNamespace === null && registries.length > 1 ? (
+                <div className="flex flex-wrap items-center gap-1.5 rounded-full bg-secondary/40 p-1">
                   {registries.map((registry) => (
                     <Button
                       key={registry.id}
-                      variant={selectedRegistry === registry.id ? "default" : "outline"}
+                      variant={selectedRegistry === registry.id ? "default" : "ghost"}
                       size="sm"
                       onClick={() => handleRegistryChange(registry.id)}
-                      className="max-w-full"
+                      className={selectedRegistry === registry.id ? "rounded-full shadow-xs px-3.5 h-8 text-xs font-medium" : "rounded-full px-3.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground"}
                     >
                       <span className="truncate">{registry.name}</span>
                     </Button>
                   ))}
                 </div>
               ) : null}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {selectedRegistryData ? <SummaryPill label={selectedRegistryData.name} /> : null}
-              <SummaryPill
-                label={
-                  selectedNamespace === null
-                    ? `${namespaceList.length} ${namespaceList.length === 1 ? "namespace" : "namespaces"}`
-                    : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"}`
-                }
-              />
             </div>
           </div>
 
@@ -212,8 +203,8 @@ export function RepositoriesClient({
               )}
             </Panel>
           ) : (
-            <div className="rounded-lg border border-border/70 bg-card/80">
-              <div className="space-y-4 px-5 pt-5">
+            <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+              <div className="space-y-4 pb-4">
                 <div className="space-y-1">
                   <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
                   <p className="text-sm text-muted-foreground">
@@ -221,13 +212,13 @@ export function RepositoriesClient({
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <div className="flex flex-col gap-2.5 md:flex-row md:items-center">
                   <div className="relative flex-1">
-                    <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <SearchIcon className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       value={search}
                       onChange={handleSearchChange}
-                      className="pl-9"
+                      className="pl-9.5 rounded-xl h-10"
                       placeholder={`Search in ${selectedNamespaceValue || "root"}`}
                       aria-label="Search repositories"
                     />
@@ -244,10 +235,10 @@ export function RepositoriesClient({
                   </div>
 
                   <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                    <SelectTrigger className="w-full md:w-52" aria-label="Sort repositories">
+                    <SelectTrigger className="w-full md:w-52 rounded-xl h-10" aria-label="Sort repositories">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="name-asc">Name A-Z</SelectItem>
                       <SelectItem value="name-desc">Name Z-A</SelectItem>
                       <SelectItem value="tags-desc">Most tags</SelectItem>
@@ -256,7 +247,7 @@ export function RepositoriesClient({
                   </Select>
                 </div>
               </div>
-              <div className="pb-4">
+              <div>
                 {repositoriesQuery.isLoading ? (
                   <RepoSkeleton />
                 ) : repositoriesQuery.isError ? (
@@ -291,21 +282,13 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-border/70 bg-card/80">
-      <div className="px-5 pt-5">
+    <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+      <div className="mb-4">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="px-5 py-5">{children}</div>
+      <div>{children}</div>
     </div>
-  )
-}
-
-function SummaryPill({ label }: { label: string }) {
-  return (
-    <span className="inline-flex h-6 items-center rounded-md border border-border/70 bg-card px-2 text-[11px] font-medium text-foreground/72">
-      {label}
-    </span>
   )
 }
 
@@ -322,50 +305,39 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
 
     return a.name.localeCompare(b.name)
   })
-  const maxRepos = Math.max(...sortedNamespaces.map((namespace) => namespace.repositoryCount), 1)
 
   return (
-    <div className="space-y-3">
+    <div className="grid gap-3 sm:grid-cols-2">
       {sortedNamespaces.map((namespace) => {
         const isRoot = namespace.name === ""
         const label = isRoot ? "(root)" : namespace.name
-        const width = Math.max(10, Math.round((namespace.repositoryCount / maxRepos) * 100))
 
         return (
           <button
             key={namespace.name || "_root"}
             type="button"
             onClick={() => onSelect(namespace.name)}
-            className="group flex w-full cursor-pointer flex-col gap-3 rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-left transition-colors hover:bg-background"
+            className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-2xl bg-secondary/25 p-4 text-left transition-all duration-200 hover:bg-secondary/60 hover:-translate-y-0.5 hover:shadow-xs"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card text-muted-foreground">
-                  <FolderIcon className="size-4" />
-                </div>
-                <p className="truncate text-sm font-semibold tracking-tight">
+            <div className="flex min-w-0 items-center gap-3.5">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+                <FolderIcon className="size-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {label}{isRoot ? "" : "/"}
                 </p>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-3">
-                <div className="text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    Repos
-                  </p>
-                  <p className="font-mono text-sm font-semibold text-foreground/85">
-                    {namespace.repositoryCount}
-                  </p>
-                </div>
-                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Namespace collection
+                </p>
               </div>
             </div>
 
-            <div className="h-1.5 rounded-full bg-secondary/80">
-              <div
-                className="h-1.5 rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${width}%` }}
-              />
+            <div className="flex shrink-0 items-center gap-2.5">
+              <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 font-mono text-xs font-semibold text-foreground">
+                {namespace.repositoryCount} <span className="font-normal text-muted-foreground ml-1 text-[11px]">repos</span>
+              </span>
+              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
             </div>
           </button>
         )
@@ -376,23 +348,17 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
 
 function NamespaceSkeleton() {
   return (
-    <div className="space-y-3">
+    <div className="grid gap-3 sm:grid-cols-2">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <Skeleton className="size-9 rounded-md" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-40 max-w-full" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-6 w-16 rounded-md" />
-              <Skeleton className="size-4 rounded-sm" />
+        <div key={index} className="flex items-center justify-between gap-4 rounded-2xl bg-secondary/20 p-4">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <Skeleton className="size-10 rounded-xl" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-20" />
             </div>
           </div>
-          <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
+          <Skeleton className="h-6 w-16 rounded-full" />
         </div>
       ))}
     </div>
@@ -401,21 +367,17 @@ function NamespaceSkeleton() {
 
 function RepoSkeleton() {
   return (
-    <div className="overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1fr)_7rem] border-b border-border/70 px-5 py-3">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="ml-auto h-3 w-10" />
-      </div>
+    <div className="overflow-hidden space-y-2">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="flex items-center justify-between border-b border-border/60 px-5 py-3 last:border-0">
+        <div key={index} className="flex items-center justify-between rounded-xl bg-secondary/20 p-3">
           <div className="flex items-center gap-3">
-            <Skeleton className="size-9 rounded-md" />
-            <div className="flex flex-col gap-2">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-1.5">
               <Skeleton className="h-4 w-36" />
               <Skeleton className="h-3 w-48 max-w-[50vw]" />
             </div>
           </div>
-          <Skeleton className="h-6 w-20 rounded-md" />
+          <Skeleton className="h-6 w-16 rounded-full" />
         </div>
       ))}
     </div>
@@ -423,29 +385,30 @@ function RepoSkeleton() {
 }
 
 function NoRegistryState() {
+  const { t } = useI18n()
   return (
     <AppEmptyState
       icon={<PlusIcon className="size-5" />}
-      title="No registry connected"
-      description="Connect a Docker registry to start browsing your container images."
+      title={t("repos.noRegistries", "No registry connected")}
+      description={t("repos.noRegistriesDesc", "Connect a Docker registry to start browsing your container images.")}
       action={
-        <Button asChild>
-          <Link href="/registries/new">Add First Registry</Link>
+        <Button className="rounded-full shadow-xs" asChild>
+          <Link href="/registries/new">{t("dashboard.addRegistry", "Add First Registry")}</Link>
         </Button>
       }
-      className="rounded-lg bg-card/80 p-14"
+      className="rounded-[28px] border-0 bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
     />
   )
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="px-6 py-8">
+    <div className="py-6">
       <AppEmptyState
         icon={<SearchIcon className="size-5" />}
         title="Nothing to show"
         description={message}
-        className="rounded-lg bg-background/70"
+        className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
       />
     </div>
   )
@@ -453,17 +416,17 @@ function EmptyState({ message }: { message: string }) {
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="px-6 py-8">
+    <div className="py-6">
       <AppEmptyState
         icon={<FolderIcon className="size-5" />}
         title="Failed to load"
         description="Unable to fetch data from the selected registry."
         action={
-          <Button variant="outline" onClick={onRetry}>
+          <Button variant="outline" className="rounded-full shadow-xs" onClick={onRetry}>
             Retry
           </Button>
         }
-        className="rounded-lg bg-background/70"
+        className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
       />
     </div>
   )

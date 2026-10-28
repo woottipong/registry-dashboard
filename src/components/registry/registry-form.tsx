@@ -132,18 +132,18 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4">
+    <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <div className="flex flex-col gap-3 pb-2 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-              {mode === "create" ? "Add Registry" : "Edit Registry"}
+            {mode === "create" ? "Add Registry" : "Edit Registry"}
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Configure the endpoint, provider, and credentials used by the dashboard.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" asChild>
+          <Button size="sm" variant="outline" className="rounded-full shadow-xs" asChild>
             <Link href="/registries">
               <ArrowLeftIcon data-icon="inline-start" />
               Registries
@@ -153,6 +153,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             type="button"
             size="sm"
             variant="outline"
+            className="rounded-full shadow-xs"
             onClick={testConnection}
             disabled={pingRegistry.isPending || !canPing}
           >
@@ -163,14 +164,14 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="rounded-lg border border-border/70 bg-card/95 shadow-sm">
-            <div className="px-4 pt-4">
-              <h2 className="text-sm font-semibold tracking-tight">Connection</h2>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight">Connection</h2>
               <p className="mt-1 text-xs text-muted-foreground">Name and route registry traffic through the server-side proxy.</p>
             </div>
 
-            <div className="grid gap-4 p-4 sm:grid-cols-2">
+            <div className="grid gap-4 pt-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -180,7 +181,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="e.g. Production Cluster"
-                        className="h-10 border-border/70 bg-background/78"
+                        className="h-10 rounded-xl"
                         {...field}
                       />
                     </FormControl>
@@ -198,7 +199,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="https://registry.example.com"
-                        className="h-10 border-border/70 bg-background/78"
+                        className="h-10 rounded-xl"
                         {...field}
                       />
                     </FormControl>
@@ -215,11 +216,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormLabel>Provider</FormLabel>
                     <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-10 w-full border-border/70 bg-background/78">
+                        <SelectTrigger className="h-10 w-full rounded-xl">
                           <SelectValue placeholder="Select a provider" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl">
                         <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
                         <SelectItem value="dockerhub">Docker Hub</SelectItem>
                       </SelectContent>
@@ -241,7 +242,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     <FormControl>
                       <Input
                         placeholder="e.g. library"
-                        className="h-10 border-border/70 bg-background/78"
+                        className="h-10 rounded-xl"
                         {...field}
                       />
                     </FormControl>
@@ -254,12 +255,12 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               />
             </div>
 
-            <div className="px-4 pb-3 pt-5">
-              <h2 className="text-sm font-semibold tracking-tight">Authentication</h2>
+            <div className="pb-3 pt-6">
+              <h2 className="text-base font-semibold tracking-tight">Authentication</h2>
               <p className="mt-1 text-xs text-muted-foreground">Credentials stay server-side and are never exposed to the browser.</p>
             </div>
 
-            <div className="space-y-4 p-4 pt-0">
+            <div className="space-y-4 pt-1">
               <FormField
                 control={form.control}
                 name="authType"
@@ -269,7 +270,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="grid gap-2 md:grid-cols-3"
+                        className="grid gap-3 md:grid-cols-3"
                       >
                         {([
                           { value: "none", label: "Anonymous", note: "Public pull access" },
@@ -280,15 +281,15 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                             key={option.value}
                             htmlFor={`auth-${option.value}`}
                             className={cn(
-                              "flex cursor-pointer flex-col gap-1 rounded-lg border px-3 py-3 transition-colors",
+                              "flex cursor-pointer flex-col gap-1.5 rounded-2xl border p-4 transition-all",
                               field.value === option.value
-                                ? "border-primary/40 bg-primary/6 text-foreground"
-                                : "border-border/70 bg-background/72 text-muted-foreground hover:border-primary/25 hover:text-foreground",
+                                ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/20 shadow-xs"
+                                : "border-border/60 bg-secondary/30 text-muted-foreground hover:border-primary/30 hover:bg-secondary/50 hover:text-foreground",
                             )}
                           >
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value={option.value} id={`auth-${option.value}`} className="shrink-0" />
-                              <span className="font-medium">{option.label}</span>
+                              <span className="font-medium text-foreground">{option.label}</span>
                             </div>
                             <p className="pl-7 text-xs text-muted-foreground">{option.note}</p>
                           </label>
@@ -301,7 +302,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               />
 
               {currentAuthType === "basic" ? (
-                <div className="grid gap-4 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
+                <div className="grid gap-4 pt-2 sm:grid-cols-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
                   <FormField
                     control={form.control}
                     name="username"
@@ -311,7 +312,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormControl>
                           <Input
                             placeholder="Enter username"
-                            className="h-10 border-border/70 bg-background/78"
+                            className="h-10 rounded-xl"
                             {...field}
                           />
                         </FormControl>
@@ -329,7 +330,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <Input
                             type="password"
                             placeholder="••••••••"
-                            className="h-10 border-border/70 bg-background/78"
+                            className="h-10 rounded-xl"
                             {...field}
                           />
                         </FormControl>
@@ -341,7 +342,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               ) : null}
 
               {currentAuthType === "bearer" ? (
-                <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
+                <div className="pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200">
                   <FormField
                     control={form.control}
                     name="token"
@@ -352,7 +353,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <Input
                             type="password"
                             placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                            className="h-10 border-border/70 bg-background/78 font-mono text-sm"
+                            className="h-10 rounded-xl font-mono text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -365,16 +366,16 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-card/95 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LockKeyholeIcon className="size-4 text-primary" />
+          <div className="flex flex-col gap-3 rounded-[24px] border-0 bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground px-2">
+              <LockKeyholeIcon className="size-4 text-primary shrink-0" />
               <span>Credentials are stored server-side and never exposed to the browser.</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="ghost" onClick={() => router.back()} disabled={loading}>
+              <Button type="button" variant="ghost" className="rounded-full" onClick={() => router.back()} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" className="rounded-full shadow-xs" disabled={loading}>
                 {mode === "create" ? <PlusIcon data-icon="inline-start" /> : <ArrowRightIcon data-icon="inline-start" />}
                 {loading ? "Saving…" : mode === "create" ? "Add Registry" : "Save Changes"}
               </Button>

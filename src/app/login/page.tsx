@@ -12,31 +12,46 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 selection:bg-primary/20 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
-        <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <section className="hidden flex-col justify-center lg:flex">
-            <div className="space-y-8">
+    <main className="min-h-screen bg-background px-4 py-8 selection:bg-primary/20 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="w-full max-w-5xl">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_420px] items-stretch">
+          <section className="relative hidden flex-col justify-between overflow-hidden rounded-[32px] bg-linear-to-b from-black to-[#111113] p-10 text-white shadow-xl dark:border dark:border-white/10 lg:flex">
+            <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-3">
-                <div className="relative inline-flex size-11 shrink-0 overflow-hidden rounded-2xl border border-border/70 bg-card">
-                  <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-cover" />
+                <div className="relative inline-flex size-10 shrink-0 overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-sm">
+                  <Image src="/logo.svg" alt="Registry Dashboard" fill className="object-contain p-1.5 invert" />
                 </div>
-                <p className="text-sm font-medium tracking-tight text-foreground/76">Registry Dashboard</p>
+                <span className="text-xs font-medium text-white/70">
+                  Registry Dashboard
+                </span>
               </div>
 
-              <div className="max-w-xl space-y-4">
-                <h1 className="text-[2.6rem] font-semibold tracking-tight text-foreground">
-                  Sign in to access your registry workspace.
+              <div className="max-w-md space-y-3 pt-6">
+                <h1 className="text-4xl font-semibold tracking-tight text-white leading-[1.15]">
+                  Manage container images with absolute precision.
                 </h1>
-                <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                  Authenticate with the configured operator account to continue.
+                <p className="text-sm leading-relaxed text-white/65">
+                  Unified catalog browsing, multi-arch manifest inspections, and granular image lifecycle control behind a secure proxy.
                 </p>
               </div>
             </div>
+
+            <div className="relative z-10 pt-12">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs text-white/80 backdrop-blur-md">
+                <span className="size-2 rounded-full bg-[#30D158] animate-pulse" />
+                <span>Operator workspace • Docker Registry V2 & Hub</span>
+              </div>
+            </div>
+
+            {/* Subtle Apple-style glow circle */}
+            <div
+              className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full bg-[#0071E3]/20 blur-3xl"
+              aria-hidden="true"
+            />
           </section>
 
-          <section className="flex items-center">
-            <div className="w-full">
+          <section className="flex items-center justify-center">
+            <div className="w-full max-w-md">
               <LoginForm />
             </div>
           </section>

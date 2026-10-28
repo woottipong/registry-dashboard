@@ -59,12 +59,12 @@ interface MetricCardProps {
 }
 
 const MetricCard = React.memo(({ icon: Icon, label, value }: MetricCardProps) => (
-  <div className="rounded-lg border border-border/70 bg-card/80 px-3.5 py-3">
-    <div className="mb-1 flex items-center gap-1.5">
+  <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.06]">
+    <div className="mb-1.5 flex items-center gap-1.5">
       <Icon className="size-3.5 text-muted-foreground" />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
     </div>
-    <div className="text-sm font-semibold tracking-tight">{value}</div>
+    <div className="text-sm font-semibold tracking-tight text-foreground">{value}</div>
   </div>
 ))
 
@@ -196,12 +196,12 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         </div>
       </div>
 
-      <div className="rounded-lg border border-border/70 bg-card/80">
-        <div className="px-5 pt-5">
+      <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+        <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Manifest Workspace</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Review layers, configuration, history, and raw manifest data.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Review layers, configuration, history, and raw manifest data.</p>
         </div>
-        <div className="px-5 pb-5 pt-5">
+        <div>
           <Tabs defaultValue="layers">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="layers">Layers</TabsTrigger>
