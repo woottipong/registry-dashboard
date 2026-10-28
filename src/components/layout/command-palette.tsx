@@ -6,7 +6,6 @@ import {
   DatabaseIcon,
   FolderGit2Icon,
   PlusIcon,
-  SettingsIcon,
   Trash2Icon,
 } from "lucide-react"
 import {
@@ -19,21 +18,18 @@ import {
   CommandSeparator,
 } from "@/components/ui/command"
 import { useRegistries } from "@/hooks/use-registries"
-import { useRepositories } from "@/hooks/use-repositories"
+import { useSearchRepositories } from "@/hooks/use-repositories"
 import { useCommandPalette } from "@/hooks/use-command-palette"
 
 export function CommandPalette() {
   const router = useRouter()
-  const { open, setOpen, close, query, setQuery, history, submitSearch, clearHistory } =
+  const { open, setOpen, close, query, debouncedQuery, setQuery, history, submitSearch, clearHistory } =
     useCommandPalette()
 
   const registriesQuery = useRegistries()
-  const firstRegistry = registriesQuery.data?.[0]
-
-  const reposQuery = useRepositories(firstRegistry?.id ?? "", {
-    search: query || undefined,
-    perPage: 8,
-  })
+  const searchableRegistries = registriesQuery.data?.filter((registry) => registry.capabilities?.canSearch) ?? []
+  const searchRegistry = searchableRegistries.find((registry) => registry.isDefault) ?? searchableRegistries[0]
+  const reposQuery = useSearchRepositories(searchRegistry?.id ?? "", open ? debouncedQuery : "")
 
   function navigate(href: string) {
     router.push(href)
@@ -43,12 +39,19 @@ export function CommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen} showCloseButton={false}>
       <CommandInput
-        placeholder="Search repositories, tags, or actions…"
+        placeholder={searchRegistry ? "Search repositories, registries, or actions…" : "Search registries or actions…"}
         value={query}
         onValueChange={setQuery}
       />
+      <p className="px-3 py-2 text-xs text-muted-foreground">
+        {registriesQuery.isLoading
+          ? "Loading registries…"
+          : searchRegistry
+            ? `Repository search: ${searchRegistry.name}`
+            : "Repository search is unavailable. Browse repositories by namespace."}
+      </p>
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{searchRegistry && (query !== debouncedQuery || reposQuery.isFetching) ? "Searching…" : reposQuery.isError ? "Repository search failed. Try again." : "No results found."}</CommandEmpty>
 
         {/* Recent searches */}
         {history.length > 0 && !query ? (
@@ -91,16 +94,17 @@ export function CommandPalette() {
           </>
         ) : null}
 
-        {/* Repositories (from first registry or search) */}
-        {reposQuery.data?.items.length ? (
+        {/* Repository search is limited to a provider that supports it. */}
+        {query === debouncedQuery && reposQuery.data?.items.length ? (
           <>
-            <CommandGroup heading="Repositories">
-              {reposQuery.data.items.map((repo) => (
+            <CommandGroup heading={`Repositories · ${searchRegistry?.name}`}>
+              {reposQuery.data.items.slice(0, 8).map((repo) => (
                 <CommandItem
                   key={repo.fullName}
+                  value={repo.fullName}
                   onSelect={() => {
                     submitSearch(repo.fullName)
-                    navigate(`/repos/${firstRegistry?.id}/${repo.fullName}`)
+                    navigate(`/repos/${searchRegistry?.id}/${repo.fullName}`)
                   }}
                 >
                   <FolderGit2Icon className="size-4 text-muted-foreground" />
@@ -121,10 +125,6 @@ export function CommandPalette() {
           <CommandItem onSelect={() => navigate("/repos")}>
             <FolderGit2Icon className="size-4 text-muted-foreground" />
             Browse Repositories
-          </CommandItem>
-          <CommandItem onSelect={() => navigate("/settings")}>
-            <SettingsIcon className="size-4 text-muted-foreground" />
-            Settings
           </CommandItem>
         </CommandGroup>
       </CommandList>

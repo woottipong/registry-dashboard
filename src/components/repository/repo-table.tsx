@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useQueryClient } from "@tanstack/react-query"
 import { BoxIcon, TagsIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -81,7 +82,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm font-semibold tracking-tight text-foreground">{repo.name}</span>
+                    <Link href={`/repos/${registryId}/${repo.fullName}`} onClick={(event) => event.stopPropagation()} className="truncate rounded-sm text-sm font-semibold tracking-tight text-foreground hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{repo.name}</Link>
                     {repo.isOfficial ? <Badge variant="outline" className="rounded-full text-xs px-2">Official</Badge> : null}
                     {repo.isPrivate ? <Badge variant="secondary" className="rounded-full text-xs px-2">Private</Badge> : null}
                   </div>
@@ -104,6 +105,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
 }
 
 function formatCount(value?: number): string {
-  const count = value ?? 0
-  return count === 1 ? "1 tag" : `${count} tags`
+  if (value === undefined) return "Tags unavailable"
+  return value === 1 ? "1 tag" : `${value} tags`
 }

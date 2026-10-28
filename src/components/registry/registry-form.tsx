@@ -129,7 +129,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       return
     }
     pingRegistry.mutate(undefined, {
-      onSuccess: (data) => toast.success(`Connected (${data.latencyMs}ms)`),
+      onSuccess: (data) => {
+        if (data.status === "ok") toast.success(`Connected (${data.latencyMs}ms)`)
+        else toast.error("Unable to reach registry")
+      },
       onError: (error) => toast.error(error.message ?? "Connection test failed"),
     })
   }

@@ -67,14 +67,14 @@ export function TagTable({
                       : false
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all"
+                aria-label="Select all visible tags"
               />
             ),
             cell: ({ row }) => (
               <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={`Select tag ${row.original.name}`}
               />
             ),
             enableSorting: false,

@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useState } from "react"
-import { MenuIcon, LogOutIcon, UserIcon } from "lucide-react"
+import { MenuIcon, LogOutIcon, UserIcon, SearchIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
@@ -17,9 +17,10 @@ import {
 
 interface TopbarProps {
   onOpenSidebar: () => void
+  onOpenSearch: () => void
 }
 
-export function Topbar({ onOpenSidebar }: TopbarProps) {
+export function Topbar({ onOpenSidebar, onOpenSearch }: TopbarProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
@@ -62,6 +63,11 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onOpenSearch} aria-label="Open search" className="h-9 rounded-control px-2.5">
+            <SearchIcon className="size-4" />
+            <span className="hidden sm:inline">Search</span>
+            <span className="hidden text-xs text-muted-foreground md:inline">⌘K / Ctrl K</span>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

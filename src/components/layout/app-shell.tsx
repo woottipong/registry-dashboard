@@ -34,7 +34,7 @@ export function AppShell({ children }: AppShellProps) {
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
   const pathname = usePathname()
 
-  useKeyboardShortcuts()
+  const openPalette = useKeyboardShortcuts()
 
   // Don't render the shell for login page
   if (pathname === "/login") {
@@ -50,7 +50,7 @@ export function AppShell({ children }: AppShellProps) {
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
       <div className="relative flex min-w-0 flex-1 flex-col lg:ml-[280px]">
-        <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
+        <Topbar onOpenSidebar={() => setSidebarOpen(true)} onOpenSearch={() => openPalette(true)} />
         <main className="flex-1 p-4 sm:p-5 lg:px-7 lg:py-5">{children}</main>
       </div>
     </div>

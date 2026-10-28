@@ -49,10 +49,10 @@ export function RegistryCard({
 
   const status = ping.isPending
     ? "checking"
-    : ping.data?.status === "ok"
-      ? "connected"
-      : ping.isError
-        ? "error"
+    : ping.isError || ping.data?.status === "error"
+      ? "error"
+      : ping.data?.status === "ok"
+        ? "connected"
         : null
   const latencyMs = ping.data?.latencyMs ?? null
 
