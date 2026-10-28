@@ -73,7 +73,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
                 variant="ghost"
                 size="icon"
                 aria-label="User menu"
-                className="hidden size-8 rounded-full sm:flex"
+                className="size-9 rounded-control"
               >
                 <UserIcon className="size-4 text-muted-foreground" />
               </Button>

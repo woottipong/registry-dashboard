@@ -1,3 +1,11 @@
+# Operational UI tokens
+
+The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and `rounded-control` (8px) for controls and interactive rows. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for theme-aware surfaces and links. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
+
+The older bento reference below describes the original visual direction; the operational UI tokens above take precedence for the application screens.
+
+---
+
 # Build a dashboard web page in the "Bento Grids (Apple-style)" UI style
 
 Platform: Web (responsive, 1440px desktop down to 375px) · Stack: Next.js + shadcn/ui · Mode: light

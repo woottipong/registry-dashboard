@@ -87,7 +87,7 @@ export function RegistryCard({
   return (
     <Card
       className={cn(
-        "h-auto self-start overflow-hidden rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] gap-4",
+        "h-auto self-start overflow-hidden rounded-panel bg-card p-6 shadow-panel border border-panel-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] gap-4",
         className,
       )}
     >
@@ -201,12 +201,12 @@ export function RegistryCard({
           size="sm"
           onClick={runPing}
           disabled={ping.isPending}
-          className="rounded-full h-8.5 px-3.5 text-xs shadow-xs"
+          className="rounded-control h-8.5 px-3.5 text-xs shadow-xs"
         >
           <RefreshCwIcon className={`mr-1 size-3.5 ${ping.isPending ? "animate-spin" : ""}`} />
           {ping.isPending ? "Testing..." : "Test"}
         </Button>
-        <Button size="sm" className="h-8.5 rounded-full shadow-xs px-4 text-xs font-medium" asChild>
+        <Button size="sm" className="h-8.5 rounded-control shadow-xs px-4 text-xs font-medium" asChild>
           <Link href={`/repos?registry=${registry.id}`}>
             Browse
             <ArrowRightIcon data-icon="inline-end" />

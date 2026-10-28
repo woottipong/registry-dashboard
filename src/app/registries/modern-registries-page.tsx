@@ -153,12 +153,12 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, URL, or namespace"
-              className="pl-9.5 rounded-xl h-10"
+              className="pl-9.5 rounded-control h-10"
             />
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="w-full sm:w-[150px] rounded-xl h-10">
+              <SelectTrigger className="w-full sm:w-[150px] rounded-control h-10">
                 <SelectValue placeholder="Provider" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -168,7 +168,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               </SelectContent>
             </Select>
             <Select value={authFilter} onValueChange={setAuthFilter}>
-              <SelectTrigger className="w-full sm:w-[140px] rounded-xl h-10">
+              <SelectTrigger className="w-full sm:w-[140px] rounded-control h-10">
                 <SelectValue placeholder="Auth" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -179,7 +179,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               </SelectContent>
             </Select>
             {hasActiveFilters ? (
-              <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="rounded-full h-10">
+              <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="rounded-control h-10">
                 Clear
               </Button>
             ) : null}
@@ -195,11 +195,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="Failed to load registries"
           description="We couldn't load your registry connections. Try refreshing the page."
           action={
-            <Button variant="outline" className="rounded-full shadow-xs" onClick={() => router.refresh()}>
+            <Button variant="outline" className="rounded-control shadow-xs" onClick={() => router.refresh()}>
               Try again
             </Button>
           }
-          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-12 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
+          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
         />
       ) : isEmpty ? (
         <EmptyState
@@ -207,12 +207,12 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="No registries connected"
           description="Add your first registry to start browsing repositories, verifying connectivity, and managing tags from one place."
           action={
-            <Button className="rounded-full shadow-xs" onClick={handleAddRegistry}>
+            <Button className="rounded-control shadow-xs" onClick={handleAddRegistry}>
               <PlusIcon data-icon="inline-start" />
               Add Registry
             </Button>
           }
-          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-12 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
+          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
         />
       ) : filteredRegistries.length === 0 ? (
         <EmptyState
@@ -220,11 +220,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           title="No registries match"
           description="Adjust the search or filters to see registry connections."
           action={
-            <Button variant="outline" className="rounded-full shadow-xs" onClick={resetFilters}>
+            <Button variant="outline" className="rounded-control shadow-xs" onClick={resetFilters}>
               Clear filters
             </Button>
           }
-          className="rounded-[28px] bg-white dark:bg-[#1C1C1E] p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-black/[0.04] dark:border-white/[0.06]"
+          className="rounded-panel bg-card p-10 shadow-panel border border-panel-border"
         />
       ) : (
         <div className="grid items-start gap-3 xl:grid-cols-2">
@@ -299,7 +299,7 @@ function SummaryStat({
   }
 
   return (
-    <div className={`flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08] ${compact ? "p-4" : "p-6"}`}>
+    <div className={`flex flex-col justify-between rounded-panel bg-card shadow-panel border border-panel-border ${compact ? "p-4" : "p-6"}`}>
       <div className="flex items-center gap-2.5 text-muted-foreground">
         {Icon ? (
           <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg ${iconColorMap[color]}`}>

@@ -61,11 +61,6 @@ function SidebarBody() {
             </span>
           </div>
         </Link>
-
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-          <span className="size-1.5 rounded-full bg-emerald-500" />
-          <span>Live</span>
-        </div>
       </div>
 
       {/* Navigation Rail with calibrated vertical rhythm */}
@@ -156,8 +151,8 @@ function SidebarBody() {
                       <span className="truncate text-xs">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
-                        Default
+                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
+                        {t("common.default", "Default")}
                       </span>
                     )}
                   </Link>
@@ -178,19 +173,8 @@ function SidebarBody() {
         </div>
       </div>
 
-      {/* Integrated Dock Footer */}
-      <div className="mt-auto border-t border-border/70 p-3.5 pb-4">
-        <div className="flex items-center justify-between rounded-[8px] bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] px-3 py-2">
-          <div className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {t("nav.systemLive", "System Operational")}
-            </span>
-          </div>
-          <span className="rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground/80 bg-black/[0.04] dark:bg-white/[0.06]">
-            V2 API
-          </span>
-        </div>
+      <div className="border-t border-border/70 px-6 py-4 text-xs text-muted-foreground">
+        Docker Registry V2
       </div>
     </div>
   )

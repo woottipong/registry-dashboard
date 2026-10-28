@@ -203,7 +203,7 @@ export function RepositoriesClient({
               )}
             </Panel>
           ) : (
-            <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+            <div className="rounded-panel bg-card p-6 sm:p-7 shadow-panel border border-panel-border">
               <div className="space-y-4 pb-4">
                 <div className="space-y-1">
                   <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
@@ -218,7 +218,7 @@ export function RepositoriesClient({
                     <Input
                       value={search}
                       onChange={handleSearchChange}
-                      className="pl-9.5 rounded-xl h-10"
+                      className="pl-9.5 rounded-control h-10"
                       placeholder={`Search in ${selectedNamespaceValue || "root"}`}
                       aria-label="Search repositories"
                     />
@@ -235,7 +235,7 @@ export function RepositoriesClient({
                   </div>
 
                   <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                    <SelectTrigger className="w-full md:w-52 rounded-xl h-10" aria-label="Sort repositories">
+                    <SelectTrigger className="w-full md:w-52 rounded-control h-10" aria-label="Sort repositories">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -282,7 +282,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.06]">
+    <div className="rounded-panel bg-card p-6 sm:p-7 shadow-panel border border-panel-border">
       <div className="mb-4">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
@@ -317,7 +317,7 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
             key={namespace.name || "_root"}
             type="button"
             onClick={() => onSelect(namespace.name)}
-            className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-2xl bg-secondary/25 p-4 text-left transition-all duration-200 hover:bg-secondary/60 hover:-translate-y-0.5 hover:shadow-xs"
+            className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-control bg-secondary/25 p-4 text-left transition-all duration-200 hover:bg-secondary/60 hover:-translate-y-0.5 hover:shadow-xs"
           >
             <div className="flex min-w-0 items-center gap-3.5">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
@@ -396,7 +396,7 @@ function NoRegistryState() {
           <Link href="/registries/new">{t("dashboard.addRegistry", "Add First Registry")}</Link>
         </Button>
       }
-      className="rounded-[28px] border-0 bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+      className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
     />
   )
 }

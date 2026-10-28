@@ -172,7 +172,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="rounded-full shadow-xs text-xs h-8 px-3.5 gap-1.5" asChild>
+          <Button size="sm" variant="outline" className="rounded-control shadow-xs text-xs h-8 px-3.5 gap-1.5" asChild>
             <Link href="/registries">
               <ArrowLeftIcon className="size-3.5" />
               <span>{t("repos.allRegistries", "Registries")}</span>
@@ -183,7 +183,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               type="button"
               size="sm"
               variant="outline"
-              className="rounded-full shadow-xs text-xs h-8 px-3.5 gap-1.5"
+              className="rounded-control shadow-xs text-xs h-8 px-3.5 gap-1.5"
               onClick={testConnection}
               disabled={pingRegistry.isPending}
             >
@@ -201,7 +201,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       {/* Main Unified Bento Card */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
-          <div className="rounded-2xl bg-white dark:bg-[#18181B] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="rounded-panel bg-card border border-panel-border shadow-panel overflow-hidden">
             <div className="p-6 sm:p-7 space-y-6">
               {/* Section 1: Connection */}
               <div className="space-y-4">
@@ -229,7 +229,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormControl>
                           <Input
                             placeholder={t("registryForm.namePlaceholder", "e.g. Production Cluster")}
-                            className="h-9 rounded-lg text-sm"
+                            className="h-9 rounded-control text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -247,7 +247,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormControl>
                           <Input
                             placeholder={t("registryForm.urlPlaceholder", "https://registry.example.com")}
-                            className="h-9 rounded-lg text-sm"
+                            className="h-9 rounded-control text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -264,7 +264,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormLabel className="text-xs font-medium">{t("registryForm.provider", "Provider")}</FormLabel>
                         <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-9 w-full rounded-lg text-sm">
+                            <SelectTrigger className="h-9 w-full rounded-control text-sm">
                               <SelectValue placeholder="Select a provider" />
                             </SelectTrigger>
                           </FormControl>
@@ -292,7 +292,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         <FormControl>
                           <Input
                             placeholder={t("registryForm.namespacePlaceholder", "e.g. library")}
-                            className="h-9 rounded-lg text-sm"
+                            className="h-9 rounded-control text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -342,7 +342,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                                   key={option.value}
                                   htmlFor={`auth-${option.value}`}
                                   className={cn(
-                                    "relative flex cursor-pointer flex-col justify-between rounded-xl border p-3.5 transition-all select-none",
+                                    "relative flex cursor-pointer flex-col justify-between rounded-control border p-3.5 transition-all select-none",
                                     isSelected
                                       ? "border-primary/50 bg-primary/[0.04] dark:bg-primary/[0.08] shadow-xs ring-1 ring-primary/20"
                                       : "border-border/60 bg-muted/20 hover:border-primary/30 hover:bg-muted/40",
@@ -388,7 +388,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                             <FormControl>
                               <Input
                                 placeholder={t("registryForm.usernamePlaceholder", "Enter username")}
-                                className="h-9 rounded-lg text-sm"
+                                className="h-9 rounded-control text-sm"
                                 {...field}
                               />
                             </FormControl>
@@ -406,7 +406,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                               <Input
                                 type="password"
                                 placeholder={t("registryForm.passwordPlaceholder", "••••••••")}
-                                className="h-9 rounded-lg text-sm"
+                                className="h-9 rounded-control text-sm"
                                 {...field}
                               />
                             </FormControl>
@@ -429,7 +429,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                               <Input
                                 type="password"
                                 placeholder={t("registryForm.tokenPlaceholder", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")}
-                                className="h-9 rounded-lg font-mono text-xs"
+                                className="h-9 rounded-control font-mono text-xs"
                                 {...field}
                               />
                             </FormControl>
@@ -454,7 +454,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="rounded-full text-xs font-medium h-8 px-4"
+                  className="rounded-control text-xs font-medium h-8 px-4"
                   onClick={() => router.back()}
                   disabled={loading}
                 >
@@ -463,7 +463,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                 <Button
                   type="submit"
                   size="sm"
-                  className="rounded-full shadow-xs text-xs font-medium h-8 px-4 gap-1.5"
+                  className="rounded-control shadow-xs text-xs font-medium h-8 px-4 gap-1.5"
                   disabled={loading}
                 >
                   {loading ? (

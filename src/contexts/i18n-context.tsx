@@ -25,6 +25,13 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.version": "Version",
 
     // Dashboard
+    "dashboard.loadError": "Some registry data could not be loaded. Counts may be incomplete.",
+    "dashboard.retry": "Try again",
+    "dashboard.partialData": "Counts and rankings include only loaded repositories.",
+    "dashboard.tagsUnavailable": "Some providers do not supply tag counts.",
+    "dashboard.defaultRegistry": "Default registry",
+    "dashboard.noRanking": "No repository ranking data available yet.",
+    "dashboard.rankingNote": "Ranked by available tag counts in loaded repositories.",
     "dashboard.title": "Overview",
     "dashboard.subtitle": "Container registries, repositories, and tag telemetry.",
     "dashboard.addRegistry": "Add registry",
@@ -46,7 +53,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.topReposSubtitle": "Highest tag volume across connected registries",
     "dashboard.viewAll": "View all",
     "dashboard.recentActivityTitle": "Recent activity",
-    "dashboard.liveOperations": "Live operations stream",
+    "dashboard.liveOperations": "Recent recorded operations",
     "dashboard.noActivity": "No recent activity recorded yet. Activity will appear here when images or registries are accessed.",
 
     // Repositories
@@ -115,6 +122,13 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.version": "เวอร์ชัน",
 
     // Dashboard
+    "dashboard.loadError": "โหลดข้อมูลบาง Registry ไม่สำเร็จ จำนวนที่แสดงอาจไม่ครบ",
+    "dashboard.retry": "ลองอีกครั้ง",
+    "dashboard.partialData": "จำนวนและอันดับอ้างอิงเฉพาะคลังที่โหลดแล้ว",
+    "dashboard.tagsUnavailable": "ผู้ให้บริการบางรายไม่มีข้อมูลจำนวนแท็ก",
+    "dashboard.defaultRegistry": "Registry เริ่มต้น",
+    "dashboard.noRanking": "ยังไม่มีข้อมูลอันดับคลังรูปภาพ",
+    "dashboard.rankingNote": "จัดอันดับจากจำนวนแท็กที่มีในคลังที่โหลดแล้ว",
     "dashboard.title": "ภาพรวม",
     "dashboard.subtitle": "ข้อมูลภาพรวมและการจัดเก็บคอนเทนเนอร์อิมเมจ",
     "dashboard.addRegistry": "เพิ่ม Registry",
@@ -136,7 +150,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.topReposSubtitle": "คลังที่มีจำนวนแท็กสูงสุดในระบบ",
     "dashboard.viewAll": "ดูทั้งหมด",
     "dashboard.recentActivityTitle": "กิจกรรมล่าสุด",
-    "dashboard.liveOperations": "สตรีมเหตุการณ์แบบสด",
+    "dashboard.liveOperations": "กิจกรรมที่บันทึกล่าสุด",
     "dashboard.noActivity": "ยังไม่มีประวัติกิจกรรมล่าสุด กิจกรรมจะแสดงที่นี่เมื่อมีการใช้งานอิมเมจหรือ Registry",
 
     // Repositories

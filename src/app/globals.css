@@ -40,6 +40,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-panel-border: var(--panel-border);
+  --color-link: var(--c-link);
+
+  /* Operative UI: panels contain content; controls and rows are interactive. */
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --shadow-panel: 0 1px 3px rgb(0 0 0 / 0.02);
 
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -70,6 +77,7 @@
   --foreground: #1d1d1f;
   --card: #ffffff;
   --card-foreground: #1d1d1f;
+  --panel-border: rgb(0 0 0 / 0.04);
   --popover: #ffffff;
   --popover-foreground: #1d1d1f;
 
@@ -119,6 +127,7 @@
   --foreground: #f5f5f7;
   --card: #1c1c1e;
   --card-foreground: #f5f5f7;
+  --panel-border: rgb(255 255 255 / 0.08);
   --popover: #1c1c1e;
   --popover-foreground: #f5f5f7;
 

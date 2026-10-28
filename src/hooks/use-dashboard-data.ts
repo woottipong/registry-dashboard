@@ -24,7 +24,7 @@ interface DashboardData {
     createdAt: string
     updatedAt?: string
     repoCount: number
-    tagCount: number
+    tagCount: number | null
     sizeBytes: number
   }>
 }
@@ -75,7 +75,10 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
   )
 
   const isLoadingRegistries = registriesQuery.isLoading
-  const isLoadingRepos = repoQueries.some((q) => q.isLoading)
+  const isLoadingRepos = repoQueries.some((q) => q.isLoading) || (!allEagerDone && deferredRegistries.length > 0)
+  const failedRegistryIds = memoizedRegistries.filter((_, index) => repoQueries[index]?.isError).map((registry) => registry.id)
+  const hasIncompleteData = repoQueries.some((query) => query.isError || Boolean(query.data?.meta?.nextCursor) || (query.data?.meta?.totalPages ?? 1) > 1)
+  const hasUnknownTagCounts = repoQueries.some((query) => query.data?.items.some((repo) => repo.tagCount === undefined))
 
   // Optimize stats calculation with better memoization
   const dashboardData = useMemo((): DashboardData => {
@@ -101,10 +104,9 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       // If query is still loading, use cached or partial data
       const repos = queryResult?.data?.items ?? []
       const repoCount = repos.length
-      // For providers that don't provide tag counts (like Docker Hub),
-      // we'll leave tagCount undefined until we can fetch it separately
-      const tagCount = repos.some(r => r.tagCount !== undefined) ?
-        repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0) : undefined
+      // A missing tag count means the total for this registry is unknown.
+      const tagCount = repos.some((r) => r.tagCount === undefined) ? null :
+        repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
       const sizeBytes = repos.reduce((sum: number, r: Repository) => sum + (r.sizeBytes ?? 0), 0)
 
       // Only add to chart data if we have repositories
@@ -127,7 +129,7 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       return {
         ...registry,
         repoCount,
-        tagCount: tagCount ?? 0,  // Ensure tagCount is always a number
+        tagCount,
         sizeBytes
       }
     })
@@ -151,5 +153,13 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     isLoadingRegistries,
     isLoadingRepos,
     registries: memoizedRegistries,
+    isRegistryError: registriesQuery.isError,
+    failedRegistryIds,
+    hasIncompleteData,
+    hasUnknownTagCounts,
+    retry: () => {
+      if (registriesQuery.isError) void registriesQuery.refetch()
+      repoQueries.filter((query) => query.isError).forEach((query) => { void query.refetch() })
+    },
   }
 }

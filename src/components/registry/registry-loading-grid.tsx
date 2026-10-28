@@ -7,7 +7,7 @@ export function RegistryLoadingGrid() {
       {Array.from({ length: 4 }).map((_, index) => (
         <Card
           key={index}
-          className="h-auto self-start overflow-hidden rounded-lg border-border/70 bg-card/95 py-0 shadow-sm gap-0"
+          className="h-auto self-start overflow-hidden rounded-panel border-panel-border bg-card py-0 shadow-sm gap-0"
         >
           <CardHeader className="gap-3 px-4 pb-3 pt-4">
             <div className="flex items-start gap-3">
