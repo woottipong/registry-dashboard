@@ -196,7 +196,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-full">

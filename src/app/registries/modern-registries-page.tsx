@@ -117,8 +117,8 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-4 pb-2">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6 sm:gap-7">
+      <div className="flex flex-col gap-5 pb-2">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Registries</h1>
@@ -140,7 +140,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-3">
           <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} color="blue" />
           <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} color="emerald" />
           <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} color="purple" />
@@ -299,7 +299,7 @@ function SummaryStat({
   }
 
   return (
-    <div className={`flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08] ${compact ? "p-3.5" : "p-5"}`}>
+    <div className={`flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08] ${compact ? "p-4" : "p-6"}`}>
       <div className="flex items-center gap-2.5 text-muted-foreground">
         {Icon ? (
           <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg ${iconColorMap[color]}`}>
@@ -308,7 +308,7 @@ function SummaryStat({
         ) : null}
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <p className={`mt-2.5 truncate font-semibold tracking-tight text-foreground ${mono ? "font-mono text-2xl sm:text-3xl tabular-nums" : "text-base sm:text-lg"}`}>
+      <p className={`mt-3 truncate font-semibold tracking-tight text-foreground ${mono ? "font-mono text-2xl sm:text-3xl tabular-nums" : "text-base sm:text-lg"}`}>
         {value}
       </p>
     </div>

@@ -147,7 +147,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
   const { manifest, config } = data
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-5">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
@@ -262,7 +262,7 @@ function useHydrated() {
 
 function ImageInspectorLoading({ detailed }: { detailed: boolean }) {
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="mx-auto w-full max-w-7xl xl:max-w-[1400px] space-y-5">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-8 w-64" />

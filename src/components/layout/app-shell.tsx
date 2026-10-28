@@ -51,7 +51,7 @@ export function AppShell({ children }: AppShellProps) {
 
       <div className="relative flex min-w-0 flex-1 flex-col lg:ml-64">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
-        <main className="flex-1 p-4 lg:px-8 lg:py-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:px-8 lg:py-7">{children}</main>
       </div>
     </div>
   )

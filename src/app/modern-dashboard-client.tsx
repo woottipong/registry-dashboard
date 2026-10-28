@@ -145,18 +145,18 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-6">
+    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-7 sm:gap-8">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-1">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             {t("dashboard.title", "Overview")}
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {t("dashboard.subtitle", "Container registries, repositories, and tag telemetry.")}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button size="sm" variant="outline" className="rounded-full shadow-xs" asChild>
             <Link href="/repos">
               <FolderIcon data-icon="inline-start" className="size-3.5" />
@@ -172,12 +172,12 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </div>
       </div>
 
-      {/* KPI Cards Row (4 clean unified Apple Bento Tiles) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Cards Row (4 clean unified Apple Bento Tiles with generous 20px gap) */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Registries (Clean White Bento Tile) */}
         <Link
           href="/registries"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -188,7 +188,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <div className="my-2.5">
+          <div className="my-3 sm:my-3.5">
             {isLoadingRegistries ? (
               <Skeleton className="h-9 w-16 rounded-xl" />
             ) : (
@@ -198,7 +198,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
               <TrendingUpIcon className="size-3.5 shrink-0" />
               <span>{registries.length > 0 ? t("dashboard.live", "Live") : t("dashboard.standby", "Standby")}</span>
@@ -214,7 +214,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         {/* Card 2: Repositories (Apple White Bento Tile) */}
         <Link
           href="/repos"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -225,7 +225,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <div className="my-2.5">
+          <div className="my-3 sm:my-3.5">
             {isLoadingRegistries || isLoadingRepos ? (
               <Skeleton className="h-9 w-20 rounded-xl" />
             ) : (
@@ -235,7 +235,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
               <TrendingUpIcon className="size-3.5 shrink-0" />
               <span>+{totalRepositories} {t("dashboard.indexed", "indexed")}</span>
@@ -251,7 +251,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         {/* Card 3: Tags & Versions (Apple White Bento Tile) */}
         <Link
           href="/repos"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -262,7 +262,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <div className="my-2.5">
+          <div className="my-3 sm:my-3.5">
             {isLoadingRegistries || isLoadingRepos ? (
               <Skeleton className="h-9 w-20 rounded-xl" />
             ) : (
@@ -272,7 +272,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
               <TrendingUpIcon className="size-3.5 shrink-0" />
               <span>+{totalTags} {t("dashboard.tags", "active")}</span>
@@ -288,7 +288,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         {/* Card 4: Providers (Apple White Bento Tile) */}
         <Link
           href="/registries"
-          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          className="group flex flex-col justify-between rounded-[24px] bg-white dark:bg-[#1C1C1E] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] border border-black/[0.04] dark:border-white/[0.08] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -299,7 +299,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
           </div>
 
-          <div className="my-2.5">
+          <div className="my-3 sm:my-3.5">
             {isLoadingRegistries ? (
               <Skeleton className="h-9 w-16 rounded-xl" />
             ) : (
@@ -309,7 +309,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             <div className="inline-flex items-center gap-1 text-xs font-medium text-[#30D158]">
               <TrendingUpIcon className="size-3.5 shrink-0" />
               <span>{t("dashboard.operational", "100% operational")}</span>
@@ -323,15 +323,15 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </Link>
       </div>
 
-      {/* Bento Grid: 2-Column Section */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      {/* Bento Grid: 2-Column Section with generous gap */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Registry Inventory Tile */}
         <div className="flex flex-col justify-between rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08]">
           <div>
-            <div className="flex items-center justify-between pb-4">
+            <div className="flex items-center justify-between pb-5">
               <div>
                 <h2 className="text-base font-semibold tracking-tight text-foreground">{t("dashboard.inventoryTitle", "Registry inventory")}</h2>
-                <p className="text-xs text-muted-foreground">{t("dashboard.inventorySubtitle", "Repository volume by connected endpoint")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.inventorySubtitle", "Repository volume by connected endpoint")}</p>
               </div>
               <Link
                 href="/registries"
@@ -368,7 +368,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {isLoadingRegistries ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} className="h-14 w-full rounded-2xl" />
@@ -430,10 +430,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         {/* Top Repositories Tile */}
         <div className="flex flex-col justify-between rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-black/[0.04] dark:border-white/[0.08]">
           <div>
-            <div className="flex items-center justify-between pb-4">
+            <div className="flex items-center justify-between pb-5">
               <div>
                 <h2 className="text-base font-semibold tracking-tight text-foreground">{t("dashboard.topReposTitle", "Top repositories")}</h2>
-                <p className="text-xs text-muted-foreground">{t("dashboard.topReposSubtitle", "Highest tag volume across connected registries")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.topReposSubtitle", "Highest tag volume across connected registries")}</p>
               </div>
               <Link
                 href="/repos"
@@ -444,7 +444,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </Link>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {isLoadingRegistries || isLoadingRepos ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full rounded-2xl" />

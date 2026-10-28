@@ -42,7 +42,7 @@ function SidebarBody() {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       {/* Brand Header - 52px height aligning with Topbar */}
-      <div className="flex h-[52px] items-center justify-between border-b border-border/70 px-3.5">
+      <div className="flex h-[52px] items-center justify-between border-b border-border/70 px-4">
         <Link
           href="/"
           className="group flex items-center gap-2.5 rounded-[7px] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -66,14 +66,14 @@ function SidebarBody() {
         </div>
       </div>
 
-      {/* Navigation Rail */}
-      <div className="flex flex-1 flex-col gap-5 px-3 py-3.5 overflow-y-auto">
+      {/* Navigation Rail with calibrated vertical rhythm */}
+      <div className="flex flex-1 flex-col gap-6 px-3.5 py-4 overflow-y-auto">
         {/* Main Platform Section */}
-        <div className="flex flex-col gap-1">
-          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <div className="flex flex-col gap-1.5">
+          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
             {t("nav.main", "Platform")}
           </p>
-          <nav className="flex flex-col gap-0.5">
+          <nav className="flex flex-col gap-1">
             {navLinks.map(({ href, label, icon: Icon, exact }) => {
               const active = isActive(href, exact)
               return (
@@ -81,13 +81,13 @@ function SidebarBody() {
                   key={href}
                   href={href}
                   className={cn(
-                    "group flex items-center justify-between rounded-[7px] px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-150",
+                    "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] font-medium transition-colors duration-150",
                     active
                       ? "bg-black/[0.06] dark:bg-white/[0.08] text-foreground font-semibold"
                       : "text-muted-foreground hover:bg-black/[0.035] dark:hover:bg-white/[0.04] hover:text-foreground",
                   )}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <Icon
                       className={cn(
                         "size-4 shrink-0 transition-colors",
@@ -103,8 +103,8 @@ function SidebarBody() {
         </div>
 
         {/* Endpoints / Registry Shortcuts Section */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between px-2 pb-1">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between px-2.5 pb-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
               {t("nav.shortcuts", "Endpoints")}
             </p>
@@ -118,11 +118,11 @@ function SidebarBody() {
             </Link>
           </div>
 
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1">
             {isLoading ? (
-              <div className="flex flex-col gap-1 px-1">
-                <Skeleton className="h-7 w-full rounded-[6px]" />
-                <Skeleton className="h-7 w-3/4 rounded-[6px]" />
+              <div className="flex flex-col gap-1.5 px-1">
+                <Skeleton className="h-8 w-full rounded-[6px]" />
+                <Skeleton className="h-8 w-3/4 rounded-[6px]" />
               </div>
             ) : registries && registries.length > 0 ? (
               registries.map((registry: RegistryConnection) => {
@@ -134,13 +134,13 @@ function SidebarBody() {
                     key={registry.id}
                     href={`/repos?registry=${registry.id}`}
                     className={cn(
-                      "group flex items-center justify-between rounded-[7px] px-2.5 py-1.5 text-[13px] transition-colors duration-150",
+                      "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] transition-colors duration-150",
                       active
                         ? "bg-black/[0.06] dark:bg-white/[0.08] text-foreground font-semibold"
                         : "text-muted-foreground hover:bg-black/[0.035] dark:hover:bg-white/[0.04] hover:text-foreground",
                     )}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
                           "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] transition-colors",
@@ -165,7 +165,7 @@ function SidebarBody() {
               <div className="px-1 pt-1">
                 <Link
                   href="/registries/new"
-                  className="flex items-center gap-2 rounded-[7px] border border-dashed border-border/80 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  className="flex items-center gap-2 rounded-[7px] border border-dashed border-border/80 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
                 >
                   <PlusIcon className="size-3.5" />
                   <span>{t("nav.addRegistry", "Connect registry")}</span>
@@ -176,9 +176,9 @@ function SidebarBody() {
         </div>
       </div>
 
-      {/* Integrated Dock Footer */}
-      <div className="mt-auto border-t border-border/70 p-3 pb-12">
-        <div className="flex items-center justify-between rounded-[8px] bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] px-2.5 py-1.5">
+      {/* Integrated Dock Footer with ample clearance */}
+      <div className="mt-auto border-t border-border/70 p-3.5 pb-12">
+        <div className="flex items-center justify-between rounded-[8px] bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] px-3 py-2">
           <div className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             <span className="text-[11px] font-medium text-muted-foreground">
