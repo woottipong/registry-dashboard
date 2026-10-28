@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { LanguageToggle } from "@/components/layout/language-toggle"
 import { logout } from "@/lib/logout"
 import {
   DropdownMenu,
@@ -64,7 +63,6 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <LanguageToggle />
           <ThemeToggle />
 
           <DropdownMenu>

@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils"
 import { useRegistries } from "@/hooks/use-registries"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useMounted } from "@/hooks/use-mounted"
-import { useI18n } from "@/contexts/i18n-context"
 import type { RegistryConnection } from "@/types/registry"
 
 interface SidebarProps {
@@ -29,16 +28,15 @@ function SidebarBody() {
   const currentRegistryId = searchParams.get("registry")
   const { data: registries, isLoading } = useRegistries()
   const isMounted = useMounted()
-  const { t } = useI18n()
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
   }
 
   const navLinks = [
-    { href: "/", label: t("nav.overview", "Overview"), icon: LayoutDashboardIcon, exact: true },
-    { href: "/repos", label: t("nav.repositories", "Repositories"), icon: FolderOpenIcon, exact: false },
-    { href: "/registries", label: t("nav.settings", "Registry Settings"), icon: ServerIcon, exact: false },
+    { href: "/", label: "Overview", icon: LayoutDashboardIcon, exact: true },
+    { href: "/repos", label: "Repositories", icon: FolderOpenIcon, exact: false },
+    { href: "/registries", label: "Registry Settings", icon: ServerIcon, exact: false },
   ]
 
   return (
@@ -68,7 +66,7 @@ function SidebarBody() {
         {/* Main Platform Section */}
         <div className="flex flex-col gap-1.5">
           <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-            {t("nav.main", "Platform")}
+            {"Main"}
           </p>
           <nav className="flex flex-col gap-1">
             {navLinks.map(({ href, label, icon: Icon, exact }) => {
@@ -103,13 +101,13 @@ function SidebarBody() {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between px-2.5 pb-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-              {t("nav.shortcuts", "Endpoints")}
+              {"Registry shortcuts"}
             </p>
             <Link
               href="/registries/new"
               className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground/70 transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/10 dark:hover:text-primary"
-              title={t("nav.addRegistry", "Add registry")}
-              aria-label={t("nav.addRegistry", "Add registry")}
+              title={"Add registry"}
+              aria-label={"Add registry"}
             >
               <PlusIcon className="size-3.5" />
             </Link>
@@ -152,7 +150,7 @@ function SidebarBody() {
                     </div>
                     {registry.isDefault && (
                       <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground">
-                        {t("common.default", "Default")}
+                        {"Default"}
                       </span>
                     )}
                   </Link>
@@ -165,7 +163,7 @@ function SidebarBody() {
                   className="flex items-center gap-2 rounded-[7px] border border-dashed border-border/80 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
                 >
                   <PlusIcon className="size-3.5" />
-                  <span>{t("nav.addRegistry", "Connect registry")}</span>
+                  <span>{"Add registry"}</span>
                 </Link>
               </div>
             )}

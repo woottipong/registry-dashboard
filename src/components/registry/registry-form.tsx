@@ -30,7 +30,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAddRegistry, usePingRegistry, useUpdateRegistry } from "@/hooks/use-registries"
-import { useI18n } from "@/contexts/i18n-context"
 import { cn } from "@/lib/utils"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
@@ -54,7 +53,6 @@ interface RegistryFormProps {
 
 export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const router = useRouter()
-  const { t } = useI18n()
   const addRegistry = useAddRegistry()
   const updateRegistry = useUpdateRegistry()
   const pingRegistry = usePingRegistry(initialValue?.id ?? "")
@@ -139,20 +137,20 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const authOptions = [
     {
       value: "none",
-      label: t("registryForm.authAnonymous", "Anonymous"),
-      note: t("registryForm.authAnonymousNote", "Public pull access"),
+      label: "Anonymous",
+      note: "Public pull access",
       icon: GlobeIcon,
     },
     {
       value: "basic",
-      label: t("registryForm.authBasic", "Basic Auth"),
-      note: t("registryForm.authBasicNote", "Username + password / PAT"),
+      label: "Basic Auth",
+      note: "Username + password / PAT",
       icon: UserIcon,
     },
     {
       value: "bearer",
-      label: t("registryForm.authBearer", "Bearer Token"),
-      note: t("registryForm.authBearerNote", "Token-based access"),
+      label: "Bearer Token",
+      note: "Token-based access",
       icon: ShieldCheckIcon,
     },
   ] as const
@@ -164,18 +162,18 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {mode === "create"
-              ? t("registryForm.titleCreate", "Add Registry")
-              : t("registryForm.titleEdit", "Edit Registry")}
+              ? "Add Registry"
+              : "Edit Registry"}
           </h1>
           <p className="max-w-2xl text-xs sm:text-sm text-muted-foreground">
-            {t("registryForm.subtitle", "Configure the endpoint, provider, and credentials used by the dashboard.")}
+            {"Configure the endpoint, provider, and credentials used by the dashboard."}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" className="rounded-control shadow-xs text-xs h-8 px-3.5 gap-1.5" asChild>
             <Link href="/registries">
               <ArrowLeftIcon className="size-3.5" />
-              <span>{t("repos.allRegistries", "Registries")}</span>
+              <span>{"All registries"}</span>
             </Link>
           </Button>
           {canPing ? (
@@ -192,7 +190,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               ) : (
                 <ShieldCheckIcon className="size-3.5 text-primary" />
               )}
-              <span>{pingRegistry.isPending ? t("registryForm.testing", "Testing…") : t("common.test", "Test")}</span>
+              <span>{pingRegistry.isPending ? "Testing…" : "Test"}</span>
             </Button>
           ) : null}
         </div>
@@ -211,10 +209,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold tracking-tight text-foreground">
-                      {t("registryForm.connection", "Connection")}
+                      {"Connection"}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      {t("registryForm.connectionDesc", "Name and route registry traffic through the server-side proxy.")}
+                      {"Name and route registry traffic through the server-side proxy."}
                     </p>
                   </div>
                 </div>
@@ -225,10 +223,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium">{t("registryForm.name", "Name")}</FormLabel>
+                        <FormLabel className="text-xs font-medium">{"Name"}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={t("registryForm.namePlaceholder", "e.g. Production Cluster")}
+                            placeholder={"e.g. Production Cluster"}
                             className="h-9 rounded-control text-sm"
                             {...field}
                           />
@@ -243,10 +241,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     name="url"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium">{t("registryForm.url", "URL")}</FormLabel>
+                        <FormLabel className="text-xs font-medium">{"Endpoint URL"}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={t("registryForm.urlPlaceholder", "https://registry.example.com")}
+                            placeholder={"https://registry.example.com"}
                             className="h-9 rounded-control text-sm"
                             {...field}
                           />
@@ -261,7 +259,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     name="provider"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium">{t("registryForm.provider", "Provider")}</FormLabel>
+                        <FormLabel className="text-xs font-medium">{"Provider Type"}</FormLabel>
                         <Select onValueChange={handleProviderChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-9 w-full rounded-control text-sm">
@@ -284,14 +282,14 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          {t("registryForm.namespace", "Default Namespace")}{" "}
+                          {"Default Namespace"}{" "}
                           <span className="font-normal text-muted-foreground ml-1 text-xs">
-                            ({t("registryForm.optional", "Optional")})
+                            ({"Optional"})
                           </span>
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={t("registryForm.namespacePlaceholder", "e.g. library")}
+                            placeholder={"e.g. library"}
                             className="h-9 rounded-control text-sm"
                             {...field}
                           />
@@ -314,10 +312,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold tracking-tight text-foreground">
-                      {t("registryForm.auth", "Authentication")}
+                      {"Authentication"}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      {t("registryForm.authDesc", "Credentials stay server-side and are never exposed to the browser.")}
+                      {"Credentials stay server-side and are never exposed to the browser."}
                     </p>
                   </div>
                 </div>
@@ -384,10 +382,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-medium">{t("registryForm.username", "Username")}</FormLabel>
+                            <FormLabel className="text-xs font-medium">{"Username"}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder={t("registryForm.usernamePlaceholder", "Enter username")}
+                                placeholder={"Enter username"}
                                 className="h-9 rounded-control text-sm"
                                 {...field}
                               />
@@ -401,11 +399,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-medium">{t("registryForm.password", "Password / PAT")}</FormLabel>
+                            <FormLabel className="text-xs font-medium">{"Password / PAT"}</FormLabel>
                             <FormControl>
                               <Input
                                 type="password"
-                                placeholder={t("registryForm.passwordPlaceholder", "••••••••")}
+                                placeholder={"••••••••"}
                                 className="h-9 rounded-control text-sm"
                                 {...field}
                               />
@@ -424,11 +422,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                         name="token"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-medium">{t("registryForm.token", "Bearer Token")}</FormLabel>
+                            <FormLabel className="text-xs font-medium">{"Bearer Token"}</FormLabel>
                             <FormControl>
                               <Input
                                 type="password"
-                                placeholder={t("registryForm.tokenPlaceholder", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")}
+                                placeholder={"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}
                                 className="h-9 rounded-control font-mono text-xs"
                                 {...field}
                               />
@@ -447,7 +445,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             <div className="border-t border-black/[0.06] dark:border-white/[0.08] bg-black/[0.015] dark:bg-white/[0.02] px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <LockKeyholeIcon className="size-3.5 text-primary shrink-0" />
-                <span>{t("registryForm.securityNotice", "AES-256-GCM encrypted and stored safely on server")}</span>
+                <span>{"AES-256-GCM encrypted and stored safely on server"}</span>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <Button
@@ -458,7 +456,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   onClick={() => router.back()}
                   disabled={loading}
                 >
-                  {t("common.cancel", "Cancel")}
+                  {"Cancel"}
                 </Button>
                 <Button
                   type="submit"
@@ -475,10 +473,10 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   )}
                   <span>
                     {loading
-                      ? t("registryForm.saving", "Saving…")
+                      ? "Saving…"
                       : mode === "create"
-                        ? t("registryForm.addRegistry", "Add Registry")
-                        : t("registryForm.saveChanges", "Save Changes")}
+                        ? "Add Registry"
+                        : "Save Changes"}
                   </span>
                 </Button>
               </div>

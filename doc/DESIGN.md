@@ -1,5 +1,7 @@
 # Operational UI tokens
 
+The application UI uses English only. User-provided names may use any script.
+
 The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and `rounded-control` (8px) for controls and interactive rows. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for theme-aware surfaces and links. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
 
 The older bento reference below describes the original visual direction; the operational UI tokens above take precedence for the application screens.
@@ -22,7 +24,7 @@ The Apple keynote summary slide as a product page: a light grey #F5F5F7 canvas (
 - Tile radius 28px (32px for hero stage, bento and CTA), never a border. Tile shadows only from the tokens (sm 4%, md 5%, lg 8% maximum). The deep shadows are only the drop-shadow under the rendered object inside black stage tiles (0 30px 30px rgba(0,0,0,0.7)) and the device-panel shadow in the hero stage. The segmented-control thumb uses 0 1px 4px rgba(0,0,0,0.12)
 - Bento sizing: 4 columns, 20px gap, grid-auto-rows minmax(260px, auto), grid-auto-flow dense. Features = black stage 2×2 + 1×1 + 1×1 + 2×1 + 2×1 + 2×1 (columns × rows). Tile padding 32px, title 1.4–1.85rem at the bottom, icon at the top
 - Studio product renders: black stage tiles with radial-gradient(70% 60% at 50% 38%, #3A3A3E, #1A1A1C 45%, #000 80%) and a glossy sphere (radial highlight + rim light) with its drop shadow. The stage gradient is only for the hero stage, the 2×2 feature, the first KPI, the CTA and the mobile featured card
-- Headlines: Inter 600, −0.03em, one or two short lines (Thai ≤ 18 characters per line), centred, display up to ~5.75rem; h1 at least 1.25× h2. Thai uses letter-spacing 0 and line-height 1.32 for display, 1.35 for h2
+- Headlines: Inter 600, −0.03em, one or two short lines, centred, display up to ~5.75rem; h1 at least 1.25× h2.
 - Blues: #0071E3 (primary) fills the primary pill and outlines the secondary pill. #0066CC (accent) is only for text links and ghost buttons. On black stage tiles use #2997FF. Primary hover #0077ED. No other blues
 - Borders: tiles never have borders. Allowed hairlines: the nav bottom (text at 8%), FAQ row separators, 1px #D2D2D7 inputs and radio cards, and the 1px blue secondary pill
 - Colour exceptions, declared as named extras next to the tokens: --orange-text #B64400 (eyebrow and solid badge); icon colours --purple #BF5AF2, --orange #FF9F0A, --green #30D158, --pink #FF375F; stat numerals linear-gradient(100deg, #0071E3, #BF5AF2 70%, #FF375F) clipped to text; switch-on #30D158 on track #E9E9EB; forecast band #BF5AF2 at 14%; stage colours #3A3A3E/#1A1A1C/#000; hover blue #0077ED. Colour appears only in these places
@@ -47,14 +49,10 @@ Shadows: sm `0 1px 3px rgba(0,0,0,0.04)`, md `0 4px 20px rgba(0,0,0,0.05)`, lg `
 Spacing: 8px base unit × 1.1 density
 Motion: 300ms cubic-bezier(.28,.11,.32,1)
 
-## Typography (Latin + Thai)
-- Headings: Inter 500/600/700 with Thai fallback Noto Sans Thai 500/600/700
-- Body: Inter 400/500/600 with Thai fallback Noto Sans Thai 400/500/600
-- Google Fonts URL: https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap
-- CSS stacks: heading `"Inter", "Noto Sans Thai", system-ui, sans-serif`; body `"Inter", "Noto Sans Thai", system-ui, sans-serif` — Latin font first, Thai font second, so each script gets its own face.
-- Display size clamp(3rem, 7vw, 5.75rem), heading weight 600, heading tracking -0.03em (Latin only), sentence-case labels.
-- Thai rules: body line-height ≥ 1.7, headings ≥ 1.3; never apply negative letter-spacing or condensed tracking to Thai; do not fake-bold or italicise Thai; keep Thai text at least 1px larger than the equivalent Latin size when they sit side by side.
-- Why this pairing: Noto Sans Thai is a neutral loopless grotesque with the same calm, engineered proportions as Inter — the closest open match to Apple’s SF Pro and Sukhumvit Set pairing.
+## Typography
+- Headings: Inter 500/600/700; body: Inter 400/500/600.
+- CSS stack: `"Inter", system-ui, sans-serif`.
+- Display size clamp(3rem, 7vw, 5.75rem), heading weight 600, heading tracking -0.03em, sentence-case labels.
 
 ## Components
 - Global nav: 52px tall, rgba(245,245,247,0.8) with saturate(180%) blur(20px), hairline bottom, 0.82rem links, small blue pill CTA
@@ -76,7 +74,7 @@ Shell: top navigation bar. Widgets in order: kpis, forecast, compare, donut, tab
 Translucent thin nav → centred keynote headline with orange eyebrow, lead in 500-weight grey, two pill buttons. Hero: under the centred copy, a 32px-radius black stage tile (the stage gradient) with the product UI rising from its bottom edge: a #F5F5F7 device panel with 22px top corners, a 6px #2A2A2D bezel and a 0 30px 80px rgba(0,0,0,0.6) shadow, filled with white 18px-radius mini cards. The glossy sphere render belongs to the 2×2 feature tile, the CTA and the mobile featured card, not the hero. Then the feature bento (rows completely filled), a white section with the showcase, four stat tiles with gradient numerals, three trust tiles, pricing tiles with a flat black featured plan, testimonials, one FAQ tile and a black stage CTA tile with a lit render above the headline. Generous 88px section padding; let whitespace and size do the work. Dashboard: translucent top bar with a pill segmented nav, white 28px tiles on grey, first KPI as a black stage tile, #0071E3 primary series and a #BF5AF2 14% forecast band.
 
 ## Content
-Use realistic product copy (fictional brand) suited to: Hardware and consumer-tech product pages. Make the UI bilingual: Thai and English, with a visible TH/EN switch that swaps every string. Set the lang attribute to match.
+Use realistic product copy (fictional brand) suited to: Hardware and consumer-tech product pages. Use English for UI copy and set the document language to English.
 
 ## Do
 - Use #F5F5F7 as the page and #FFFFFF tiles with 28–32px radius
@@ -102,6 +100,6 @@ Next.js App Router + shadcn/ui. Override the shadcn CSS variables in globals.css
 ## Acceptance checklist
 - Someone who knows the "Bento Grids (Apple-style)" style recognises it at a glance from the signature details.
 - Every colour, radius, border and shadow comes from the tokens above.
-- Thai and English text both render in their intended fonts with comfortable line-height.
+- Text renders in its intended font with comfortable line-height.
 - Text contrast meets WCAG AA (4.5:1 body, 3:1 large text) unless the style explicitly trades this off.
 - Interactive elements have hover, focus-visible and pressed states in the style's language.

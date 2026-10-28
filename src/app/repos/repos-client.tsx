@@ -21,7 +21,6 @@ import { useDebounce } from "@/hooks/use-debounce"
 import { useNamespaces } from "@/hooks/use-namespaces"
 import { useRegistries } from "@/hooks/use-registries"
 import { useRepositories } from "@/hooks/use-repositories"
-import { useI18n } from "@/contexts/i18n-context"
 import type { Namespace, RegistryConnection } from "@/types/registry"
 
 type SortOption =
@@ -46,7 +45,6 @@ export function RepositoriesClient({
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("tags-desc")
   const debouncedSearch = useDebounce(search)
-  const { t } = useI18n()
 
   const registriesQuery = useRegistries({ initialData: initialRegistries })
   const registries = registriesQuery.data ?? []
@@ -141,7 +139,7 @@ export function RepositoriesClient({
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit rounded-full">
                   <ChevronLeftIcon data-icon="inline-start" />
-                  {t("repos.namespaces", "Namespaces")}
+                  {"Namespaces"}
                 </Button>
                 <Badge variant="outline" className="font-mono rounded-full">
                   {selectedNamespaceValue || "(root)"}
@@ -156,12 +154,12 @@ export function RepositoriesClient({
                     ? selectedNamespaceValue
                       ? `${selectedNamespaceValue}/`
                       : "(root)"
-                    : t("repos.title", "Repositories")}
+                    : "Repositories"}
                 </h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
                   {selectedNamespace !== null
-                    ? t("repos.browseNamespace", "Browse repositories in the selected namespace.")
-                    : t("repos.subtitle", "Choose a registry and namespace to browse repositories.")}
+                    ? "Browse repositories in the selected namespace."
+                    : "Choose a registry and namespace to browse repositories."}
                 </p>
               </div>
 
@@ -385,15 +383,14 @@ function RepoSkeleton() {
 }
 
 function NoRegistryState() {
-  const { t } = useI18n()
   return (
     <AppEmptyState
       icon={<PlusIcon className="size-5" />}
-      title={t("repos.noRegistries", "No registry connected")}
-      description={t("repos.noRegistriesDesc", "Connect a Docker registry to start browsing your container images.")}
+      title={"No registry connected"}
+      description={"Connect a Docker registry to start browsing your container images."}
       action={
         <Button className="rounded-full shadow-xs" asChild>
-          <Link href="/registries/new">{t("dashboard.addRegistry", "Add First Registry")}</Link>
+          <Link href="/registries/new">{"Add registry"}</Link>
         </Button>
       }
       className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"

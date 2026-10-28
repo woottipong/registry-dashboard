@@ -16,7 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { useActivity } from "@/contexts/activity-context"
 import { useMounted } from "@/hooks/use-mounted"
-import { useI18n } from "@/contexts/i18n-context"
 import type { RegistryConnection } from "@/types/registry"
 
 interface ModernDashboardClientProps {
@@ -29,7 +28,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   })
   const { activities, isLoading: isLoadingActivity } = useActivity()
   const isMounted = useMounted()
-  const { t } = useI18n()
 
   const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
   const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size
@@ -60,17 +58,17 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground dark:text-white">
-            {t("dashboard.addRegistry", "Connect your first registry")}
+            {"Add registry"}
           </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground dark:text-neutral-400">
-            {t("dashboard.subtitle", "Turn this workspace into a live container operations dashboard for Docker Hub and Registry V2.")}
+            {"Container registries, repositories, and tag telemetry."}
           </p>
 
           <div className="mt-8 flex justify-center">
             <Button size="lg" className="rounded-control px-8 bg-primary hover:bg-[#0077ED] text-white font-medium shadow-[0_2px_8px_rgba(0,113,227,0.25)]" asChild>
               <Link href="/registries/new">
                 <PlusIcon data-icon="inline-start" className="mr-1 size-4" />
-                {t("dashboard.addRegistry", "Add Registry")}
+                {"Add registry"}
               </Link>
             </Button>
           </div>
@@ -85,23 +83,23 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-0.5">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            {t("dashboard.title", "Overview")}
+            {"Overview"}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {t("dashboard.subtitle", "Container registries, repositories, and tag telemetry.")}
+            {"Container registries, repositories, and tag telemetry."}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" className="rounded-control shadow-xs text-xs h-9 px-3 border-link text-link hover:text-primary-foreground" asChild>
             <Link href="/repos">
               <FolderIcon data-icon="inline-start" className="size-3.5" />
-              {t("dashboard.browseRepos", "Repositories")}
+              {"Browse repositories"}
             </Link>
           </Button>
           <Button size="sm" className="rounded-control shadow-xs text-xs h-9 px-3" asChild>
             <Link href="/registries/new">
               <PlusIcon data-icon="inline-start" className="size-3.5" />
-              {t("dashboard.addRegistry", "Add registry")}
+              {"Add registry"}
             </Link>
           </Button>
         </div>
@@ -109,19 +107,19 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
       {(isRegistryError || failedRegistryIds.length > 0) && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-destructive/30 bg-card px-4 py-3 text-sm">
-          <p>{t("dashboard.loadError", "Some registry data could not be loaded. Counts may be incomplete.")}</p>
+          <p>{"Some registry data could not be loaded. Counts may be incomplete."}</p>
           <Button variant="outline" size="sm" className="rounded-control border-link text-link hover:text-primary-foreground" onClick={retry}>
-            {t("dashboard.retry", "Try again")}
+            {"Try again"}
           </Button>
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: t("dashboard.registries", "Registries"), value: isRegistryError && registries.length === 0 ? null : registries.length, href: "/registries", icon: DatabaseIcon, loading: isLoadingRegistries },
-          { label: t("dashboard.repositories", "Repositories"), value: isRegistryError || (registries.length > 0 && failedRegistryIds.length === registries.length) ? null : totalRepositories, href: "/repos", icon: FolderIcon, loading: isLoadingRegistries || isLoadingRepos },
-          { label: t("dashboard.tags", "Tags"), value: isRegistryError || failedRegistryIds.length > 0 || hasUnknownTagCounts ? null : totalTags, href: "/repos", icon: TagIcon, loading: isLoadingRegistries || isLoadingRepos },
-          { label: t("dashboard.providers", "Providers"), value: isRegistryError && registries.length === 0 ? null : providerCount, href: "/registries", icon: ShieldCheckIcon, loading: isLoadingRegistries },
+          { label: "Registries", value: isRegistryError && registries.length === 0 ? null : registries.length, href: "/registries", icon: DatabaseIcon, loading: isLoadingRegistries },
+          { label: "Repositories", value: isRegistryError || (registries.length > 0 && failedRegistryIds.length === registries.length) ? null : totalRepositories, href: "/repos", icon: FolderIcon, loading: isLoadingRegistries || isLoadingRepos },
+          { label: "Tags", value: isRegistryError || failedRegistryIds.length > 0 || hasUnknownTagCounts ? null : totalTags, href: "/repos", icon: TagIcon, loading: isLoadingRegistries || isLoadingRepos },
+          { label: "Providers", value: isRegistryError && registries.length === 0 ? null : providerCount, href: "/registries", icon: ShieldCheckIcon, loading: isLoadingRegistries },
         ].map(({ label, value, href, icon: Icon, loading }) => (
           <Link key={label} href={href} className="group rounded-panel border border-panel-border bg-card p-4 transition-colors hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:border-white/25">
             <div className="flex items-center justify-between gap-2 text-muted-foreground">
@@ -136,9 +134,9 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
       </div>
       {(hasIncompleteData || hasUnknownTagCounts) && !isLoadingRepos && (
         <p className="-mt-2 text-xs text-muted-foreground">
-          {hasIncompleteData && t("dashboard.partialData", "Counts and rankings include only loaded repositories.")}
+          {hasIncompleteData && "Counts and rankings include only loaded repositories."}
           {hasIncompleteData && hasUnknownTagCounts && " "}
-          {hasUnknownTagCounts && t("dashboard.tagsUnavailable", "Some providers do not supply tag counts.")}
+          {hasUnknownTagCounts && "Some providers do not supply tag counts."}
         </p>
       )}
 
@@ -149,14 +147,14 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           <div>
             <div className="flex items-center justify-between pb-3.5">
               <div>
-                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.inventoryTitle", "Registry inventory")}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.inventorySubtitle", "Repository volume by connected endpoint")}</p>
+                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Registry inventory"}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{"Repository volume by connected endpoint"}</p>
               </div>
               <Link
                 href="/registries"
                 className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-link hover:underline"
               >
-                {t("dashboard.manage", "Manage")}
+                {"Manage"}
                 <ArrowRightIcon className="size-3" />
               </Link>
             </div>
@@ -165,8 +163,8 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             {!isLoadingRepos && !hasIncompleteData && registriesWithStats.length > 1 && totalRepositories > 0 && (
               <div className="mb-4 space-y-1.5 rounded-control bg-secondary/30 p-3">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium">{t("dashboard.repoShare", "Repository share")}</span>
-                  <span className="font-mono text-[11px]">{totalRepositories} {t("dashboard.total", "total")}</span>
+                  <span className="font-medium">{"Repository share"}</span>
+                  <span className="font-mono text-[11px]">{totalRepositories} {"total"}</span>
                 </div>
                 <div className="flex h-2 w-full gap-1 overflow-hidden rounded-full bg-secondary/50">
                   {registriesWithStats.map((reg, idx) => {
@@ -211,7 +209,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                             </p>
                             {registry.isDefault && (
                               <span className="rounded bg-foreground/10 px-1.5 py-0.5 text-[11px] font-medium text-foreground">
-                                {t("common.default", "Default")}
+                                {"Default"}
                               </span>
                             )}
                             <span className="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
@@ -241,7 +239,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
           {defaultRegistry && (
             <p className="mt-3 text-xs text-muted-foreground">
-              {t("dashboard.defaultRegistry", "Default registry")}: <span className="font-medium text-foreground">{defaultRegistry.name}</span>
+              {"Default registry"}: <span className="font-medium text-foreground">{defaultRegistry.name}</span>
             </p>
           )}
         </div>
@@ -251,14 +249,14 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           <div>
             <div className="flex items-center justify-between pb-3.5">
               <div>
-                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.topReposTitle", "Top repositories")}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{t("dashboard.topReposSubtitle", "Highest tag volume across connected registries")}</p>
+                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Top repositories"}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{"Highest tag volume across connected registries"}</p>
               </div>
               <Link
                 href="/repos"
                 className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-link hover:underline"
               >
-                {t("dashboard.viewAll", "View all")}
+                {"View all"}
                 <ArrowRightIcon className="size-3" />
               </Link>
             </div>
@@ -270,7 +268,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 ))
               ) : chartData.length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">
-                  {t("dashboard.noRanking", "No repository ranking data available yet.")}
+                  {"No repository ranking data available yet."}
                 </p>
               ) : (
                 chartData.slice(0, 5).map((repo, index) => {
@@ -317,7 +315,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            {t("dashboard.rankingNote", "Ranked by available tag counts in loaded repositories.")}
+            {"Ranked by available tag counts in loaded repositories."}
           </p>
         </div>
 
@@ -326,9 +324,9 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           <div className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2">
               <ClockIcon className="size-3.5 text-muted-foreground" />
-              <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{t("dashboard.recentActivityTitle", "Recent activity")}</h2>
+              <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Recent activity"}</h2>
             </div>
-            <span className="text-xs text-muted-foreground">{t("dashboard.liveOperations", "Recent recorded operations")}</span>
+            <span className="text-xs text-muted-foreground">{"Recent recorded operations"}</span>
           </div>
 
           <div className="space-y-1.5">
@@ -340,7 +338,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </div>
             ) : activities.length === 0 ? (
               <p className="py-5 text-center text-xs text-muted-foreground">
-                {t("dashboard.noActivity", "No recent activity recorded yet. Activity will appear here when images or registries are accessed.")}
+                {"No recent activity recorded yet. Activity will appear here when images or registries are accessed."}
               </p>
             ) : (
               activities.slice(0, 6).map((item) => {

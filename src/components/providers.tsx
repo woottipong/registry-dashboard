@@ -8,7 +8,6 @@ import { makeQueryClient } from "@/lib/query-client"
 import { Toaster } from "@/components/ui/sonner"
 import { CommandPalette } from "@/components/layout/command-palette"
 import { ThemeProvider } from "@/contexts/theme-context"
-import { I18nProvider } from "@/contexts/i18n-context"
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -24,14 +23,12 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <ThemeProvider>
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          {isLoginPage ? null : <CommandPalette />}
-          <Toaster richColors closeButton />
-          {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-        </QueryClientProvider>
-      </I18nProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {isLoginPage ? null : <CommandPalette />}
+        <Toaster richColors closeButton />
+        {isDevelopment ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+      </QueryClientProvider>
     </ThemeProvider>
   )
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter, JetBrains_Mono, Noto_Sans_Thai } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { AppShell } from "@/components/layout/app-shell"
 import { ActivityProvider } from "@/contexts/activity-context"
 import { Providers } from "@/components/providers"
@@ -8,13 +8,6 @@ import "./globals.css"
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  display: "swap",
-})
-
-const notoSansThai = Noto_Sans_Thai({
-  variable: "--font-noto-sans-thai",
-  subsets: ["thai"],
-  weight: ["400", "500", "600", "700"],
   display: "swap",
 })
 
@@ -53,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${notoSansThai.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <Providers>
           <ActivityProvider>
             <AppShell>{children}</AppShell>
