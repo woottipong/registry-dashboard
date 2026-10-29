@@ -1,13 +1,17 @@
-import { useSyncExternalStore } from "react"
-
-const emptySubscribe = () => () => { }
-const getSnapshot = () => true
-const getServerSnapshot = () => false
+import { useEffect, useState } from "react"
 
 /**
- * Hook to track when a component has mounted on the client
- * Useful for preventing hydration mismatches in SSR environments
+ * Hook to track when a component has mounted on the client.
+ * Intentionally uses two-pass rendering (initial state false matching SSR,
+ * effect switches to true post-hydration) to avoid SSR hydration mismatches.
  */
 export function useMounted(): boolean {
-  return useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
+
+  return mounted
 }

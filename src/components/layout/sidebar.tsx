@@ -8,7 +8,6 @@ import {
   LayoutDashboardIcon,
   PlusIcon,
   ServerIcon,
-  SettingsIcon,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -42,17 +41,29 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/"
           onNavigate={onNavigate}
-          className="group flex items-center gap-2.5 rounded-control transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex items-center gap-3 rounded-control transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-control shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-card border-panel-border">
-            <Image src="/logo.svg" alt="Registry" width={18} height={18} className="rounded-xs" />
+          <div className="flex size-10 shrink-0 items-center justify-center transition-transform duration-150 group-hover:scale-105">
+            <Image
+              src="/logo.svg"
+              alt="Registry"
+              width={38}
+              height={38}
+              priority
+              className="shrink-0 drop-shadow-[0_2px_10px_rgba(14,165,233,0.4)]"
+            />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="truncate text-[13px] font-semibold tracking-tight text-foreground leading-tight">
-              Registry Dashboard
-            </span>
-            <span className="truncate text-xs text-muted-foreground font-mono leading-none mt-0.5">
-              Docker Registry V2
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-[15px] font-bold tracking-tight text-foreground leading-tight">
+                Registry
+              </span>
+              <span className="rounded-control bg-secondary/80 border border-border/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground font-medium">
+                v0.1.0
+              </span>
+            </div>
+            <span className="truncate text-xs text-muted-foreground leading-none mt-1">
+              Dashboard
             </span>
           </div>
         </Link>
@@ -147,7 +158,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 />
                 <span className="truncate">{"Registries"}</span>
               </div>
-              {registries && registries.length > 0 && (
+              {isMounted && registries && registries.length > 0 && (
                 <span className="rounded-control bg-secondary px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground">
                   {registries.length}
                 </span>
@@ -181,8 +192,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       <span className="truncate">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 text-[10px] font-mono text-muted-foreground">
-                        def
+                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.2 text-[9px] font-mono text-muted-foreground font-medium">
+                        default
                       </span>
                     )}
                   </Link>
@@ -191,41 +202,16 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             ) : null}
           </nav>
         </div>
-
-        {/* SYSTEM */}
-        <div className="flex flex-col gap-1">
-          <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
-            {"System"}
-          </p>
-          <nav className="flex flex-col gap-0.5">
-            <Link
-              href="/registries"
-              onNavigate={onNavigate}
-              className={cn(
-                "group flex items-center justify-between rounded-control px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <SettingsIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                <span className="truncate">{"Settings & Credentials"}</span>
-              </div>
-            </Link>
-          </nav>
-        </div>
       </div>
 
-      {/* User profile footer at the bottom like Doorlog */}
-      <div className="border-t border-border/70 p-3">
-        <div className="flex items-center gap-2.5 rounded-control px-2 py-1.5 hover:bg-secondary/40 transition-colors">
-          <div className="relative flex size-7 shrink-0 items-center justify-center rounded-control bg-primary/15 text-primary text-xs font-semibold">
-            <span>AD</span>
-            <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-success ring-2 ring-sidebar" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="truncate text-xs font-medium text-foreground">admin</span>
-            <span className="truncate text-[11px] text-muted-foreground leading-tight">Cluster Operations</span>
-          </div>
+      {/* Minimal status indicator */}
+      <div className="border-t border-border/70 px-4 py-3">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-emerald-400" />
+            <span>Operational</span>
+          </span>
+          <span className="text-muted-foreground/60">Docker V2</span>
         </div>
       </div>
     </div>

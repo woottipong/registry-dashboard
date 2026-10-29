@@ -2,23 +2,26 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ArrowRightIcon,
   CheckIcon,
   CopyIcon,
   DatabaseIcon,
-  ExternalLinkIcon,
   FolderIcon,
-  LayersIcon,
   PlusIcon,
   SearchIcon,
   ServerIcon,
   TagIcon,
+  UploadIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData, type DashboardRepoItem } from "@/hooks/use-dashboard-data"
 import { useCommandPalette } from "@/hooks/use-command-palette"
+import { useMounted } from "@/hooks/use-mounted"
+import { useActivity } from "@/contexts/activity-context"
+import { formatBytes, formatDate, generatePullCommand, registryHostFromUrl } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -27,6 +30,8 @@ interface ModernDashboardClientProps {
 }
 
 export function ModernDashboardClient({ initialRegistries }: ModernDashboardClientProps) {
+  const router = useRouter()
+  const isMounted = useMounted()
   const {
     dashboardData,
     isLoadingRegistries,
@@ -37,6 +42,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     retry,
   } = useDashboardData({ initialRegistries })
 
+  const { activities } = useActivity()
   const { setOpen: setSearchOpen } = useCommandPalette()
 
   const { totalRepositories, totalTags, registriesWithStats, repositories } = dashboardData
@@ -46,14 +52,100 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   const [activeTab, setActiveTab] = useState<string>("all")
   // Search text within table
   const [tableSearch, setTableSearch] = useState<string>("")
-  // Selected repository for the Right Inspector card
-  const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null)
-  // Copy pull command state
-  const [copiedPull, setCopiedPull] = useState(false)
+  // Track which item's pull command was just copied (ID or repo name)
+  const [copiedCommandId, setCopiedCommandId] = useState<string | null>(null)
 
-  // Filtered repositories based on tab and tableSearch
-  const filteredRepositories = useMemo(() => {
-    return repositories.filter((repo) => {
+  interface RecentPushedImage {
+    id: string
+    repository: string
+    tag: string
+    registryName: string
+    user?: string
+    timestamp: string
+    pullCommand: string
+    href: string
+  }
+
+  // 5 Most recent pushed images across telemetry and catalog
+  const recentPushedImages = useMemo<RecentPushedImage[]>(() => {
+    const items: RecentPushedImage[] = []
+    const seen = new Set<string>()
+
+    // 1. Process push events from activity telemetry
+    const pushActivities = activities.filter((a) => a.type === "push")
+    for (const act of pushActivities) {
+      const tag = act.tag || "latest"
+      const key = `${act.repository}:${tag}`
+      if (seen.has(key)) continue
+      seen.add(key)
+
+      const reg =
+        registries.find(
+          (r) => r.name === act.registry || r.id === act.registry,
+        ) ?? registries[0]
+
+      const regHost = reg ? registryHostFromUrl(reg.url) : undefined
+      const pullCmd = generatePullCommand({
+        registry: regHost,
+        repository: act.repository,
+        tag,
+      })
+
+      items.push({
+        id: act.id,
+        repository: act.repository,
+        tag,
+        registryName: reg?.name ?? act.registry,
+        user: act.user,
+        timestamp: act.timestamp,
+        pullCommand: pullCmd,
+        href: reg?.id
+          ? `/repos/${reg.id}/${act.repository}?tag=${encodeURIComponent(tag)}`
+          : "/repos",
+      })
+
+      if (items.length >= 5) break
+    }
+
+    // 2. If fewer than 5, backfill from catalog repositories so list is rich and not empty
+    if (items.length < 5) {
+      for (const repo of repositories) {
+        const tag = "latest"
+        const key = `${repo.fullName}:${tag}`
+        if (seen.has(key)) continue
+        seen.add(key)
+
+        const reg = registries.find((r) => r.id === repo.registryId)
+        const regHost = reg ? registryHostFromUrl(reg.url) : undefined
+        const pullCmd = generatePullCommand({
+          registry: regHost,
+          repository: repo.fullName,
+          tag,
+        })
+
+        const timestamp = repo.lastUpdated ?? ""
+
+        items.push({
+          id: `repo-${repo.registryId}-${repo.fullName}`,
+          repository: repo.fullName,
+          tag,
+          registryName: repo.registryName,
+          user: undefined,
+          timestamp,
+          pullCommand: pullCmd,
+          href: `/repos/${repo.registryId}/${repo.fullName}?tag=${encodeURIComponent(tag)}`,
+        })
+
+        if (items.length >= 5) break
+      }
+    }
+
+    return items
+  }, [activities, registries, repositories])
+
+  // Top 10 repositories sorted by tagCount desc (filtered by tab and search)
+  const topRepositories = useMemo(() => {
+    const matched = repositories.filter((repo) => {
       const matchesTab = activeTab === "all" || repo.registryId === activeTab
       const matchesSearch =
         !tableSearch ||
@@ -62,18 +154,72 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         (repo.namespace && repo.namespace.toLowerCase().includes(tableSearch.toLowerCase()))
       return matchesTab && matchesSearch
     })
+
+    return [...matched]
+      .sort((a, b) => {
+        const tagDiff = (b.tagCount ?? 0) - (a.tagCount ?? 0)
+        if (tagDiff !== 0) return tagDiff
+        return a.fullName.localeCompare(b.fullName)
+      })
+      .slice(0, 10)
   }, [repositories, activeTab, tableSearch])
 
-  // Selected repo object (defaults to first item in filtered list if not explicitly selected)
-  const activeSelectedRepo = useMemo(() => {
-    if (selectedRepoId) {
-      const found = repositories.find(
-        (r) => `${r.registryId}-${r.fullName}` === selectedRepoId,
-      )
-      if (found) return found
+  // Highest tag count in current top 10 for relative bar calculation
+  const maxTopTagCount = useMemo(() => {
+    return Math.max(...topRepositories.map((r) => r.tagCount ?? 0), 1)
+  }, [topRepositories])
+
+  // Estimated total disk footprint for a repo
+  const formatEstimatedSize = (repo: DashboardRepoItem): string => {
+    if (repo.sizeBytes && repo.sizeBytes > 0) {
+      return formatBytes(repo.sizeBytes)
     }
-    return filteredRepositories[0] ?? null
-  }, [selectedRepoId, repositories, filteredRepositories])
+    if (repo.tagCount && repo.tagCount > 0) {
+      // Estimated container image layer size (~72.5 MB average per tag)
+      const approxBytes = repo.tagCount * 72.5 * 1024 * 1024
+      return `~${formatBytes(approxBytes)}`
+    }
+    return "—"
+  }
+
+  // Safe format helpers for timestamps
+  const safeFormatDate = (dateInput?: string | null): string => {
+    if (!dateInput) return "Indexed in catalog"
+    try {
+      return formatDate(dateInput)
+    } catch {
+      return "Indexed in catalog"
+    }
+  }
+
+  const formatRelativeTime = (dateInput?: string | null): string => {
+    if (!dateInput) return "catalog"
+    try {
+      const formatted = formatDate(dateInput).split(" (")[0] || ""
+      return formatted
+        .replace(" seconds ago", "s ago")
+        .replace(" second ago", "s ago")
+        .replace(" minutes ago", "m ago")
+        .replace(" minute ago", "m ago")
+        .replace(" hours ago", "h ago")
+        .replace(" hour ago", "h ago")
+        .replace(" days ago", "d ago")
+        .replace(" day ago", "d ago")
+        .replace(" months ago", "mo ago")
+        .replace(" month ago", "mo ago") || formatted
+    } catch {
+      return "catalog"
+    }
+  }
+
+  const handleCopyCommand = (cmd: string, id: string) => {
+    if (!cmd) return
+    void navigator.clipboard.writeText(cmd)
+    setCopiedCommandId(id)
+    setTimeout(() => {
+      setCopiedCommandId((curr) => (curr === id ? null : curr))
+    }, 2000)
+  }
 
   // Empty dashboard: Single stage CTA tile
   if (!isLoadingRegistries && !isRegistryError && registries.length === 0) {
@@ -102,22 +248,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </div>
       </section>
     )
-  }
-
-  const handleCopyPull = (repo: DashboardRepoItem) => {
-    const registry = registries.find((r) => r.id === repo.registryId)
-    let pullCmd = `docker pull ${repo.fullName}:latest`
-    if (registry && registry.provider !== "dockerhub") {
-      try {
-        const parsedUrl = new URL(registry.url)
-        pullCmd = `docker pull ${parsedUrl.host}/${repo.fullName}:latest`
-      } catch {
-        pullCmd = `docker pull ${repo.fullName}:latest`
-      }
-    }
-    void navigator.clipboard.writeText(pullCmd)
-    setCopiedPull(true)
-    setTimeout(() => setCopiedPull(false), 2000)
   }
 
   return (
@@ -248,7 +378,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
       {/* Main Two-Column Layout (Doorlog Asymmetric Split: ~70% Left, ~30% Right) */}
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-        {/* LEFT COLUMN: Dense Repository Inventory Table (~70% width) */}
+        {/* LEFT COLUMN: Top 10 Repositories by Tag Volume (~70% width) */}
         <div className="lg:col-span-8 flex flex-col gap-4">
           <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden">
             {/* Table Header Toolbar */}
@@ -259,7 +389,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                   type="button"
                   onClick={() => setActiveTab("all")}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors",
+                    "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
                     activeTab === "all"
                       ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -277,7 +407,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     type="button"
                     onClick={() => setActiveTab(reg.id)}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors",
+                      "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
                       activeTab === reg.id
                         ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -291,16 +421,22 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 ))}
               </div>
 
-              {/* Inline Quick Search Filter */}
-              <div className="relative w-full sm:w-56">
-                <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Filter repositories…"
-                  value={tableSearch}
-                  onChange={(e) => setTableSearch(e.target.value)}
-                  className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
+              {/* Inline Quick Search & Ranking Pill */}
+              <div className="flex items-center gap-2">
+                <span className="hidden md:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground whitespace-nowrap">
+                  {"Top 10 by tags"}
+                </span>
+                <div className="relative w-full sm:w-48">
+                  <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Filter repos…"
+                    aria-label="Filter repositories"
+                    value={tableSearch}
+                    onChange={(e) => setTableSearch(e.target.value)}
+                    className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
               </div>
             </div>
 
@@ -309,57 +445,75 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-border/70 bg-secondary/20 text-muted-foreground">
-                    <th className="py-2.5 pl-4 pr-3 font-medium">Repository</th>
-                    <th className="py-2.5 px-3 font-medium">Registry</th>
-                    <th className="py-2.5 px-3 font-medium">Tags</th>
+                    <th className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-[10px]">#</th>
+                    <th className="py-2.5 px-3 font-medium">Repository</th>
+                    <th className="py-2.5 px-3 font-medium hidden md:table-cell">Registry</th>
                     <th className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</th>
-                    <th className="py-2.5 pl-3 pr-4 text-right font-medium">Actions</th>
+                    <th className="py-2.5 px-3 font-medium min-w-[120px]">Tags & Volume</th>
+                    <th className="py-2.5 px-3 font-medium text-right hidden sm:table-cell">Est. Size</th>
+                    <th className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50 font-sans">
                   {isLoadingRegistries || isLoadingRepos ? (
                     Array.from({ length: 6 }).map((_, index) => (
                       <tr key={index} className="h-12">
-                        <td colSpan={5} className="px-4 py-3">
+                        <td colSpan={7} className="px-4 py-3">
                           <Skeleton className="h-5 w-full rounded-control" />
                         </td>
                       </tr>
                     ))
-                  ) : filteredRepositories.length === 0 ? (
+                  ) : topRepositories.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-xs text-muted-foreground">
+                      <td colSpan={7} className="py-12 text-center text-xs text-muted-foreground">
                         No repositories found matching this filter.
                       </td>
                     </tr>
                   ) : (
-                    filteredRepositories.map((repo) => {
+                    topRepositories.map((repo, idx) => {
                       const rowKey = `${repo.registryId}-${repo.fullName}`
-                      const isSelected = activeSelectedRepo?.fullName === repo.fullName && activeSelectedRepo?.registryId === repo.registryId
+                      const isTopRanked = idx === 0
 
                       return (
                         <tr
                           key={rowKey}
-                          onClick={() => setSelectedRepoId(rowKey)}
-                          className={cn(
-                            "group cursor-pointer transition-colors duration-100",
-                            isSelected
-                              ? "bg-primary/10 text-foreground ring-1 ring-inset ring-primary/40"
-                              : "hover:bg-secondary/40 text-foreground/90",
-                          )}
+                          tabIndex={0}
+                          role="row"
+                          onClick={() => router.push(`/repos/${repo.registryId}/${repo.fullName}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              router.push(`/repos/${repo.registryId}/${repo.fullName}`)
+                            }
+                          }}
+                          className="group cursor-pointer hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground/90 transition-colors duration-100"
                         >
-                          {/* Repository Name */}
-                          <td className="py-2.5 pl-4 pr-3">
+                          {/* Rank # */}
+                          <td className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
+                            {isTopRanked ? (
+                              <span className="inline-flex size-5 items-center justify-center rounded-control bg-primary/20 text-primary border border-primary/30 text-[10px] font-bold font-mono">
+                                1
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-mono text-muted-foreground/70">
+                                {idx + 1}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Repository Name & Path */}
+                          <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2.5">
                               <FolderIcon
-                                className={cn(
-                                  "size-3.5 shrink-0 transition-colors",
-                                  isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-                                )}
+                                className="size-3.5 shrink-0 transition-colors text-muted-foreground group-hover:text-primary"
                               />
                               <div className="flex flex-col min-w-0">
-                                <span className="font-semibold text-foreground truncate max-w-[180px] sm:max-w-[240px]">
+                                <Link
+                                  href={`/repos/${repo.registryId}/${repo.fullName}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[160px] sm:max-w-[200px] hover:underline focus-visible:outline-none focus-visible:underline"
+                                >
                                   {repo.name}
-                                </span>
+                                </Link>
                                 {repo.namespace && repo.namespace !== "_root" && (
                                   <span className="text-[10px] text-muted-foreground font-mono truncate">
                                     {repo.namespace}
@@ -370,54 +524,67 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                           </td>
 
                           {/* Registry Endpoint */}
-                          <td className="py-2.5 px-3">
+                          <td className="py-2.5 px-3 hidden md:table-cell">
                             <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 px-2 py-0.5 text-[11px] font-medium text-foreground">
                               {repo.provider === "dockerhub" ? (
                                 <ServerIcon className="size-2.5 text-primary shrink-0" />
                               ) : (
                                 <DatabaseIcon className="size-2.5 text-muted-foreground shrink-0" />
                               )}
-                              <span className="truncate max-w-[110px]">{repo.registryName}</span>
-                            </span>
-                          </td>
-
-                          {/* Tags Count */}
-                          <td className="py-2.5 px-3">
-                            <span className="inline-flex items-center gap-1 rounded-control bg-secondary/50 px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
-                              <span className="size-1 rounded-full bg-success" />
-                              {repo.tagCount !== undefined ? `${repo.tagCount} tags` : "—"}
+                              <span className="truncate max-w-[100px]">{repo.registryName}</span>
                             </span>
                           </td>
 
                           {/* Namespace */}
                           <td className="py-2.5 px-3 hidden sm:table-cell">
-                            <span className="font-mono text-[11px] text-muted-foreground">
-                              {repo.namespace ?? "_root"}
+                            <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+                              {repo.namespace || "_root"}
                             </span>
                           </td>
 
-                          {/* Actions */}
-                          <td className="py-2.5 pl-3 pr-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7 rounded-control text-muted-foreground hover:text-foreground"
-                                title="Copy docker pull command"
-                                aria-label="Copy docker pull command"
-                                onClick={() => handleCopyPull(repo)}
-                              >
-                                <CopyIcon className="size-3" />
-                              </Button>
-
-                              <Link
-                                href={`/repos/${repo.registryId}/${repo.fullName}`}
-                                className="inline-flex size-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
-                                title="Open in Tag Explorer"
-                              >
-                                <ArrowRightIcon className="size-3.5" />
-                              </Link>
+                          {/* Tags & Volume Bar */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex flex-col gap-1 min-w-[110px]">
+                              <div className="flex items-center justify-between text-[11px] font-mono">
+                                <span className="font-semibold text-foreground">
+                                  {repo.tagCount !== undefined ? `${repo.tagCount} tags` : "—"}
+                                </span>
+                                {totalTags > 0 && repo.tagCount ? (
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {Math.round((repo.tagCount / totalTags) * 100)}%
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-primary/80 transition-all duration-300"
+                                  style={{
+                                    width: `${Math.max(
+                                      Math.round(((repo.tagCount ?? 0) / maxTopTagCount) * 100),
+                                      8,
+                                    )}%`,
+                                  }}
+                                />
+                              </div>
                             </div>
+                          </td>
+
+                          {/* Est. Image Size */}
+                          <td className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell" title="Estimated total image disk footprint">
+                            {formatEstimatedSize(repo)}
+                          </td>
+
+                          {/* Action Link (Inspect) */}
+                          <td className="w-10 py-2.5 pl-2 pr-4 text-right">
+                            <Link
+                              href={`/repos/${repo.registryId}/${repo.fullName}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              title={`Inspect ${repo.name} repository`}
+                              aria-label={`Inspect ${repo.name} repository`}
+                            >
+                              <ArrowRightIcon className="size-3.5" />
+                            </Link>
                           </td>
                         </tr>
                       )
@@ -427,15 +594,15 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </table>
             </div>
 
-            {/* Table Footer Banner (Doorlog style bottom bar) */}
+            {/* Table Footer Banner */}
             <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
               <span className="truncate text-[11px]">
-                {"Click any repository row to inspect its image manifest and pull commands."}
+                {"Top 10 repositories ranked by tag volume. Click any row to inspect tags and manifests."}
               </span>
 
-              <Button variant="ghost" size="sm" className="h-6 text-[11px] font-mono px-2" asChild>
+              <Button variant="ghost" size="sm" className="h-6 text-[11px] font-mono px-2 hover:text-primary transition-colors cursor-pointer" asChild>
                 <Link href="/repos">
-                  <span>{`Total ${repositories.length}`}</span>
+                  <span>{`View all ${repositories.length} repos`}</span>
                   <ArrowRightIcon className="ml-1 size-3" />
                 </Link>
               </Button>
@@ -500,108 +667,137 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </p>
           </div>
 
-          {/* Card 2: Quick Inspector (Doorlog style: "Made safe, still open" item card) */}
+          {/* Card 2: 5 Most Recent Pushed Images */}
           <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel flex flex-col justify-between">
             <div>
+              {/* Card Header */}
               <div className="flex items-center justify-between pb-3 border-b border-border/70">
                 <div className="flex items-center gap-2">
-                  <LayersIcon className="size-3.5 text-primary" />
+                  <UploadIcon className="size-3.5 text-primary" />
                   <h2 className="text-xs font-semibold text-foreground">
-                    {"Quick inspect"}
+                    {"Recent pushed images"}
                   </h2>
                 </div>
-                {activeSelectedRepo && (
-                  <span className="rounded-control bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-mono">
-                    {"Selected"}
+                {!isMounted ? (
+                  <Skeleton className="h-5 w-16 rounded-control" />
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    <span className="size-1.5 rounded-full bg-emerald-400" />
+                    {"5 latest"}
                   </span>
                 )}
               </div>
 
-              {activeSelectedRepo ? (
-                <div className="mt-3.5 flex flex-col gap-3">
-                  {/* Repo title & namespace */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground truncate">
-                      {activeSelectedRepo.fullName}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                      {`${activeSelectedRepo.registryName} · ${activeSelectedRepo.provider === "dockerhub" ? "Docker Hub" : "V2 Registry"}`}
-                    </p>
-                  </div>
-
-                  {/* Status pills */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <span className="inline-flex items-center gap-1 rounded-control bg-success/10 text-success border border-success/20 px-2 py-0.5 text-[11px] font-medium">
-                      <span className="size-1.5 rounded-full bg-success" />
-                      {"Active catalog"}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-control bg-secondary text-foreground px-2 py-0.5 text-[11px] font-mono">
-                      {`${activeSelectedRepo.tagCount ?? 1} tags`}
-                    </span>
-                  </div>
-
-                  {/* Pull command snippet */}
-                  <div className="flex flex-col gap-1.5 pt-1">
-                    <span className="text-[11px] text-muted-foreground font-medium">
-                      {"Pull command"}
-                    </span>
-                    <div className="flex items-center justify-between rounded-control border border-border/70 bg-secondary/60 px-2.5 py-1.5">
-                      <code className="text-[11px] font-mono text-foreground truncate max-w-[200px]">
-                        {`docker pull ${activeSelectedRepo.fullName}:latest`}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyPull(activeSelectedRepo)}
-                        className="text-muted-foreground hover:text-foreground transition-colors ml-2"
-                        title="Copy command"
-                      >
-                        {copiedPull ? (
-                          <CheckIcon className="size-3 text-success" />
-                        ) : (
-                          <CopyIcon className="size-3" />
-                        )}
-                      </button>
+              {/* Items List */}
+              <div className="mt-2 divide-y divide-border/40">
+                {!isMounted ? (
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="py-2.5 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-3.5 w-32 rounded-control" />
+                        <Skeleton className="h-3 w-14 rounded-control" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-3 w-24 rounded-control" />
+                        <Skeleton className="h-3 w-10 rounded-control" />
+                      </div>
                     </div>
+                  ))
+                ) : recentPushedImages.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground">
+                    {"No pushed images recorded yet."}
                   </div>
+                ) : (
+                  recentPushedImages.map((item) => (
+                    <div
+                      key={item.id}
+                      tabIndex={0}
+                      role="button"
+                      onClick={() => router.push(item.href)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          router.push(item.href)
+                        }
+                      }}
+                      className="group flex flex-col gap-1 py-2 px-1.5 -mx-1.5 rounded-control transition-colors hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 cursor-pointer"
+                    >
+                      {/* Top line: Repo name + Tag badge + Time */}
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Link
+                            href={item.href}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-mono text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[190px] hover:underline focus-visible:outline-none focus-visible:underline"
+                            title={item.repository}
+                          >
+                            {item.repository}
+                          </Link>
+                          <span className="inline-flex items-center gap-1 rounded-control bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.2 font-mono text-[10px] font-medium shrink-0">
+                            <TagIcon className="size-2.5" />
+                            <span className="truncate max-w-[80px]">{item.tag}</span>
+                          </span>
+                        </div>
+                        <span
+                          className="font-mono text-[10px] text-muted-foreground shrink-0"
+                          suppressHydrationWarning
+                          title={safeFormatDate(item.timestamp)}
+                        >
+                          {formatRelativeTime(item.timestamp)}
+                        </span>
+                      </div>
 
-                  {/* Activity Timeline / Tag Info */}
-                  <div className="pt-2 border-t border-border/50">
-                    <span className="text-[11px] text-muted-foreground font-medium">
-                      {"Telemetry"}
-                    </span>
-                    <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground font-mono text-[11px]">
-                      <li className="flex items-center justify-between">
-                        <span>Namespace:</span>
-                        <span className="text-foreground">{activeSelectedRepo.namespace ?? "_root"}</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span>Default Tag:</span>
-                        <span className="text-foreground">latest</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span>Target:</span>
-                        <span className="text-foreground">linux/amd64</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-xs text-muted-foreground">
-                  Select a repository from the inventory to inspect.
-                </div>
-              )}
+                      {/* Bottom line: Endpoint & actor + Quick Actions */}
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground font-mono">
+                        <span className="truncate max-w-[170px]">
+                          {item.registryName}
+                          {item.user ? ` · ${item.user}` : ""}
+                        </span>
+
+                        <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopyCommand(item.pullCommand, item.id)
+                            }}
+                            className="p-1.5 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                            title={`Copy: ${item.pullCommand}`}
+                            aria-label={`Copy pull command for ${item.repository}`}
+                          >
+                            {copiedCommandId === item.id ? (
+                              <CheckIcon className="size-3 text-success" />
+                            ) : (
+                              <CopyIcon className="size-3" />
+                            )}
+                          </button>
+                          <Link
+                            href={item.href}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-1.5 rounded-control text-muted-foreground group-hover:text-primary hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            title={`Inspect ${item.repository}:${item.tag}`}
+                            aria-label={`Inspect ${item.repository}:${item.tag}`}
+                          >
+                            <ArrowRightIcon className="size-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
-            {activeSelectedRepo && (
-              <div className="mt-4 pt-3 border-t border-border/60">
-                <Button size="sm" className="w-full text-xs rounded-control h-8 font-medium gap-1.5" asChild>
-                  <Link href={`/repos/${activeSelectedRepo.registryId}/${activeSelectedRepo.fullName}`}>
-                    <span>{"Open full Tag Explorer"}</span>
-                    <ExternalLinkIcon className="size-3" />
-                  </Link>
-                </Button>
-              </div>
-            )}
+            {/* Footer summary */}
+            <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+              <span>{"Push telemetry feed"}</span>
+              <Link
+                href="/repos"
+                className="text-xs text-primary hover:underline flex items-center gap-1 font-sans font-medium"
+              >
+                <span>{"View all repos"}</span>
+                <ArrowRightIcon className="size-3" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
