@@ -6,11 +6,18 @@ import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { DASHBOARD_CONFIG, DASHBOARD_QUERY_KEYS } from "@/lib/constants/dashboard"
 import type { ProviderCapabilities, RegistryAuthType, RegistryConnection, RegistryCredentials, RegistryProviderType, Repository } from "@/types/registry"
 
+export interface DashboardRepoItem extends Repository {
+  registryId: string
+  registryName: string
+  provider: RegistryProviderType
+}
+
 interface DashboardData {
   totalRepositories: number
   totalTags: number
   totalSizeBytes: number
   chartData: Array<{ name: string; registryId: string; tagCount: number }>
+  repositories: DashboardRepoItem[]
   registriesWithStats: Array<{
     id: string
     name: string
@@ -89,11 +96,13 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
         totalTags: 0,
         totalSizeBytes: 0,
         chartData: [],
+        repositories: [],
         registriesWithStats: []
       }
     }
 
     const allRepos: { name: string; registryId: string; tagCount: number }[] = []
+    const allRepoItems: DashboardRepoItem[] = []
     let totalRepos = 0
     let totalTagsCount = 0
     let totalSize = 0
@@ -112,6 +121,12 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       // Only add to chart data if we have repositories
       if (repoCount > 0) {
         repos.forEach((r: Repository) => {
+          allRepoItems.push({
+            ...r,
+            registryId: registry.id,
+            registryName: registry.name,
+            provider: registry.provider,
+          })
           if ((r.tagCount ?? 0) > 0) {
             allRepos.push({
               name: r.fullName,
@@ -144,6 +159,7 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       totalTags: totalTagsCount,
       totalSizeBytes: totalSize,
       chartData: sortedChartData,
+      repositories: allRepoItems,
       registriesWithStats: regStats
     }
   }, [memoizedRegistries, repoQueries])

@@ -24,11 +24,11 @@ Preserve existing routes, provider capability checks, authentication, CSRF prote
 
 ## Brand Commitments
 
-Existing product name and logo. The user approved a supplied navy dashboard reference for its palette, layered surfaces and restrained component finish. Keep a navy dark-only system, clear blue actions and compact corners; retain the established functional workflows.
+Existing product name and logo. The user approved the Doorlog dashboard reference for its high-contrast Carbon and Slate Black palette, two-column layout, top KPI stat strip, and restrained component finish. Keep a carbon dark-only system, clear blue actions, and compact corners; retain the established functional workflows.
 
 ## Evidence on Hand
 
-Local development data and existing product screens. The latest supplied HealthFlow screenshot is a visual reference for color and surface treatment; its patient Kanban layout is outside this product's workflow. Do not invent registry health, statistics, or capabilities.
+Local development data and existing product screens. The Doorlog screenshot is the canonical visual reference for color, surface treatment, KPI stat strip, dense inventory table, and right-hand inspector widgets. Do not invent registry health, statistics, or capabilities.
 
 ## Product Principles
 

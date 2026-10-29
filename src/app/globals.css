@@ -78,51 +78,51 @@
   --radius-input: 6px;
   --radius-modal: 10px;
 
-  /* Navy workspace: cool layered surfaces, clear blue actions, teal status. */
-  --background: #121c29;
-  --foreground: #edf3fd;
-  --card: #1b2737;
-  --card-foreground: #edf3fd;
-  --panel-border: #2a394d;
-  --popover: #233247;
-  --popover-foreground: #edf3fd;
+  /* Carbon Dark: deep matte charcoal canvas, sharp 1px borders, electric blue actions, vivid status dots. */
+  --background: #0d1015;
+  --foreground: #f1f5f9;
+  --card: #13171f;
+  --card-foreground: #f1f5f9;
+  --panel-border: #1e2430;
+  --popover: #161b24;
+  --popover-foreground: #f1f5f9;
 
-  --primary: #4b9bfa;
-  --primary-hover: #70b0fc;
-  --primary-active: #3989e7;
-  --primary-foreground: #081728;
-  --secondary: #233247;
-  --secondary-foreground: #edf3fd;
-  --muted: #233247;
-  --muted-foreground: #abbad0;
-  --accent: #263b55;
-  --accent-foreground: #edf3fd;
-  --destructive: #f28d98;
-  --danger-solid: #ac3548;
-  --success: #49d6ad;
-  --warning: #edc56a;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-active: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #1a202c;
+  --secondary-foreground: #f1f5f9;
+  --muted: #171c26;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2430;
+  --accent-foreground: #f1f5f9;
+  --destructive: #ef4444;
+  --danger-solid: #dc2626;
+  --success: #22c55e;
+  --warning: #f59e0b;
   --destructive-foreground: #ffffff;
-  --border: #304158;
-  --input: #687e98;
-  --control: #152132;
-  --ring: #4b9bfa;
+  --border: #1e2430;
+  --input: #334155;
+  --control: #161b24;
+  --ring: #3b82f6;
 
-  --chart-1: #4b9bfa;
-  --chart-2: #49d6ad;
-  --chart-3: #edc56a;
-  --chart-4: #b6a1ef;
-  --chart-5: #f28d98;
+  --chart-1: #3b82f6;
+  --chart-2: #22c55e;
+  --chart-3: #f59e0b;
+  --chart-4: #a855f7;
+  --chart-5: #ef4444;
 
-  --sidebar: #0e1723;
-  --sidebar-foreground: #edf3fd;
-  --sidebar-primary: #4b9bfa;
-  --sidebar-primary-foreground: #081728;
-  --sidebar-accent: #203b5d;
-  --sidebar-accent-foreground: #edf3fd;
-  --sidebar-border: #263449;
-  --sidebar-ring: #4b9bfa;
+  --sidebar: #090c10;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #161b24;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #181d26;
+  --sidebar-ring: #3b82f6;
 
-  --c-link: #4b9bfa;
+  --c-link: #3b82f6;
 }
 
 @layer base {
