@@ -104,9 +104,9 @@ export function RegistryCard({
             )}
           </div>
           <div className="min-w-0 space-y-0.5">
-            <h3 className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+            <h2 className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
               {registry.name}
-            </h3>
+            </h2>
             <p className="truncate font-mono text-xs text-muted-foreground" title={registry.url}>
               {registryHost}
             </p>
@@ -116,7 +116,7 @@ export function RegistryCard({
         <div className="flex items-center gap-1.5 shrink-0">
           {registry.isDefault ? (
             <span className="inline-flex items-center gap-1 rounded-control bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 text-xs font-mono font-medium">
-              <span className="size-1.5 rounded-full bg-emerald-400" />
+              <span className="size-1.5 rounded-full bg-success" />
               Default
             </span>
           ) : null}
@@ -126,7 +126,7 @@ export function RegistryCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="size-7 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer"
+                className="size-8 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer"
                 aria-label="Registry actions"
               >
                 <MoreHorizontalIcon className="size-4" />
@@ -134,10 +134,6 @@ export function RegistryCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44 rounded-control p-1 shadow-overlay border border-panel-border bg-popover">
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={runPing} disabled={ping.isPending} className="rounded-control cursor-pointer">
-                  <RefreshCwIcon className={cn("mr-1.5 size-3.5", ping.isPending && "animate-spin")} />
-                  {ping.isPending ? "Testing..." : "Test"}
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild className="rounded-control cursor-pointer">
                   <Link href={`/registries/${registry.id}/edit`}>
                     <PencilIcon className="mr-1.5 size-3.5" />
@@ -200,7 +196,7 @@ export function RegistryCard({
             {capabilityLabels.map((cap) => (
               <span
                 key={cap}
-                className="rounded-control bg-background/50 border border-border/40 px-1.5 py-0.2 font-mono text-xs text-muted-foreground"
+                className="rounded-control bg-background/50 border border-border/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
               >
                 {cap}
               </span>
@@ -240,7 +236,12 @@ export function RegistryCard({
           <span>{ping.isPending ? "Testing..." : "Test"}</span>
         </Button>
 
-        <Button size="sm" className="h-8 rounded-control gap-1.5 px-3 text-xs font-medium cursor-pointer shadow-xs" asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 rounded-control gap-1.5 px-3 text-xs font-medium border-border/80 hover:bg-secondary hover:text-primary hover:border-primary/40 cursor-pointer shadow-xs"
+          asChild
+        >
           <Link href={`/repos?registry=${registry.id}`}>
             <span>Browse repositories</span>
             <ArrowRightIcon className="size-3" />

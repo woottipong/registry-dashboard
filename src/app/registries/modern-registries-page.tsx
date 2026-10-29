@@ -11,6 +11,7 @@ import {
   SearchIcon,
   ServerIcon,
   Trash2Icon,
+  XIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -192,7 +193,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {/* Card 3: Provider Drivers */}
         <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">Drivers</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Providers</span>
             <LayersIcon className="size-3.5 text-primary" />
           </div>
           <div className="mt-2">
@@ -239,7 +240,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               )}
             >
               <span>All</span>
-              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-xs font-mono",
+                  providerFilter === "all"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-secondary border border-border/50 text-muted-foreground",
+                )}
+              >
                 {registries.length}
               </span>
             </button>
@@ -256,7 +264,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 )}
               >
                 <span>Registry V2</span>
-                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.5 text-xs font-mono",
+                    providerFilter === "generic"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-secondary border border-border/50 text-muted-foreground",
+                  )}
+                >
                   {providerCounts.generic}
                 </span>
               </button>
@@ -274,7 +289,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 )}
               >
                 <span>Docker Hub</span>
-                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.5 text-xs font-mono",
+                    providerFilter === "dockerhub"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-secondary border border-border/50 text-muted-foreground",
+                  )}
+                >
                   {providerCounts.dockerhub}
                 </span>
               </button>
@@ -307,10 +329,10 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer transition-colors"
                   aria-label="Clear search"
                 >
-                  ✕
+                  <XIcon className="size-3" />
                 </button>
               )}
             </div>
@@ -392,7 +414,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             onClick={handleAddRegistry}
           >
             <PlusIcon className="mr-1 size-3" />
-            <span>Connect registry</span>
+            <span>Add registry</span>
           </Button>
         </div>
       </div>
