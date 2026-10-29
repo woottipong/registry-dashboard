@@ -1,89 +1,129 @@
-# Registry Dashboard
+# Registry dashboard
 
 Self-hosted web dashboard for browsing and managing container images across Docker Registry V2 compatible registries and Docker Hub.
 
-## Capabilities
+## Overview
 
-- **Multi-Registry**: Manage multiple Docker Registry V2 endpoints and Docker Hub in one place.
-- **Repository & Tag Explorer**: Browse namespaces, repositories, tags, manifest details, digest hashes, and layer sizes.
-- **Command Palette & Global Search**: Fast repository search and keyboard-driven navigation (`⌘K` / `Ctrl+K`).
-- **Activity Telemetry**: Recent pull commands, event logging, and distribution statistics across registries.
-- **Secure BFF Architecture**: All registry API traffic flows through a server-side proxy (`/api/v1/*`), keeping credentials, tokens, and upstream URLs off the browser.
-- **At-Rest Encryption**: Credentials encrypted at rest using AES-256 via `SESSION_SECRET`.
-- **Destructive Operation Safeguards**: Tag deletion protected by session authentication, CSRF checks, and rate limiting.
+Registry dashboard connects to private or public Docker registries through a secure Backend-for-Frontend (BFF) proxy. It provides repository navigation, tag inspection, digest verification, and layer size breakdowns while keeping registry credentials server-side.
 
-## Supported Registries
+- **Multi-registry support**: Manage multiple Docker Registry V2 endpoints and Docker Hub in one dashboard.
+- **Namespace-first browsing**: Browse repositories grouped by namespace, with support for root-level images.
+- **Tag and manifest inspection**: View image tags, digest hashes, layer sizes, architecture details, and pull commands.
+- **Global search and command palette**: Keyboard navigation and quick search via `⌘K` or `Ctrl+K`.
+- **Activity telemetry**: Track recent manifest inspects, pull commands, and registry distribution statistics.
+- **Atomic file persistence**: Registry configurations and activity logs persist safely on disk with atomic writes and automatic backup recovery.
+- **Security controls**: Encrypted credentials at rest (AES-256), session authentication, CSRF validation, and rate-limited destructive operations.
 
-| Registry | Browse | Search | Delete | Rate Limit Tracking | Status |
+## Tech stack
+
+- **Framework**: Next.js 16 (App Router) with React 19 and TypeScript in strict mode
+- **Styling**: Tailwind CSS v4 with Carbon Dark color system and Radix UI primitives
+- **State management**: TanStack Query v5 for server state and caching, Zustand v5 for client UI state
+- **Session management**: iron-session with encrypted HTTP-only session cookies
+- **Runtime and package manager**: Bun inside Linux container environments
+- **Testing**: Vitest with Testing Library for unit and integration tests, Playwright for end-to-end tests
+
+## Architecture
+
+### Backend-for-Frontend proxy pattern
+
+The browser communicates exclusively with `/api/v1/*` Next.js route handlers. It never queries Docker Registry or Docker Hub APIs directly.
+
+```text
+Browser -> Next.js API (/api/v1/*) -> Registry provider -> Docker Registry / Hub APIs
+```
+
+Benefits:
+- Registry tokens, passwords, and private network URLs remain server-side.
+- Eliminates browser Cross-Origin Resource Sharing (CORS) constraints.
+- Centralizes rate limiting, CSRF validation, session authentication, and error formatting.
+
+### Provider pattern
+
+Registry adapters live in `src/lib/providers/` and implement the `RegistryProvider` interface:
+- `GenericProvider`: Interacts with standard Docker Registry V2 endpoints.
+- `DockerHubProvider`: Combines Docker Hub API v2 for search and catalog exploration with Docker Registry V2 for manifest retrieval.
+- Both providers share an in-memory catalog cache with automatic 401 token invalidation and refresh logic.
+
+### Atomic file persistence
+
+Data is stored in JSON files under `DATA_DIR` (`/app/data` by default) using `AtomicJsonStore<T>` (`src/lib/atomic-file-store.ts`):
+- Writes write to a temporary file with a unique UUID (`.tmp.<uuid>`) and sync to disk before an atomic POSIX rename replaces the target file.
+- Automatic `.bak` snapshot backups allow self-healing recovery if the primary JSON file becomes corrupted.
+
+## Supported registries
+
+| Registry | Browse | Search | Delete tags | Rate limit tracking | Status |
 |---|---|---|---|---|---|
-| Docker Registry V2 | Yes | — | Yes | — | Implemented |
-| Docker Hub | Yes | Yes | — | Yes (PAT supported) | Implemented |
-| GitHub Container Registry (GHCR) | Planned | — | Planned | — | Planned |
-| AWS ECR | Planned | — | Planned | — | Planned |
-| Harbor | Planned | — | Planned | — | Planned |
+| Docker Registry V2 | Yes | Not supported | Yes | Not supported | Implemented |
+| Docker Hub | Yes | Yes | Not supported | Yes (PAT supported) | Implemented |
+| GitHub Container Registry (GHCR) | Planned | Not supported | Planned | Not supported | Planned |
+| AWS ECR | Planned | Not supported | Planned | Not supported | Planned |
+| Harbor | Planned | Not supported | Planned | Not supported | Planned |
 
-## Quick Start (Development)
+## Quick start for development
 
-Run the local dev stack with hot-reload and a local test registry:
+Run the development stack with hot reloading and an isolated local Docker registry:
 
 ```bash
-# 1. Setup local environment
+# 1. Create development environment file
 cp .env.example .env.local
 
-# 2. Start dev containers
+# 2. Start containers
 docker compose -f docker-compose.dev.yml up -d
 ```
 
+Access points:
 - **Dashboard UI**: `http://localhost:9002` (default credentials: `admin` / `admin123`)
-- **Local Test Registry**: `http://localhost:9001`
-- Source code is bind-mounted; edits reload instantly. Dependencies live inside the `node_modules_dev` Docker volume.
+- **Local test registry**: `http://localhost:9001`
 
-## Development Commands
+Dependencies and build caches live inside Docker volumes (`node_modules_dev`, `next_cache_dev`). Do not run `bun install` or tests on the host machine.
 
-All commands run inside the dev container (`registry-dashboard-ui-dev`):
+## Development commands
+
+Execute all commands inside the running UI container (`registry-dashboard-ui-dev`):
 
 ```bash
 # Typecheck
 docker compose -f docker-compose.dev.yml exec ui bun run typecheck
 
-# Lint & Fix
+# Linting
 docker compose -f docker-compose.dev.yml exec ui bun run lint
 docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
 
-# Unit & E2E Tests
+# Tests
 docker compose -f docker-compose.dev.yml exec ui bun run test
 docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
 docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 ```
 
-## Production Deployment
+## Production deployment
 
 ```bash
 # 1. Generate a strong encryption secret
 SESSION_SECRET=$(openssl rand -base64 32)
 
-# 2. Create production environment
+# 2. Configure production environment
 cp .env.example .env
-# Set SESSION_SECRET and a strong APP_PASSWORD (min 8 characters) in .env
+# Set SESSION_SECRET and a secure APP_PASSWORD (minimum 8 characters) in .env
 
-# 3. Start production container
+# 3. Start the production service
 docker compose up -d
 ```
 
-- Production UI runs on `http://localhost:3000` (configurable via `UI_PORT`).
-- Connection configs and encrypted credentials persist in the `ui-data` Docker volume.
+The production interface runs on `http://localhost:3000` (configurable via `UI_PORT`). Persistent configs and encrypted credentials remain in the `ui-data` Docker volume.
 
-### Backup & Restore
+### Backup and restore
 
 ```bash
-# Backup configuration data
+# Backup persistent data
 docker cp registry-dashboard-ui:/app/data ./backup
 
-# Restore configuration data
+# Restore persistent data
 docker cp ./backup registry-dashboard-ui:/app/data
 ```
 
-### Reverse Proxy (Nginx)
+### Reverse proxy example
 
 ```nginx
 server {
@@ -100,29 +140,72 @@ server {
 }
 ```
 
-## Environment Variables
+## API route reference
+
+All application API endpoints return a standardized `ApiResponse<T>` JSON envelope:
+
+```ts
+// Success
+{ success: true, data: T, error: null }
+
+// Error
+{ success: false, data: null, error: { code: string, message: string, details?: unknown } }
+```
+
+### Authentication and health
+
+- `POST /api/auth/login`: Authenticate user session
+- `POST /api/auth/logout`: Invalidate session cookie
+- `GET /api/auth/me`: Get current session details
+- `GET /api/health`: Service health check
+
+### Registries
+
+- `GET /api/v1/registries`: List configured registries
+- `POST /api/v1/registries`: Add a new registry
+- `GET /api/v1/registries/[id]`: Get registry configuration
+- `PUT /api/v1/registries/[id]`: Update registry configuration
+- `DELETE /api/v1/registries/[id]`: Delete registry configuration
+- `POST /api/v1/registries/[id]/ping`: Test connection and credentials
+
+### Catalog and images
+
+- `GET /api/v1/registries/[id]/namespaces`: List available namespaces
+- `GET /api/v1/registries/[id]/repositories`: List repositories for a namespace
+- `GET /api/v1/registries/[id]/repositories/[...name]`: Get repository metadata or tag list
+- `DELETE /api/v1/registries/[id]/repositories/[...name]`: Delete repository
+- `GET /api/v1/registries/[id]/tags/[...name]`: List tags for a repository
+- `GET /api/v1/registries/[id]/manifests/[...path]`: Retrieve image manifest
+- `DELETE /api/v1/registries/[id]/manifests/[...path]`: Delete tag or manifest
+- `GET /api/v1/registries/[id]/blobs/[...path]`: Proxy image layer blob
+
+### Telemetry
+
+- `GET /api/v1/activities`: List recent dashboard activities
+
+## Environment variables
 
 | Variable | Description | Required | Default |
 |---|---|---|---|
-| `SESSION_SECRET` | 32+ character key for session cookies and credential encryption | **Yes** | — |
+| `SESSION_SECRET` | Secret key (minimum 32 characters) for cookies and AES-256 credential encryption | Yes | None |
 | `APP_USERNAME` | Login username | No | `admin` |
-| `APP_PASSWORD` | Login password (min 8 chars in production) | **Yes** (Prod) | `admin123` (Dev) |
-| `UI_PORT` | Host port for the web dashboard | No | `9002` (Dev) / `3000` (Prod) |
-| `REGISTRY_PORT` | Host port for the dev test registry | No | `9001` (Dev only) |
-| `DATA_DIR` | Directory storing `registries.json` | No | `/app/data` |
-| `DEFAULT_REGISTRY_URL` | Pre-configured registry URL on initial boot | No | — |
-| `DEFAULT_REGISTRY_NAME` | Display name for default registry | No | — |
-| `DEFAULT_REGISTRY_AUTH_TYPE` | `none` \| `basic` \| `bearer` | No | `none` |
-| `DEFAULT_REGISTRY_USERNAME` | Username for default registry basic auth | No | — |
-| `DEFAULT_REGISTRY_PASSWORD` | Password for default registry basic auth | No | — |
-| `NEXT_PUBLIC_APP_NAME` | Application display name | No | `Registry Dashboard` |
+| `APP_PASSWORD` | Login password (minimum 8 characters in production) | Yes (Production) | `admin123` (Development) |
+| `UI_PORT` | Host port for the dashboard | No | `9002` (Dev) / `3000` (Prod) |
+| `REGISTRY_PORT` | Host port for local test registry | No | `9001` (Dev only) |
+| `DATA_DIR` | Directory storing JSON database files | No | `/app/data` |
+| `DEFAULT_REGISTRY_URL` | Pre-configured registry URL on initial boot | No | None |
+| `DEFAULT_REGISTRY_NAME` | Display name for default registry | No | None |
+| `DEFAULT_REGISTRY_AUTH_TYPE` | Default registry auth type (`none`, `basic`, `bearer`) | No | `none` |
+| `DEFAULT_REGISTRY_USERNAME` | Username for default registry basic auth | No | None |
+| `DEFAULT_REGISTRY_PASSWORD` | Password for default registry basic auth | No | None |
+| `NEXT_PUBLIC_APP_NAME` | Application display name in UI header | No | `Registry Dashboard` |
 | `NEXT_PUBLIC_APP_URL` | Public application URL | No | `http://localhost:3000` |
 
-## Documentation
+## Project documentation
 
-- [`AGENTS.md`](./AGENTS.md) — Architecture, BFF route contracts, provider specifications, coding standards, and verification guidelines.
-- [`PRODUCT.md`](./PRODUCT.md) — Brand commitments, dark-only palette, and UX principles.
-- [`GLOSSARY.md`](./GLOSSARY.md) — Canonical domain vocabulary and terminology rules.
-- [`doc/DESIGN.md`](./doc/DESIGN.md) — Design system specifications, Carbon Dark tokens, and component guidelines.
-- [`docs/adr/`](./docs/adr/) — Architecture Decision Records, including [ADR-0001: Carbon Dark Operations Redesign](./docs/adr/0001-carbon-dark-operations-redesign.md).
-- [`docs/agents/`](./docs/agents/) — Contributor workflows for issue tracking, domain modeling, and triage labels.
+- [`AGENTS.md`](./AGENTS.md): Architecture contracts, coding standards, and verification guidelines
+- [`PRODUCT.md`](./PRODUCT.md): UI styling, brand commitments, and UX principles
+- [`GLOSSARY.md`](./GLOSSARY.md): Domain vocabulary and terminology rules
+- [`doc/DESIGN.md`](./doc/DESIGN.md): Design tokens, Carbon Dark layout dimensions, and component rules
+- [`docs/adr/`](./docs/adr/): Architecture Decision Records
+- [`docs/agents/`](./docs/agents/): Local issue tracking and contributor workflows
