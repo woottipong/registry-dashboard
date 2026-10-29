@@ -45,7 +45,7 @@ export default async function LoginPage() {
 
             {/* Subtle Apple-style glow circle */}
             <div
-              className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full bg-[#0071E3]/20 blur-3xl"
+              className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full bg-primary/20 blur-3xl"
               aria-hidden="true"
             />
           </section>

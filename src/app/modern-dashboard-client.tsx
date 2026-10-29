@@ -61,7 +61,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </p>
 
           <div className="mt-8 flex justify-center">
-            <Button size="lg" className="rounded-control px-8 bg-primary hover:bg-[#0077ED] text-white font-medium shadow-[0_2px_8px_rgba(0,113,227,0.25)]" asChild>
+            <Button size="lg" className="rounded-control px-8 font-medium" asChild>
               <Link href="/registries/new">
                 <PlusIcon data-icon="inline-start" className="mr-1 size-4" />
                 {"Add registry"}
@@ -166,7 +166,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                   {registriesWithStats.map((reg, idx) => {
                     const share = (reg.repoCount / totalRepositories) * 100
                     if (share <= 0) return null
-                    const colors = ["bg-[#0071E3]", "bg-[#30D158]", "bg-[#BF5AF2]", "bg-[#FF9F0A]", "bg-[#64D2FF]"]
+                    const colors = ["bg-chart-1", "bg-chart-2", "bg-chart-4", "bg-chart-3", "bg-chart-5"]
                     const color = colors[idx % colors.length]
                     return (
                       <div
@@ -269,13 +269,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               ) : (
                 chartData.slice(0, 5).map((repo, index) => {
                   const registry = registriesWithStats.find((item) => item.id === repo.registryId)
-                  const rankColors = [
-                    "bg-amber-500/10 ring-1 ring-amber-500/20 text-amber-400",
-                    "bg-slate-500/10 ring-1 ring-slate-500/20 text-slate-300",
-                    "bg-amber-700/10 ring-1 ring-amber-700/20 text-amber-500",
-                  ]
-                  const rankStyle = rankColors[index] || "bg-secondary text-muted-foreground"
-
                   return (
                     <Link
                       key={`${repo.registryId}-${repo.name}`}
@@ -283,7 +276,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                       className="group flex items-center justify-between rounded-control border-b border-border/60 px-1 py-3 transition-colors last:border-0 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${rankStyle}`}>
+                        <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground">
                           {index + 1}
                         </div>
 

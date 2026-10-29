@@ -45,7 +45,7 @@ export function PullCommand({ commands, className }: PullCommandProps) {
             >
               {copiedIndex === index ? (
                 <>
-                  <CheckIcon className="size-3 text-[#30D158]" />
+                  <CheckIcon className="size-3 text-success" />
                   <span>Copied</span>
                 </>
               ) : (

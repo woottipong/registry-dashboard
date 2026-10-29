@@ -50,7 +50,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           onNavigate={onNavigate}
           className="group flex items-center gap-2.5 rounded-[7px] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-[#1C1C1E] border-white/[0.08]">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-card border-panel-border">
             <Image src="/logo.svg" alt="Registry" width={18} height={18} className="rounded-xs" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -82,7 +82,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                   className={cn(
                     "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] font-medium transition-colors duration-150",
                     active
-                      ? "text-foreground font-semibold bg-white/[0.08]"
+                      ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
                   )}
                 >
@@ -90,7 +90,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                     <Icon
                       className={cn(
                         "size-4 shrink-0 transition-colors",
-                        active ? "text-[#2997FF]" : "text-muted-foreground/80 group-hover:text-foreground",
+                        active ? "text-link" : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
                     <span className="truncate">{label}</span>
@@ -137,7 +137,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                     className={cn(
                       "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] transition-colors duration-150",
                       active
-                        ? "text-foreground font-semibold bg-white/[0.08]"
+                        ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent"
                         : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
                     )}
                   >

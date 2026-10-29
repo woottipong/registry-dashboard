@@ -4,6 +4,8 @@ The application UI uses English only. The application uses a dark theme. User-pr
 
 The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and dialogs, and `rounded-control` (8px) for controls and interactive rows. The radius scale stays between 6px and 16px; use fully rounded shapes only for dots and compact status badges. Use at least 12px for readable metadata. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for dark surfaces and links. The blue link and focus tokens indicate actions and selection; reserve other colors for status and data. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
 
+Color hierarchy: Graphite + Muted Blue uses a near-black neutral canvas and raised graphite surfaces. Muted blue identifies primary actions, focus, and selection; ordinary controls use foreground text. Use `success`, `warning`, and `destructive` for labeled states, and `danger-solid` for destructive button fills with white text. Do not use status colors as decoration.
+
 The older bento reference below describes the original visual direction; the operational UI tokens above take precedence for the application screens.
 
 ---

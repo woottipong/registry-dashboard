@@ -77,7 +77,7 @@ export function BulkDeleteDialog({
         </div>
 
         {sideEffectTags.length > 0 && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+          <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <strong>Also deletes unselected tags</strong> — these tags share a digest with your
             selection and will be removed too:{" "}
             {sideEffectTags.map((name, i) => (
@@ -165,7 +165,7 @@ export function DeleteDialog({
             </div>
 
             {sharedWith.length > 0 && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-400">
+              <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
                 <strong>Shared digest warning</strong> — the following tags point to the same
                 manifest and will also be deleted:{" "}
                 {sharedWith.map((t) => (

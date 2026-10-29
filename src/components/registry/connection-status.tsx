@@ -11,9 +11,9 @@ interface ConnectionStatusProps {
 }
 
 const stateStyle: Record<ConnectionState, string> = {
-  connected: "bg-emerald-500",
-  checking: "bg-amber-400 animate-pulse",
-  error: "bg-rose-500",
+  connected: "bg-success",
+  checking: "bg-warning animate-pulse",
+  error: "bg-destructive",
 }
 
 export function ConnectionStatus({ state, latencyMs, compact = false }: ConnectionStatusProps) {

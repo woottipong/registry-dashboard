@@ -34,12 +34,17 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-panel-border: var(--panel-border);
   --color-link: var(--c-link);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger-solid: var(--danger-solid);
 
   /* Operative UI: panels contain content; controls and rows are interactive. */
   --radius-panel: 12px;
@@ -71,47 +76,51 @@
   --radius-input: 12px;
   --radius-modal: 12px;
 
-  /* Dark palette */
-  --background: #0b0c0f;
-  --foreground: #f5f5f7;
-  --card: #1c1c1e;
-  --card-foreground: #f5f5f7;
-  --panel-border: rgb(255 255 255 / 0.08);
-  --popover: #1c1c1e;
-  --popover-foreground: #f5f5f7;
+  /* Graphite surfaces with muted blue for action and selection. */
+  --background: #101113;
+  --foreground: #f1f2f4;
+  --card: #1c1e21;
+  --card-foreground: #f1f2f4;
+  --panel-border: rgb(210 215 222 / 0.12);
+  --popover: #23262b;
+  --popover-foreground: #f1f2f4;
 
-  --primary: #0071e3;
-  --primary-hover: #0077ed;
+  --primary: #356cb5;
+  --primary-hover: #3971ba;
+  --primary-active: #2c5d9d;
   --primary-foreground: #ffffff;
-  --secondary: #2c2c2e;
-  --secondary-foreground: #f5f5f7;
-  --muted: #2c2c2e;
-  --muted-foreground: #a4a4aa;
-  --accent: #1c2a3e;
-  --accent-foreground: #2997ff;
-  --destructive: #ff453a;
+  --secondary: #2b2e33;
+  --secondary-foreground: #f1f2f4;
+  --muted: #2b2e33;
+  --muted-foreground: #a6abb3;
+  --accent: #29374a;
+  --accent-foreground: #d7e7fa;
+  --destructive: #ed8983;
+  --danger-solid: #a43b3b;
+  --success: #76c99b;
+  --warning: #e8bf78;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #38383a;
-  --ring: #2997ff;
+  --border: rgb(210 215 222 / 0.16);
+  --input: #838991;
+  --ring: #87b5f2;
 
-  --chart-1: #2997ff;
-  --chart-2: #30d158;
-  --chart-3: #ff9f0a;
-  --chart-4: #bf5af2;
-  --chart-5: #ff375f;
+  --chart-1: #87b5f2;
+  --chart-2: #76c99b;
+  --chart-3: #e8bf78;
+  --chart-4: #bd9bd8;
+  --chart-5: #ed8983;
 
-  --sidebar: #121316;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #2997ff;
+  --sidebar: #17191c;
+  --sidebar-foreground: #f1f2f4;
+  --sidebar-primary: #356cb5;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(255, 255, 255, 0.05);
-  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-accent: #29374a;
+  --sidebar-accent-foreground: #f1f2f4;
   --sidebar-border: rgba(255, 255, 255, 0.07);
-  --sidebar-ring: #2997ff;
+  --sidebar-ring: #87b5f2;
 
   --orange-text: #ff9f0a;
-  --c-link: #2997ff;
+  --c-link: #87b5f2;
   --stage-highlight: #2a2a2d;
   --stage-mid: #141416;
   --stage-black: #000000;
