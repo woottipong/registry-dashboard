@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -67,8 +66,6 @@ export function DashboardRecentPushes({
   copiedCommandId,
   onCopyCommand,
 }: DashboardRecentPushesProps) {
-  const router = useRouter()
-
   return (
     <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden flex flex-col justify-between flex-1">
       <div className="flex flex-col flex-1">
@@ -83,9 +80,9 @@ export function DashboardRecentPushes({
           {!isMounted ? (
             <Skeleton className="h-5 w-16 rounded-control" />
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-xs font-mono text-muted-foreground">
               <span className="size-1.5 rounded-full bg-emerald-400" />
-              {"5 latest"}
+              {recentPushedImages.length > 0 ? `${recentPushedImages.length} latest` : "0 latest"}
             </span>
           )}
         </div>
@@ -118,34 +115,25 @@ export function DashboardRecentPushes({
             recentPushedImages.map((item) => (
               <div
                 key={item.id}
-                tabIndex={0}
-                role="button"
-                onClick={() => router.push(item.href)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    router.push(item.href)
-                  }
-                }}
-                className="group flex flex-col gap-1 py-2 px-1.5 -mx-1.5 rounded-control transition-colors hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 cursor-pointer"
+                className="group relative flex flex-col gap-1 py-2 px-1.5 -mx-1.5 rounded-control transition-colors hover:bg-secondary/40"
               >
                 {/* Top line: Repo name + Tag badge + Time */}
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Link
                       href={item.href}
-                      onClick={(e) => e.stopPropagation()}
                       className="font-mono text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[190px] hover:underline focus-visible:outline-none focus-visible:underline"
                       title={item.repository}
                     >
                       {item.repository}
                     </Link>
-                    <span className="inline-flex items-center gap-1 rounded-control bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.2 font-mono text-[10px] font-medium shrink-0">
+                    <span className="inline-flex items-center gap-1 rounded-control bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.2 font-mono text-xs font-medium shrink-0">
                       <TagIcon className="size-2.5" />
                       <span className="truncate max-w-[80px]">{item.tag}</span>
                     </span>
                   </div>
                   <span
-                    className="font-mono text-[10px] text-muted-foreground shrink-0"
+                    className="font-mono text-xs text-muted-foreground shrink-0"
                     suppressHydrationWarning
                     title={safeFormatDate(item.timestamp)}
                   >
@@ -154,7 +142,7 @@ export function DashboardRecentPushes({
                 </div>
 
                 {/* Bottom line: Endpoint & actor + Quick Actions */}
-                <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground font-mono">
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground font-mono">
                   <span className="truncate max-w-[170px]">
                     {item.registryName}
                     {item.user ? ` · ${item.user}` : ""}
@@ -163,10 +151,7 @@ export function DashboardRecentPushes({
                   <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onCopyCommand(item.pullCommand, item.id)
-                      }}
+                      onClick={() => onCopyCommand(item.pullCommand, item.id)}
                       className="p-1.5 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                       title={`Copy: ${item.pullCommand}`}
                       aria-label={`Copy pull command for ${item.repository}`}
@@ -179,7 +164,6 @@ export function DashboardRecentPushes({
                     </button>
                     <Link
                       href={item.href}
-                      onClick={(e) => e.stopPropagation()}
                       className="p-1.5 rounded-control text-muted-foreground group-hover:text-primary hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       title={`Inspect ${item.repository}:${item.tag}`}
                       aria-label={`Inspect ${item.repository}:${item.tag}`}
@@ -196,11 +180,11 @@ export function DashboardRecentPushes({
 
       {/* Footer summary - aligned with Left Table footer banner */}
       <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground mt-auto">
-        <span className="font-mono text-[11px]">{"Push telemetry feed"}</span>
+        <span className="font-mono text-xs">{"Push telemetry feed"}</span>
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 text-[11px] font-mono px-2 hover:text-primary transition-colors cursor-pointer"
+          className="h-6 text-xs font-mono px-2 hover:text-primary transition-colors cursor-pointer"
           asChild
         >
           <Link href="/repos">

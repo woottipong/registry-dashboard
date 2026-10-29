@@ -23,7 +23,7 @@ describe("DashboardRecentPushes", () => {
   it("renders recent pushed items correctly", () => {
     const onCopyCommand = vi.fn()
 
-    render(
+    const { container } = render(
       <DashboardRecentPushes
         recentPushedImages={sampleItems}
         isMounted={true}
@@ -42,6 +42,9 @@ describe("DashboardRecentPushes", () => {
       "docker pull registry.local/apps/web:v1.0.0",
       "push-1",
     )
+
+    // Ensure no outer role="button" wrapping inner interactive controls
+    expect(container.querySelector('div[role="button"]')).toBeNull()
   })
 
   it("shows empty state when no items exist", () => {

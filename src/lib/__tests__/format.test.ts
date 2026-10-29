@@ -133,23 +133,20 @@ describe("parseRepositoryName", () => {
 })
 
 describe("formatEstimatedSize", () => {
-  it("returns dash for undefined or null inputs", () => {
+  it("returns dash for undefined, null, or zero inputs", () => {
     expect(formatEstimatedSize(undefined, undefined)).toBe("—")
     expect(formatEstimatedSize(null, null)).toBe("—")
     expect(formatEstimatedSize(0, 0)).toBe("—")
   })
 
-  it("prioritizes confirmed sizeBytes over tagCount estimation", () => {
+  it("formats confirmed sizeBytes accurately", () => {
     expect(formatEstimatedSize(10, 1024 * 1024)).toBe("1.0 MB")
+    expect(formatEstimatedSize(1, 1024 * 1024 * 1024)).toBe("1.0 GB")
   })
 
-  it("estimates size from tagCount when sizeBytes is missing", () => {
-    const result = formatEstimatedSize(1)
-    expect(result).toMatch(/^~72\.5 MB$/)
-  })
-
-  it("formats large estimated sizes in GB", () => {
-    const result = formatEstimatedSize(20)
-    expect(result).toMatch(/^~1\.[45] GB$/)
+  it("returns dash instead of a fabricated multiplier when sizeBytes is missing", () => {
+    expect(formatEstimatedSize(1, undefined)).toBe("—")
+    expect(formatEstimatedSize(20, null)).toBe("—")
+    expect(formatEstimatedSize(100, 0)).toBe("—")
   })
 })

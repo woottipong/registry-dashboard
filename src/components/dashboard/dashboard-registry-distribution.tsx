@@ -7,12 +7,14 @@ export interface DashboardRegistryDistributionProps {
   registriesWithStats: Array<{ id: string; name: string; repoCount: number }>
   totalRepositories: number
   isLoadingRegistries: boolean
+  failedRegistryNames?: string[]
 }
 
 export function DashboardRegistryDistribution({
   registriesWithStats,
   totalRepositories,
   isLoadingRegistries,
+  failedRegistryNames = [],
 }: DashboardRegistryDistributionProps) {
   return (
     <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel shrink-0">
@@ -23,7 +25,7 @@ export function DashboardRegistryDistribution({
             {"Registry distribution"}
           </h2>
         </div>
-        <span className="text-[11px] font-mono text-muted-foreground">
+        <span className="text-xs font-mono text-muted-foreground">
           {"by repositories"}
         </span>
       </div>
@@ -48,11 +50,18 @@ export function DashboardRegistryDistribution({
                   <span className="font-medium text-foreground truncate max-w-[150px]">
                     {reg.name}
                   </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                  <span className="font-mono text-xs text-muted-foreground">
                     {`${reg.repoCount} of ${totalRepositories} · ${sharePercentage}%`}
                   </span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={sharePercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Repository share for ${reg.name}`}
+                  className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
+                >
                   <div
                     className="h-full rounded-full bg-primary transition-all duration-300"
                     style={{ width: `${Math.max(sharePercentage, 4)}%` }}
@@ -64,9 +73,19 @@ export function DashboardRegistryDistribution({
         )}
       </div>
 
-      <p className="mt-3.5 pt-3 border-t border-border/50 text-[11px] text-muted-foreground leading-relaxed">
-        {"All connected registry endpoints are operational with active credentials."}
-      </p>
+      {failedRegistryNames.length > 0 ? (
+        <p className="mt-3.5 pt-3 border-t border-border/50 text-xs text-amber-400/90 leading-relaxed font-mono">
+          {`Warning: ${failedRegistryNames.length} endpoint${failedRegistryNames.length > 1 ? "s" : ""} unreachable (${failedRegistryNames.join(", ")}).`}
+        </p>
+      ) : registriesWithStats.length === 0 ? (
+        <p className="mt-3.5 pt-3 border-t border-border/50 text-xs text-muted-foreground leading-relaxed">
+          {"No registry endpoints configured."}
+        </p>
+      ) : (
+        <p className="mt-3.5 pt-3 border-t border-border/50 text-xs text-muted-foreground leading-relaxed">
+          {`${registriesWithStats.length} connected registry endpoint${registriesWithStats.length > 1 ? "s" : ""} active.`}
+        </p>
+      )}
     </div>
   )
 }

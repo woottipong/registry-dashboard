@@ -57,6 +57,45 @@ describe("DashboardRepoInventory", () => {
     expect(onTabChange).toHaveBeenCalledWith("reg-1")
   })
 
+  it("handles column sorting and inline pull command copy", () => {
+    const onSortChange = vi.fn()
+    const onCopyCommand = vi.fn()
+
+    render(
+      <DashboardRepoInventory
+        repositories={sampleRepos}
+        topRepositories={sampleRepos}
+        registriesWithStats={[{ id: "reg-1", name: "Local", repoCount: 1 }]}
+        activeTab="all"
+        onTabChange={vi.fn()}
+        tableSearch=""
+        onSearchChange={vi.fn()}
+        isLoadingRegistries={false}
+        isLoadingRepos={false}
+        totalTags={10}
+        sortBy="tags"
+        sortOrder="desc"
+        onSortChange={onSortChange}
+        copiedCommandId={null}
+        onCopyCommand={onCopyCommand}
+      />
+    )
+
+    // Sort buttons
+    const repoSortBtn = screen.getByText("Repository")
+    fireEvent.click(repoSortBtn)
+    expect(onSortChange).toHaveBeenCalledWith("name")
+
+    const tagsSortBtn = screen.getByText("Tags & Volume")
+    fireEvent.click(tagsSortBtn)
+    expect(onSortChange).toHaveBeenCalledWith("tags")
+
+    // Copy pull command button
+    const copyBtn = screen.getByLabelText("Copy pull command for apps/web")
+    fireEvent.click(copyBtn)
+    expect(onCopyCommand).toHaveBeenCalledWith("docker pull apps/web:latest", "reg-1-apps/web")
+  })
+
   it("shows empty state when no repositories match filter", () => {
     render(
       <DashboardRepoInventory

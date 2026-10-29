@@ -5,6 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowRightIcon,
+  ArrowUpDownIcon,
+  CheckIcon,
+  CopyIcon,
   DatabaseIcon,
   FolderIcon,
   SearchIcon,
@@ -26,6 +29,11 @@ export interface DashboardRepoInventoryProps {
   isLoadingRegistries: boolean
   isLoadingRepos: boolean
   totalTags: number
+  sortBy?: "name" | "tags"
+  sortOrder?: "asc" | "desc"
+  onSortChange?: (column: "name" | "tags") => void
+  copiedCommandId?: string | null
+  onCopyCommand?: (cmd: string, id: string) => void
 }
 
 export function DashboardRepoInventory({
@@ -39,6 +47,11 @@ export function DashboardRepoInventory({
   isLoadingRegistries,
   isLoadingRepos,
   totalTags,
+  sortBy = "tags",
+  sortOrder = "desc",
+  onSortChange,
+  copiedCommandId,
+  onCopyCommand,
 }: DashboardRepoInventoryProps) {
   const router = useRouter()
 
@@ -63,7 +76,7 @@ export function DashboardRepoInventory({
             )}
           >
             <span>All</span>
-            <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+            <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
               {repositories.length}
             </span>
           </button>
@@ -81,7 +94,7 @@ export function DashboardRepoInventory({
               )}
             >
               <span className="truncate max-w-[120px]">{reg.name}</span>
-              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
                 {reg.repoCount}
               </span>
             </button>
@@ -90,8 +103,8 @@ export function DashboardRepoInventory({
 
         {/* Inline Quick Search & Ranking Pill */}
         <div className="flex items-center gap-2">
-          <span className="hidden md:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground whitespace-nowrap">
-            {"Top 10 by tags"}
+          <span className="hidden md:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-xs font-mono text-muted-foreground whitespace-nowrap">
+            {"Top 10 repositories"}
           </span>
           <div className="relative w-full sm:w-48">
             <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
@@ -112,13 +125,41 @@ export function DashboardRepoInventory({
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="border-b border-border/70 bg-secondary/20 text-muted-foreground">
-              <th className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-[10px]">#</th>
-              <th className="py-2.5 px-3 font-medium">Repository</th>
+              <th className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-xs">#</th>
+              <th className="py-2.5 px-3 font-medium">
+                {onSortChange ? (
+                  <button
+                    type="button"
+                    onClick={() => onSortChange("name")}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>Repository</span>
+                    <ArrowUpDownIcon className={cn("size-3", sortBy === "name" ? "text-primary" : "opacity-40")} />
+                  </button>
+                ) : (
+                  "Repository"
+                )}
+              </th>
               <th className="py-2.5 px-3 font-medium hidden md:table-cell">Registry</th>
               <th className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</th>
-              <th className="py-2.5 px-3 font-medium min-w-[120px]">Tags & Volume</th>
-              <th className="py-2.5 px-3 font-medium text-right hidden sm:table-cell">Est. Size</th>
-              <th className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
+              <th className="py-2.5 px-3 font-medium min-w-[120px]">
+                {onSortChange ? (
+                  <button
+                    type="button"
+                    onClick={() => onSortChange("tags")}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>Tags & Volume</span>
+                    <ArrowUpDownIcon className={cn("size-3", sortBy === "tags" ? "text-primary" : "opacity-40")} />
+                  </button>
+                ) : (
+                  "Tags & Volume"
+                )}
+              </th>
+              <th className="py-2.5 px-3 font-medium text-right hidden sm:table-cell" title="Confirmed layer size from manifest">
+                Size
+              </th>
+              <th className="w-16 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Actions" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50 font-sans">
@@ -139,7 +180,8 @@ export function DashboardRepoInventory({
             ) : (
               topRepositories.map((repo, idx) => {
                 const rowKey = `${repo.registryId}-${repo.fullName}`
-                const isTopRanked = idx === 0
+                const isTopRanked = idx === 0 && sortBy === "tags" && sortOrder === "desc"
+                const pullCmd = `docker pull ${repo.fullName}:latest`
 
                 return (
                   <tr
@@ -157,11 +199,11 @@ export function DashboardRepoInventory({
                     {/* Rank # */}
                     <td className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
                       {isTopRanked ? (
-                        <span className="inline-flex size-5 items-center justify-center rounded-control bg-primary/20 text-primary border border-primary/30 text-[10px] font-bold font-mono">
+                        <span className="inline-flex size-5 items-center justify-center rounded-control bg-primary text-primary-foreground text-xs font-bold font-mono">
                           1
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono text-muted-foreground/70">
+                        <span className="text-xs font-mono text-muted-foreground/70">
                           {idx + 1}
                         </span>
                       )}
@@ -182,7 +224,7 @@ export function DashboardRepoInventory({
                             {repo.name}
                           </Link>
                           {repo.namespace && repo.namespace !== "_root" && (
-                            <span className="text-[10px] text-muted-foreground font-mono truncate">
+                            <span className="text-xs text-muted-foreground font-mono truncate">
                               {repo.namespace}
                             </span>
                           )}
@@ -192,7 +234,7 @@ export function DashboardRepoInventory({
 
                     {/* Registry Endpoint */}
                     <td className="py-2.5 px-3 hidden md:table-cell">
-                      <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 px-2 py-0.5 text-[11px] font-medium text-foreground">
+                      <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 px-2 py-0.5 text-xs font-medium text-foreground">
                         {repo.provider === "dockerhub" ? (
                           <ServerIcon className="size-2.5 text-primary shrink-0" />
                         ) : (
@@ -204,25 +246,32 @@ export function DashboardRepoInventory({
 
                     {/* Namespace */}
                     <td className="py-2.5 px-3 hidden sm:table-cell">
-                      <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
-                        {repo.namespace || "_root"}
+                      <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground">
+                        {repo.namespace && repo.namespace !== "_root" ? repo.namespace : "(root)"}
                       </span>
                     </td>
 
                     {/* Tags & Volume Bar */}
                     <td className="py-2.5 px-3">
                       <div className="flex flex-col gap-1 min-w-[110px]">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
+                        <div className="flex items-center justify-between text-xs font-mono">
                           <span className="font-semibold text-foreground">
                             {repo.tagCount !== undefined ? `${repo.tagCount} tags` : "—"}
                           </span>
                           {totalTags > 0 && repo.tagCount ? (
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               {Math.round((repo.tagCount / totalTags) * 100)}%
                             </span>
                           ) : null}
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                        <div
+                          role="progressbar"
+                          aria-valuenow={repo.tagCount ?? 0}
+                          aria-valuemin={0}
+                          aria-valuemax={maxTopTagCount}
+                          aria-label={`Tag volume for ${repo.name}`}
+                          className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
+                        >
                           <div
                             className="h-full rounded-full bg-primary/80 transition-all duration-300"
                             style={{
@@ -236,22 +285,42 @@ export function DashboardRepoInventory({
                       </div>
                     </td>
 
-                    {/* Est. Image Size */}
-                    <td className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell" title="Estimated total image disk footprint">
+                    {/* Confirmed Image Size */}
+                    <td className="py-2.5 px-3 text-right font-mono text-xs text-foreground whitespace-nowrap hidden sm:table-cell" title="Confirmed layer size from manifest">
                       {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
                     </td>
 
-                    {/* Action Link (Inspect) */}
-                    <td className="w-10 py-2.5 pl-2 pr-4 text-right">
-                      <Link
-                        href={`/repos/${repo.registryId}/${repo.fullName}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        title={`Inspect ${repo.name} repository`}
-                        aria-label={`Inspect ${repo.name} repository`}
-                      >
-                        <ArrowRightIcon className="size-3.5" />
-                      </Link>
+                    {/* Actions: Inline Copy Pull & Inspect */}
+                    <td className="w-16 py-2.5 pl-2 pr-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {onCopyCommand && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onCopyCommand(pullCmd, rowKey)
+                            }}
+                            className="p-1 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                            title={`Copy: ${pullCmd}`}
+                            aria-label={`Copy pull command for ${repo.fullName}`}
+                          >
+                            {copiedCommandId === rowKey ? (
+                              <CheckIcon className="size-3 text-success" />
+                            ) : (
+                              <CopyIcon className="size-3" />
+                            )}
+                          </button>
+                        )}
+                        <Link
+                          href={`/repos/${repo.registryId}/${repo.fullName}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          title={`Inspect ${repo.name} repository`}
+                          aria-label={`Inspect ${repo.name} repository`}
+                        >
+                          <ArrowRightIcon className="size-3.5" />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -263,12 +332,12 @@ export function DashboardRepoInventory({
 
       {/* Table Footer Banner */}
       <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground mt-auto">
-        <span className="truncate text-[11px]">
-          {"Top 10 repositories ranked by tag volume. Click any row to inspect tags and manifests."}
+        <span className="truncate text-xs">
+          {"Click any row to inspect tags and manifests."}
         </span>
         <Link
           href="/repos"
-          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline shrink-0 text-[11px]"
+          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline shrink-0 text-xs"
         >
           <span>{`View all ${repositories.length} repos`}</span>
           <ArrowRightIcon className="size-3" />
@@ -277,4 +346,3 @@ export function DashboardRepoInventory({
     </div>
   )
 }
-

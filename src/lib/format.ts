@@ -142,17 +142,13 @@ export function parseRepositoryName(fullName: string): ParsedRepositoryName {
 }
 
 /**
- * Formats a confirmed or estimated repository layer disk footprint.
- * Uses confirmed sizeBytes if available; otherwise estimates based on ~72.5 MB average per tag.
+ * Formats a confirmed repository layer disk footprint.
+ * Returns formatted bytes if confirmed sizeBytes is provided and positive; otherwise returns "—".
+ * Avoids fictitious multiplication estimates that ignore container layer deduplication.
  */
 export function formatEstimatedSize(tagCount?: number | null, sizeBytes?: number | null): string {
   if (sizeBytes !== undefined && sizeBytes !== null && sizeBytes > 0) {
     return formatBytes(sizeBytes)
-  }
-
-  if (tagCount !== undefined && tagCount !== null && tagCount > 0) {
-    const approxBytes = tagCount * 72.5 * 1024 * 1024
-    return `~${formatBytes(approxBytes)}`
   }
 
   return "—"

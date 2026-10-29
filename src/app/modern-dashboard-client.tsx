@@ -40,15 +40,33 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   const [activeTab, setActiveTab] = useState<string>("all")
   // Search text within table
   const [tableSearch, setTableSearch] = useState<string>("")
+  // Sort criteria for repository inventory
+  const [sortBy, setSortBy] = useState<"name" | "tags">("tags")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   // Track which item's pull command was just copied (ID or repo name)
   const [copiedCommandId, setCopiedCommandId] = useState<string | null>(null)
 
-  // 5 Most recent pushed images across telemetry and catalog
+  const handleSortChange = (column: "name" | "tags") => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortBy(column)
+      setSortOrder(column === "tags" ? "desc" : "asc")
+    }
+  }
+
+  const failedRegistryNames = useMemo(() => {
+    return failedRegistryIds.map(
+      (id) => registries.find((r) => r.id === id)?.name ?? id,
+    )
+  }, [failedRegistryIds, registries])
+
+  // Most recent pushed images from real push telemetry activities
   const recentPushedImages = useMemo<RecentPushedItem[]>(() => {
     const items: RecentPushedItem[] = []
     const seen = new Set<string>()
 
-    // 1. Process push events from activity telemetry
+    // Process genuine push events from activity telemetry
     const pushActivities = activities.filter((a) => a.type === "push")
     for (const act of pushActivities) {
       const tag = act.tag || "latest"
@@ -84,43 +102,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
       if (items.length >= 5) break
     }
 
-    // 2. If fewer than 5, backfill from catalog repositories so list is rich and not empty
-    if (items.length < 5) {
-      for (const repo of repositories) {
-        const tag = "latest"
-        const key = `${repo.fullName}:${tag}`
-        if (seen.has(key)) continue
-        seen.add(key)
-
-        const reg = registries.find((r) => r.id === repo.registryId)
-        const regHost = reg ? registryHostFromUrl(reg.url) : undefined
-        const pullCmd = generatePullCommand({
-          registry: regHost,
-          repository: repo.fullName,
-          tag,
-        })
-
-        const timestamp = repo.lastUpdated ?? ""
-
-        items.push({
-          id: `repo-${repo.registryId}-${repo.fullName}`,
-          repository: repo.fullName,
-          tag,
-          registryName: repo.registryName,
-          user: undefined,
-          timestamp,
-          pullCommand: pullCmd,
-          href: `/repos/${repo.registryId}/${repo.fullName}?tag=${encodeURIComponent(tag)}`,
-        })
-
-        if (items.length >= 5) break
-      }
-    }
-
     return items
-  }, [activities, registries, repositories])
+  }, [activities, registries])
 
-  // Top 10 repositories sorted by tagCount desc (filtered by tab and search)
+  // Top 10 repositories sorted by selected criteria (filtered by tab and search)
   const topRepositories = useMemo(() => {
     const matched = repositories.filter((repo) => {
       const matchesTab = activeTab === "all" || repo.registryId === activeTab
@@ -134,12 +119,16 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
     return [...matched]
       .sort((a, b) => {
+        if (sortBy === "name") {
+          const cmp = a.fullName.localeCompare(b.fullName)
+          return sortOrder === "asc" ? cmp : -cmp
+        }
         const tagDiff = (b.tagCount ?? 0) - (a.tagCount ?? 0)
-        if (tagDiff !== 0) return tagDiff
+        if (tagDiff !== 0) return sortOrder === "asc" ? -tagDiff : tagDiff
         return a.fullName.localeCompare(b.fullName)
       })
       .slice(0, 10)
-  }, [repositories, activeTab, tableSearch])
+  }, [repositories, activeTab, tableSearch, sortBy, sortOrder])
 
   const handleCopyCommand = (cmd: string, id: string) => {
     if (!cmd) return
@@ -206,7 +195,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           role="alert"
           className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-control border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-xs text-foreground"
         >
-          <p>Some registry endpoints could not be reached. Telemetry may be partial.</p>
+          <p>
+            {failedRegistryNames.length > 0
+              ? `Failed to reach endpoints: ${failedRegistryNames.join(", ")}. Telemetry may be partial.`
+              : "Some registry endpoints could not be reached. Telemetry may be partial."}
+          </p>
           <Button size="sm" variant="outline" className="h-7 text-xs" onClick={retry}>
             Try again
           </Button>
@@ -238,6 +231,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             isLoadingRegistries={isLoadingRegistries}
             isLoadingRepos={isLoadingRepos}
             totalTags={totalTags}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            copiedCommandId={copiedCommandId}
+            onCopyCommand={handleCopyCommand}
           />
         </div>
 
@@ -247,6 +245,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             registriesWithStats={registriesWithStats}
             totalRepositories={totalRepositories}
             isLoadingRegistries={isLoadingRegistries}
+            failedRegistryNames={failedRegistryNames}
           />
 
           <DashboardRecentPushes
