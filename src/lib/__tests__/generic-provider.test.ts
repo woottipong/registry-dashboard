@@ -40,6 +40,7 @@ describe("GenericProvider.listNamespaces()", () => {
 
   afterEach(() => {
     global.fetch = originalFetch
+    GenericProvider.clearCaches()
   })
 
   it("groups repos by namespace prefix", async () => {
@@ -164,6 +165,7 @@ describe("GenericProvider.listRepositories()", () => {
 
   afterEach(() => {
     global.fetch = originalFetch
+    GenericProvider.clearCaches()
   })
 
   it("filters repos by namespace", async () => {

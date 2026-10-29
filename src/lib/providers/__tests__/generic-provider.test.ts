@@ -50,6 +50,7 @@ describe("GenericProvider", () => {
 
   afterEach(() => {
     global.fetch = originalFetch
+    GenericProvider.clearCaches()
   })
 
   it("has type 'generic'", () => {
@@ -507,6 +508,172 @@ describe("GenericProvider", () => {
       const call = fetchSpy.mock.calls[0]
       expect((call[0] as string)).toContain("sha256:abc123")
       expect(call[1].method).toBe("DELETE")
+    })
+  })
+
+  describe("shared process caches", () => {
+    it("shares catalog names and tag counts across separate GenericProvider instances", async () => {
+      const fetchSpy = vi.fn().mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web", "app/api"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: ["v1", "v2"] })),
+        })
+      })
+      global.fetch = fetchSpy as typeof fetch
+
+      const provider1 = new GenericProvider(CONNECTION)
+      const ns1 = await provider1.listNamespaces()
+      expect(ns1).toHaveLength(1)
+      expect(ns1[0].name).toBe("app")
+
+      // Second instance for same connection URL should hit catalog cache
+      const provider2 = new GenericProvider(CONNECTION)
+      const repos = await provider2.listRepositories({ namespace: "app" })
+      expect(repos.items).toHaveLength(2)
+
+      // Only 1 _catalog request should have been made across both instances
+      const catalogCalls = fetchSpy.mock.calls.filter((call) => String(call[0]).includes("_catalog"))
+      expect(catalogCalls).toHaveLength(1)
+    })
+
+    it("invalidates catalog and tag count cache on deleteManifest", async () => {
+      const fetchSpy = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
+        const urlStr = String(url)
+        if (options?.method === "DELETE") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(""),
+          })
+        }
+        if (urlStr.includes("_catalog")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        })
+      })
+      global.fetch = fetchSpy as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      await provider.listRepositories({ namespace: "app" })
+      expect(fetchSpy.mock.calls.filter((c) => String(c[0]).includes("_catalog"))).toHaveLength(1)
+
+      // Deleting a manifest invalidates catalog cache
+      await provider.deleteManifest("app/web", "sha256:123")
+
+      // Next listRepositories should re-fetch _catalog
+      await provider.listRepositories({ namespace: "app" })
+      expect(fetchSpy.mock.calls.filter((c) => String(c[0]).includes("_catalog"))).toHaveLength(2)
+    })
+
+    it("isolates catalog cache across connections with different credentials or IDs", async () => {
+      let catalogCallCount = 0
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          catalogCallCount += 1
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        })
+      }) as typeof fetch
+
+      const connUserA: RegistryConnection = {
+        ...CONNECTION,
+        id: "conn-a",
+        credentials: { username: "userA", password: "pwd" },
+      }
+      const connUserB: RegistryConnection = {
+        ...CONNECTION,
+        id: "conn-b",
+        credentials: { username: "userB", password: "pwd" },
+      }
+
+      const providerA = new GenericProvider(connUserA)
+      await providerA.listNamespaces()
+      expect(catalogCallCount).toBe(1)
+
+      // Connection B with different credentials/ID should not hit Connection A's cache
+      const providerB = new GenericProvider(connUserB)
+      await providerB.listNamespaces()
+      expect(catalogCallCount).toBe(2)
+    })
+
+    it("deduplicates concurrent in-flight catalog requests", async () => {
+      let catalogCallCount = 0
+      global.fetch = vi.fn().mockImplementation(async (url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          catalogCallCount += 1
+          // Add a tiny delay to simulate network latency
+          await new Promise((resolve) => setTimeout(resolve, 20))
+          return {
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          }
+        }
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        }
+      }) as typeof fetch
+
+      const provider1 = new GenericProvider(CONNECTION)
+      const provider2 = new GenericProvider(CONNECTION)
+
+      // Invoke listNamespaces simultaneously while cache is cold
+      const [res1, res2] = await Promise.all([
+        provider1.listNamespaces(),
+        provider2.listNamespaces(),
+      ])
+
+      expect(res1).toHaveLength(1)
+      expect(res2).toHaveLength(1)
+      // Only 1 catalog call should have been made due to in-flight deduplication
+      expect(catalogCallCount).toBe(1)
     })
   })
 })

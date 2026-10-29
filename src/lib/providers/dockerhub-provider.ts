@@ -80,17 +80,64 @@ const dockerHubAuthResponseSchema = z.object({
   token: z.string().min(1),
 })
 
+interface HubTokenEntry {
+  token: string
+  expiresAt: number
+  username: string | null
+}
+
 export class DockerHubProvider implements RegistryProvider {
   readonly type = "dockerhub" as const
   private readonly registryClient: RegistryHttpClient
   private readonly config: typeof DOCKER_HUB_CONFIG
+
+  private static readonly tokenCache = new Map<string, HubTokenEntry>()
+  private static readonly MAX_TOKEN_ENTRIES = 50
+
   private hubJwtToken: string | null = null
   private hubTokenExpiresAt = 0   // unix ms; 0 = no cached token
   private authenticatedUsername: string | null = null
 
+  static clearCaches(): void {
+    DockerHubProvider.tokenCache.clear()
+  }
+
+  private getAuthCacheKey(): string {
+    const passwordHash = this.connection.credentials?.password
+      ? this.connection.credentials.password.slice(-8)
+      : "nopass"
+    return `${this.connection.id ?? this.connection.url}:${this.connection.credentials?.username ?? "anon"}:${passwordHash}`
+  }
+
+  private invalidateToken(): void {
+    DockerHubProvider.tokenCache.delete(this.getAuthCacheKey())
+    this.hubJwtToken = null
+    this.hubTokenExpiresAt = 0
+    this.authenticatedUsername = null
+  }
+
+  private isUnauthorizedError(error: unknown): boolean {
+    if (error && typeof error === "object" && "status" in error) {
+      if ((error as { status: unknown }).status === 401) {
+        return true
+      }
+    }
+    const message = error instanceof Error ? error.message : String(error)
+    return message.includes("401") || message.includes("Unauthorized") || message.includes("UNAUTHORIZED")
+  }
+
   /** Returns true when a cached token exists and has >30 s left before expiry */
   private isHubTokenValid(): boolean {
-    return this.hubJwtToken !== null && Date.now() < this.hubTokenExpiresAt - 30_000
+    const key = this.getAuthCacheKey()
+    const cached = DockerHubProvider.tokenCache.get(key)
+    const now = Date.now()
+    if (cached && now < cached.expiresAt - 30_000) {
+      this.hubJwtToken = cached.token
+      this.hubTokenExpiresAt = cached.expiresAt
+      this.authenticatedUsername = cached.username
+      return true
+    }
+    return this.hubJwtToken !== null && now < this.hubTokenExpiresAt - 30_000
   }
 
   /**
@@ -140,7 +187,10 @@ export class DockerHubProvider implements RegistryProvider {
       )
 
       return [{ name: namespace, repositoryCount: response.count }]
-    } catch {
+    } catch (error) {
+      if (this.isUnauthorizedError(error)) {
+        this.invalidateToken()
+      }
       return [{ name: namespace, repositoryCount: 0 }]
     }
   }
@@ -238,26 +288,33 @@ export class DockerHubProvider implements RegistryProvider {
       headers.Authorization = `JWT ${this.hubJwtToken}`
     }
 
-    const response = dockerHubTagResponseSchema.parse(
-      await this.registryClient.request<DockerHubTagResponse>(
-        `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
-        { headers },
-      ),
-    )
+    try {
+      const response = dockerHubTagResponseSchema.parse(
+        await this.registryClient.request<DockerHubTagResponse>(
+          `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
+          { headers },
+        ),
+      )
 
-    return {
-      items: response.results.map((tag) => ({
-        name: tag.name,
-        digest: tag.digest ?? "",
-        size: tag.full_size ?? 0,
-        createdAt: tag.last_updated ?? null,
-        architecture: tag.images?.[0]?.architecture ?? "unknown",
-        os: tag.images?.[0]?.os ?? "unknown",
-      })),
-      page,
-      perPage,
-      total: response.count,
-      nextCursor: response.next,
+      return {
+        items: response.results.map((tag) => ({
+          name: tag.name,
+          digest: tag.digest ?? "",
+          size: tag.full_size ?? 0,
+          createdAt: tag.last_updated ?? null,
+          architecture: tag.images?.[0]?.architecture ?? "unknown",
+          os: tag.images?.[0]?.os ?? "unknown",
+        })),
+        page,
+        perPage,
+        total: response.count,
+        nextCursor: response.next,
+      }
+    } catch (error) {
+      if (this.isUnauthorizedError(error)) {
+        this.invalidateToken()
+      }
+      throw error
     }
   }
 
@@ -370,6 +427,10 @@ export class DockerHubProvider implements RegistryProvider {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(`[DockerHubProvider] ${context}:`, errorMessage)
 
+    if (this.isUnauthorizedError(error)) {
+      this.invalidateToken()
+    }
+
     // Re-throw with context for better debugging
     throw new Error(`${context}: ${errorMessage}`)
   }
@@ -396,10 +457,30 @@ export class DockerHubProvider implements RegistryProvider {
       this.hubTokenExpiresAt = this.parseJwtExpiry(authResponse.token) ?? (Date.now() + 55 * 60 * 1000)
       this.authenticatedUsername = this.connection.credentials!.username ?? null
 
+      if (DockerHubProvider.tokenCache.size >= DockerHubProvider.MAX_TOKEN_ENTRIES) {
+        const now = Date.now()
+        for (const [k, v] of DockerHubProvider.tokenCache.entries()) {
+          if (v.expiresAt <= now) {
+            DockerHubProvider.tokenCache.delete(k)
+          }
+        }
+        if (DockerHubProvider.tokenCache.size >= DockerHubProvider.MAX_TOKEN_ENTRIES) {
+          const firstKey = DockerHubProvider.tokenCache.keys().next().value
+          if (firstKey) DockerHubProvider.tokenCache.delete(firstKey)
+        }
+      }
+
+      DockerHubProvider.tokenCache.set(this.getAuthCacheKey(), {
+        token: this.hubJwtToken,
+        expiresAt: this.hubTokenExpiresAt,
+        username: this.authenticatedUsername,
+      })
+
       // Verify the token works by making a test request
       await this.verifyAuthentication()
 
     } catch (error) {
+      this.invalidateToken()
       this.handleAuthenticationError(error)
     }
   }
@@ -471,7 +552,7 @@ export class DockerHubProvider implements RegistryProvider {
       )
     } catch (error) {
       console.warn("[DockerHubProvider] Authentication verification failed:", error)
-      // Don't throw here, just log the warning as verification is optional
+      this.invalidateToken()
     }
   }
 }

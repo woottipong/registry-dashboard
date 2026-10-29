@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { formatBytes, formatDate, truncateDigest, generatePullCommand } from "@/lib/format"
+import { formatBytes, formatDate, truncateDigest, generatePullCommand, parseRepositoryName, formatEstimatedSize } from "@/lib/format"
 
 describe("formatBytes", () => {
   it("returns '0 B' for zero", () => {
@@ -111,5 +111,45 @@ describe("generatePullCommand", () => {
 
   it("throws when repository is empty", () => {
     expect(() => generatePullCommand({ repository: "" })).toThrow()
+  })
+})
+
+describe("parseRepositoryName", () => {
+  it("parses single segment repository with empty namespace", () => {
+    expect(parseRepositoryName("nginx")).toEqual({ namespace: "", name: "nginx" })
+  })
+
+  it("parses standard namespace/repo format", () => {
+    expect(parseRepositoryName("library/ubuntu")).toEqual({ namespace: "library", name: "ubuntu" })
+  })
+
+  it("parses deeply nested namespaces", () => {
+    expect(parseRepositoryName("myorg/team/project/app")).toEqual({ namespace: "myorg/team/project", name: "app" })
+  })
+
+  it("handles empty string gracefully", () => {
+    expect(parseRepositoryName("")).toEqual({ namespace: "", name: "" })
+  })
+})
+
+describe("formatEstimatedSize", () => {
+  it("returns dash for undefined or null inputs", () => {
+    expect(formatEstimatedSize(undefined, undefined)).toBe("—")
+    expect(formatEstimatedSize(null, null)).toBe("—")
+    expect(formatEstimatedSize(0, 0)).toBe("—")
+  })
+
+  it("prioritizes confirmed sizeBytes over tagCount estimation", () => {
+    expect(formatEstimatedSize(10, 1024 * 1024)).toBe("1.0 MB")
+  })
+
+  it("estimates size from tagCount when sizeBytes is missing", () => {
+    const result = formatEstimatedSize(1)
+    expect(result).toMatch(/^~72\.5 MB$/)
+  })
+
+  it("formats large estimated sizes in GB", () => {
+    const result = formatEstimatedSize(20)
+    expect(result).toMatch(/^~1\.[45] GB$/)
   })
 })

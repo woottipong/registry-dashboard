@@ -16,20 +16,12 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import { queryKeys } from "@/lib/constants/query-keys"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
+import { formatEstimatedSize } from "@/lib/format"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
   registryId: string
   repositories: Repository[]
-}
-
-function formatEstimatedSize(repo: Repository): string {
-  if (repo.tagCount === undefined) return "—"
-  const mb = Math.round((repo.tagCount || 1) * 72.5)
-  if (mb >= 1024) {
-    return `~${(mb / 1024).toFixed(1)} GB`
-  }
-  return `~${mb} MB`
 }
 
 function formatTagText(value?: number): string {
@@ -182,7 +174,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                   className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell"
                   title="Estimated total image disk footprint"
                 >
-                  {formatEstimatedSize(repo)}
+                  {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
                 </TableCell>
 
                 {/* Action Link (Inspect) */}

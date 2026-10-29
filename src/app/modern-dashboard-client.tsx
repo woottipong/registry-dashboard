@@ -17,10 +17,11 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useDashboardData, type DashboardRepoItem } from "@/hooks/use-dashboard-data"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { useMounted } from "@/hooks/use-mounted"
 import { useActivity } from "@/contexts/activity-context"
-import { formatBytes, formatDate, generatePullCommand, registryHostFromUrl } from "@/lib/format"
+import { formatDate, formatEstimatedSize, generatePullCommand, registryHostFromUrl } from "@/lib/format"
+import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -167,19 +168,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     return Math.max(...topRepositories.map((r) => r.tagCount ?? 0), 1)
   }, [topRepositories])
 
-  // Estimated total disk footprint for a repo
-  const formatEstimatedSize = (repo: DashboardRepoItem): string => {
-    if (repo.sizeBytes && repo.sizeBytes > 0) {
-      return formatBytes(repo.sizeBytes)
-    }
-    if (repo.tagCount && repo.tagCount > 0) {
-      // Estimated container image layer size (~72.5 MB average per tag)
-      const approxBytes = repo.tagCount * 72.5 * 1024 * 1024
-      return `~${formatBytes(approxBytes)}`
-    }
-    return "—"
-  }
-
   // Safe format helpers for timestamps
   const safeFormatDate = (dateInput?: string | null): string => {
     if (!dateInput) return "Indexed in catalog"
@@ -212,7 +200,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
   const handleCopyCommand = (cmd: string, id: string) => {
     if (!cmd) return
-    void navigator.clipboard.writeText(cmd)
+    void copyToClipboard(cmd, "Pull command copied to clipboard")
     setCopiedCommandId(id)
     setTimeout(() => {
       setCopiedCommandId((curr) => (curr === id ? null : curr))
@@ -556,7 +544,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
 
                           {/* Est. Image Size */}
                           <td className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell" title="Estimated total image disk footprint">
-                            {formatEstimatedSize(repo)}
+                            {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
                           </td>
 
                           {/* Action Link (Inspect) */}

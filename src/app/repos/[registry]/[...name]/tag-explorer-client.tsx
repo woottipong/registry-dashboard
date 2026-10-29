@@ -15,6 +15,7 @@ import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
 import { useRegistry } from "@/hooks/use-registries"
 import { useActivity } from "@/contexts/activity-context"
+import { parseRepositoryName } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
 interface TagExplorerClientProps {
@@ -98,8 +99,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
   const repositoryNamespace = useMemo(() => {
-    const segments = repoName.split("/")
-    return segments.length > 1 ? segments.slice(0, -1).join("/") : ""
+    return parseRepositoryName(repoName).namespace
   }, [repoName])
 
   // Memoize event handlers

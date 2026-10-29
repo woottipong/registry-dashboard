@@ -57,6 +57,7 @@ const originalFetch = globalThis.fetch
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+  DockerHubProvider.clearCaches()
   vi.clearAllMocks()
 })
 
@@ -371,5 +372,52 @@ describe("DockerHubProvider.listRepositories()", () => {
 
     const provider = new DockerHubProvider(CONNECTION_NO_CREDS)
     await expect(provider.listRepositories()).rejects.toThrow(/Failed to list repositories/)
+  })
+
+  it("invalidates tokenCache on 401 Unauthorized in downstream API calls", async () => {
+    let loginCallCount = 0
+    globalThis.fetch = vi.fn().mockImplementation((url: string, _init?: RequestInit) => {
+      const urlStr = String(url)
+      if (urlStr.includes("/users/login/")) {
+        loginCallCount += 1
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ token: makeJwt() })),
+        })
+      }
+
+      if (urlStr.includes("page_size=1&") || urlStr.endsWith("page_size=1")) {
+        // Verification call
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ count: 1, results: [] })),
+        })
+      }
+
+      // Simulate 401 Unauthorized from Docker Hub on list repositories
+      return Promise.resolve({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+        headers: new Headers(),
+        text: () => Promise.resolve(JSON.stringify({ detail: "Token expired or revoked" })),
+      })
+    }) as typeof fetch
+
+    const provider1 = new DockerHubProvider(CONNECTION_WITH_CREDS)
+    // This call will login, then fail with 401 on listRepositories, which must invalidate tokenCache
+    await expect(provider1.listRepositories()).rejects.toThrow(/Failed to list repositories/)
+    expect(loginCallCount).toBe(1)
+
+    // Next provider instance for same credentials must attempt a fresh login because cache was wiped on 401
+    const provider2 = new DockerHubProvider(CONNECTION_WITH_CREDS)
+    await expect(provider2.listRepositories()).rejects.toThrow(/Failed to list repositories/)
+    expect(loginCallCount).toBe(2)
   })
 })
