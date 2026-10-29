@@ -87,7 +87,7 @@ export function RegistryCard({
   return (
     <Card
       className={cn(
-        "h-auto self-start overflow-hidden rounded-panel bg-card p-6 shadow-panel border border-panel-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] gap-4",
+        "h-auto self-start overflow-hidden rounded-panel bg-card p-6 shadow-panel border-0 transition-shadow duration-200 gap-4",
         className,
       )}
     >
@@ -242,7 +242,7 @@ function RegistryMetaChip({ label, icon: Icon }: RegistryMetaChipProps) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 border-t border-border/60 pt-3">
+    <div className="flex flex-col gap-1 pt-3">
       <p className="text-xs font-medium text-muted-foreground">
         {label}
       </p>

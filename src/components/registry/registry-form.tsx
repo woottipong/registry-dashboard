@@ -159,11 +159,11 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   ] as const
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-4xl flex-col gap-6 pt-3 sm:pt-6">
       {/* Page Header */}
       <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-page-title font-semibold tracking-tight text-foreground sm:text-3xl">
             {mode === "create"
               ? "Add Registry"
               : "Edit Registry"}
@@ -202,7 +202,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       {/* Main Unified Bento Card */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
-          <div className="rounded-panel bg-card border border-panel-border shadow-panel overflow-hidden">
+          <div className="rounded-panel bg-card border-0 shadow-panel overflow-hidden">
             <div className="p-6 sm:p-7 space-y-6">
               {/* Section 1: Connection */}
               <div className="space-y-4">
@@ -305,7 +305,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               </div>
 
               {/* Subtle Divider */}
-              <div className="border-t border-white/[0.06]" />
+              <div className="h-2" />
 
               {/* Section 2: Authentication */}
               <div className="space-y-4">
@@ -445,7 +445,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
             </div>
 
             {/* Integrated Action Dock */}
-            <div className="border-t px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-white/[0.08] bg-white/[0.02]">
+            <div className="px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-secondary/20">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <LockKeyholeIcon className="size-3.5 text-primary shrink-0" />
                 <span>{"AES-256-GCM encrypted and stored safely on server"}</span>

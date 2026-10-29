@@ -27,7 +27,7 @@ export function LayerList({ layers }: LayerListProps) {
         return (
           <div
             key={`${layer.digest}-${index}`}
-            className="relative overflow-hidden rounded-md border border-border/70 bg-card px-3 py-2"
+            className="relative overflow-hidden rounded-control bg-secondary/20 px-3 py-3"
           >
             <div
               className="absolute inset-y-0 left-0 bg-primary/8"
@@ -45,7 +45,7 @@ export function LayerList({ layers }: LayerListProps) {
         )
       })}
 
-      <div className="flex justify-end border-t pt-2 text-sm font-medium">
+      <div className="flex justify-end pt-4 text-sm font-medium">
         Total: {formatBytes(totalSize)}
       </div>
     </div>

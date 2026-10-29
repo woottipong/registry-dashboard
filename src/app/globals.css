@@ -24,6 +24,7 @@
 
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-control: var(--control);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
@@ -46,89 +47,88 @@
   --color-warning: var(--warning);
   --color-danger-solid: var(--danger-solid);
 
+  --container-page: 1200px;
+  --text-page-title: 1.75rem;
+  --text-page-title--line-height: 1.2;
+
   /* Operative UI: panels contain content; controls and rows are interactive. */
-  --radius-panel: 12px;
-  --radius-control: 8px;
-  --shadow-panel: 0 1px 3px rgb(0 0 0 / 0.02);
+  --radius-panel: 8px;
+  --radius-control: 6px;
+  --shadow-panel: 0 8px 24px rgb(2 8 18 / 0.16);
+  --shadow-overlay: 0 18px 50px rgb(2 8 18 / 0.45);
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
-  --radius-2xl: 12px;
-  --radius-3xl: 16px;
-  --radius-card: 12px;
-  --radius-input: 12px;
-  --radius-modal: 12px;
-  --radius-pill: 980px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 10px;
+  --radius-card: 8px;
+  --radius-input: 6px;
+  --radius-modal: 10px;
 
-  --shadow-bento-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-bento-md: 0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-bento-lg: 0 18px 50px rgba(0, 0, 0, 0.08);
   --shadow-segmented: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 :root {
   color-scheme: dark;
 
-  --radius: 12px;
-  --radius-card: 12px;
-  --radius-input: 12px;
-  --radius-modal: 12px;
+  --radius: 8px;
+  --radius-card: 8px;
+  --radius-input: 6px;
+  --radius-modal: 10px;
 
-  /* Graphite surfaces with muted blue for action and selection. */
-  --background: #101113;
-  --foreground: #f1f2f4;
-  --card: #1c1e21;
-  --card-foreground: #f1f2f4;
-  --panel-border: rgb(210 215 222 / 0.12);
-  --popover: #23262b;
-  --popover-foreground: #f1f2f4;
+  /* Navy workspace: cool layered surfaces, clear blue actions, teal status. */
+  --background: #121c29;
+  --foreground: #edf3fd;
+  --card: #1b2737;
+  --card-foreground: #edf3fd;
+  --panel-border: #2a394d;
+  --popover: #233247;
+  --popover-foreground: #edf3fd;
 
-  --primary: #356cb5;
-  --primary-hover: #3971ba;
-  --primary-active: #2c5d9d;
-  --primary-foreground: #ffffff;
-  --secondary: #2b2e33;
-  --secondary-foreground: #f1f2f4;
-  --muted: #2b2e33;
-  --muted-foreground: #a6abb3;
-  --accent: #29374a;
-  --accent-foreground: #d7e7fa;
-  --destructive: #ed8983;
-  --danger-solid: #a43b3b;
-  --success: #76c99b;
-  --warning: #e8bf78;
+  --primary: #4b9bfa;
+  --primary-hover: #70b0fc;
+  --primary-active: #3989e7;
+  --primary-foreground: #081728;
+  --secondary: #233247;
+  --secondary-foreground: #edf3fd;
+  --muted: #233247;
+  --muted-foreground: #abbad0;
+  --accent: #263b55;
+  --accent-foreground: #edf3fd;
+  --destructive: #f28d98;
+  --danger-solid: #ac3548;
+  --success: #49d6ad;
+  --warning: #edc56a;
   --destructive-foreground: #ffffff;
-  --border: rgb(210 215 222 / 0.16);
-  --input: #838991;
-  --ring: #87b5f2;
+  --border: #304158;
+  --input: #687e98;
+  --control: #152132;
+  --ring: #4b9bfa;
 
-  --chart-1: #87b5f2;
-  --chart-2: #76c99b;
-  --chart-3: #e8bf78;
-  --chart-4: #bd9bd8;
-  --chart-5: #ed8983;
+  --chart-1: #4b9bfa;
+  --chart-2: #49d6ad;
+  --chart-3: #edc56a;
+  --chart-4: #b6a1ef;
+  --chart-5: #f28d98;
 
-  --sidebar: #17191c;
-  --sidebar-foreground: #f1f2f4;
-  --sidebar-primary: #356cb5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #29374a;
-  --sidebar-accent-foreground: #f1f2f4;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
-  --sidebar-ring: #87b5f2;
+  --sidebar: #0e1723;
+  --sidebar-foreground: #edf3fd;
+  --sidebar-primary: #4b9bfa;
+  --sidebar-primary-foreground: #081728;
+  --sidebar-accent: #203b5d;
+  --sidebar-accent-foreground: #edf3fd;
+  --sidebar-border: #263449;
+  --sidebar-ring: #4b9bfa;
 
-  --orange-text: #ff9f0a;
-  --c-link: #87b5f2;
-  --stage-highlight: #2a2a2d;
-  --stage-mid: #141416;
-  --stage-black: #000000;
+  --c-link: #4b9bfa;
 }
 
 @layer base {
   html {
     background-color: var(--background);
+    scrollbar-color: var(--input) var(--background);
   }
 
   * {
@@ -146,6 +146,10 @@
     text-wrap: balance;
   }
 
+  input, textarea {
+    caret-color: var(--primary);
+  }
+
   p {
     text-wrap: pretty;
   }
@@ -154,7 +158,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Custom subtle Apple scrollbar */
+  /* Browser affordances inherit the cool surface palette. */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -163,19 +167,14 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgb(171 186 208 / 0.24);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.28);
+    background: rgb(171 186 208 / 0.38);
   }
 
 
-}
-
-/* Studio stage dark gradient utility */
-@utility bento-stage-card {
-  background: radial-gradient(70% 60% at 50% 38%, var(--stage-highlight), var(--stage-mid) 45%, var(--stage-black) 80%);
 }
 
 @media (prefers-reduced-motion: reduce) {

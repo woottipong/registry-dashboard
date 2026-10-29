@@ -117,11 +117,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6 sm:gap-7">
+    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:gap-7 sm:pt-6">
       <div className="flex flex-col gap-5 pb-2">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Registries</h1>
+            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">Registries</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
               Manage registry connections, defaults, authentication, and repository entry points.
             </p>
@@ -140,7 +140,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4 py-3 sm:grid-cols-3 [&>div:last-child]:col-span-2 sm:[&>div:last-child]:col-span-1">
           <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} />
           <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} />
           <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} />
@@ -199,7 +199,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Try again
             </Button>
           }
-          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
+          className="rounded-panel bg-card p-12 shadow-panel border-0"
         />
       ) : isEmpty ? (
         <EmptyState
@@ -212,7 +212,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Add Registry
             </Button>
           }
-          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
+          className="rounded-panel bg-card p-12 shadow-panel border-0"
         />
       ) : filteredRegistries.length === 0 ? (
         <EmptyState
@@ -224,7 +224,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Clear filters
             </Button>
           }
-          className="rounded-panel bg-card p-10 shadow-panel border border-panel-border"
+          className="rounded-panel bg-card p-10 shadow-panel border-0"
         />
       ) : (
         <div className="grid items-start gap-3 xl:grid-cols-2">
@@ -291,12 +291,12 @@ function SummaryStat({
   icon?: React.ComponentType<{ className?: string }>
 }) {
   return (
-    <div className={`flex flex-col justify-between rounded-panel bg-card shadow-panel border border-panel-border ${compact ? "p-4" : "p-6"}`}>
+    <div className={`flex min-w-0 flex-col justify-between ${compact ? "py-2" : "py-3"}`}>
       <div className="flex items-center gap-2.5 text-muted-foreground">
         {Icon ? (
           <Icon className="size-4 shrink-0" />
         ) : null}
-        <span className="text-xs font-medium">{label}</span>
+        <span className="text-sm font-medium">{label}</span>
       </div>
       <p className={`mt-3 truncate font-semibold tracking-tight text-foreground ${mono ? "text-2xl tabular-nums" : "text-base sm:text-lg"}`}>
         {value}

@@ -68,20 +68,20 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
         >
           <defs>
             <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.3} />
+              <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.3} />
             </linearGradient>
           </defs>
 
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#e5e7eb"
+            stroke="var(--border)"
             opacity={0.5}
           />
 
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: 'var(--color-muted-foreground, #6b7280)' }}
+            tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
             angle={-45}
             textAnchor="end"
             height={80}
@@ -89,19 +89,20 @@ export function ModernChart({ data, isLoading, title = "Top Repositories by Tags
           />
 
           <YAxis
-            tick={{ fontSize: 11, fill: 'var(--color-muted-foreground, #6b7280)' }}
+            tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
             axisLine={false}
             tickLine={false}
           />
 
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              border: '1px solid #e5e7eb',
+              backgroundColor: 'var(--popover)',
+              border: '1px solid var(--border)',
               borderRadius: '8px',
               fontSize: '12px',
+              color: 'var(--foreground)',
               }}
-            labelStyle={{ fontWeight: 600, color: '#111827' }}
+            labelStyle={{ fontWeight: 600, color: 'var(--foreground)' }}
             formatter={(value) => [`${value ?? 0} tags`, 'Count']}
           />
 

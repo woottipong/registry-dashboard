@@ -36,7 +36,7 @@ function getActivityColor(type: string) {
     case 'push':
       return 'text-chart-2 bg-chart-2/10'
     case 'pull':
-      return 'text-[#0071E3] bg-[#0071E3]/10'
+      return 'text-primary bg-primary/10'
     case 'delete':
       return 'text-destructive bg-destructive/10'
     case 'create':

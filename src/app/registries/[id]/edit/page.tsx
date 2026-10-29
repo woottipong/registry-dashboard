@@ -39,7 +39,7 @@ function RegistryFormSkeleton() {
           </div>
         </div>
 
-        <div className="rounded-2xl border shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden bg-[#18181B] border-white/[0.08]">
+        <div className="rounded-panel border border-panel-border shadow-panel overflow-hidden bg-card">
           <div className="p-6 sm:p-7 space-y-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
@@ -59,7 +59,7 @@ function RegistryFormSkeleton() {
               </div>
             </div>
 
-            <div className="border-t border-white/[0.06]" />
+            <div className="border-t border-border" />
 
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
@@ -86,7 +86,7 @@ function RegistryFormSkeleton() {
             </div>
           </div>
 
-          <div className="border-t px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-white/[0.08] bg-white/[0.02]">
+          <div className="border-t px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-border bg-secondary/20">
             <Skeleton className="h-3.5 w-64 max-w-full rounded-md" />
             <div className="flex items-center gap-2">
               <Skeleton className="h-8 w-16 rounded-full" />

@@ -46,7 +46,7 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
 
   return (
     <Card
-      className="group relative flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden bg-card rounded-3xl"
+      className="group relative flex flex-col h-full transition-colors duration-150 hover:ring-primary/30 overflow-hidden bg-card rounded-panel"
       onMouseEnter={handleMouseEnter}
     >
       <CardHeader className="space-y-4 pb-4">
@@ -82,7 +82,7 @@ export function RepoCard({ registryId, repository }: RepoCardProps) {
       <CardFooter className="pt-2">
         <Button
           onClick={navigateToTags}
-          className="w-full h-11 rounded-2xl gap-2 font-bold shadow-lg shadow-primary/10 transition-all active:scale-95 bg-primary hover:bg-primary/90 text-white border-0"
+          className="w-full h-11 rounded-2xl gap-2 font-bold shadow-lg shadow-primary/10 transition-all active:scale-95 bg-primary hover:bg-primary-hover text-primary-foreground border-0"
         >
           <TagsIcon className="size-4" />
           Browse Image

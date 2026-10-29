@@ -42,7 +42,7 @@ export function Topbar({ onOpenSidebar, onOpenSearch }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-[52px] border-b border-border/70 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 h-16 border-b border-sidebar-border bg-sidebar">
       <div className="flex h-full items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-3">
           <Button

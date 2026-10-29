@@ -1,107 +1,264 @@
-# Operational UI tokens
-
-The application UI uses English only. The application uses a dark theme. User-provided names may use any script.
-
-The application uses the shared Tailwind v4 tokens in `src/app/globals.css` for its working screens. Use `rounded-panel` (12px) for content surfaces and dialogs, and `rounded-control` (8px) for controls and interactive rows. The radius scale stays between 6px and 16px; use fully rounded shapes only for dots and compact status badges. Use at least 12px for readable metadata. Use `bg-card`, `border-panel-border`, `shadow-panel`, and `text-link` for dark surfaces and links. The blue link and focus tokens indicate actions and selection; reserve other colors for status and data. Buttons, inputs, and cards use these defaults in `src/components/ui/`.
-
-Color hierarchy: Graphite + Muted Blue uses a near-black neutral canvas and raised graphite surfaces. Muted blue identifies primary actions, focus, and selection; ordinary controls use foreground text. Use `success`, `warning`, and `destructive` for labeled states, and `danger-solid` for destructive button fills with white text. Do not use status colors as decoration.
-
-The older bento reference below describes the original visual direction; the operational UI tokens above take precedence for the application screens.
-
+---
+name: Registry Dashboard — Navy Workspace
+description: A calm navy workspace with layered surfaces and clear blue actions.
+colors:
+  primary: "#4b9bfa"
+  primary-hover: "#70b0fc"
+  primary-active: "#3989e7"
+  primary-foreground: "#081728"
+  background: "#121c29"
+  foreground: "#edf3fd"
+  card: "#1b2737"
+  popover: "#233247"
+  sidebar: "#0e1723"
+  muted-foreground: "#abbad0"
+  accent: "#263b55"
+  border: "#304158"
+  input: "#687e98"
+  control: "#152132"
+  sidebar-accent: "#203b5d"
+  panel-border: "#2a394d"
+  sidebar-border: "#263449"
+  success: "#49d6ad"
+  warning: "#edc56a"
+  destructive: "#f28d98"
+  danger-solid: "#ac3548"
+  white: "#ffffff"
+typography:
+  display:
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+    fontSize: "36px"
+    fontWeight: 600
+    lineHeight: "40px"
+    letterSpacing: "-0.025em"
+  headline:
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+    fontSize: "28px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+    fontSize: "20px"
+    fontWeight: 500
+    lineHeight: "28px"
+    letterSpacing: "-0.025em"
+  body:
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: "20px"
+  label:
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+    lineHeight: "16px"
+  mono:
+    fontFamily: "JetBrains Mono, monospace"
+    fontSize: "12px"
+    lineHeight: "16px"
+rounded:
+  sm: "4px"
+  control: "6px"
+  panel: "8px"
+  modal: "10px"
+  pill: "9999px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  control-inline: "14px"
+  lg: "16px"
+  xl: "20px"
+  panel: "24px"
+  page-inline: "28px"
+  roomy: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
+    rounded: "{rounded.control}"
+    height: "36px"
+    padding: "8px 16px"
+  button-primary-hover:
+    backgroundColor: "{colors.primary-hover}"
+  button-primary-active:
+    backgroundColor: "{colors.primary-active}"
+  button-outline:
+    backgroundColor: "{colors.control}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    height: "36px"
+    padding: "8px 16px"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    height: "36px"
+    padding: "8px 16px"
+  button-destructive:
+    backgroundColor: "{colors.danger-solid}"
+    textColor: "{colors.white}"
+    rounded: "{rounded.control}"
+    height: "36px"
+    padding: "8px 16px"
+  input:
+    backgroundColor: "{colors.control}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    height: "40px"
+    padding: "8px 14px"
+  card:
+    backgroundColor: "{colors.card}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.panel}"
+    padding: "24px"
+  navigation-active:
+    backgroundColor: "{colors.sidebar-accent}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    padding: "8px 12px"
+  badge-secondary:
+    backgroundColor: "{colors.popover}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.pill}"
+    padding: "2px 10px"
+  tabs-active:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    padding: "4px 14px"
+  repository-row:
+    backgroundColor: "transparent"
+    textColor: "{colors.foreground}"
+    padding: "16px 12px"
 ---
 
-# Build a dashboard web page in the "Bento Grids (Apple-style)" UI style
+# Design System: Registry Dashboard
 
-Platform: Web (responsive, 1440px desktop down to 375px) · Stack: Next.js + shadcn/ui · Mode: dark
+## Overview
 
-## The style in one line
-The Apple keynote slide as a web page: big 28–32px rounded white tiles on a #F5F5F7 grey canvas, huge tight headlines and studio-lit product renders.
-Design keywords: Apple keynote bento, light grey #F5F5F7 canvas, big rounded white tiles, soft studio shadows, SF-style tight headlines, product render tiles, black “Pro” tile, blue pill links.
+**Creative North Star: "Navy Workspace"**
 
-## Visual language
-The Apple keynote summary slide as a product page: a light grey #F5F5F7 canvas (alternating with pure white sections) holding large white tiles with 28–32px corners, no borders and a barely visible soft shadow. Typography is an SF-like neutral grotesque (Inter) at 600 weight with tight −0.03em tracking — short, huge, centred headlines and quiet grey copy. Colour is rationed: near-black #1D1D1F text, #6E6E73 secondary, Apple blue #0071E3 on the single primary pill, an orange #B64400 'New' eyebrow and a few multicolour icons, plus black 'Pro' tiles lit like a studio product shot (radial highlight, glossy rendered object, deep drop shadow).
+A working repository index on a lifted navy canvas: aligned names, cool metadata, layered slate panels and clear blue actions make the inventory easy to scan. The feeling is calm, precise and composed. The interface is dark-only and English-only; user-provided names retain their original text.
 
-## Signature details (must be visible)
-- Canvas #F5F5F7 with white #FFFFFF tiles; on white alternate sections the tiles flip to #F5F5F7
-- Tile radius 28px (32px for hero stage, bento and CTA), never a border. Tile shadows only from the tokens (sm 4%, md 5%, lg 8% maximum). The deep shadows are only the drop-shadow under the rendered object inside black stage tiles (0 30px 30px rgba(0,0,0,0.7)) and the device-panel shadow in the hero stage. The segmented-control thumb uses 0 1px 4px rgba(0,0,0,0.12)
-- Bento sizing: 4 columns, 20px gap, grid-auto-rows minmax(260px, auto), grid-auto-flow dense. Features = black stage 2×2 + 1×1 + 1×1 + 2×1 + 2×1 + 2×1 (columns × rows). Tile padding 32px, title 1.4–1.85rem at the bottom, icon at the top
-- Studio product renders: black stage tiles with radial-gradient(70% 60% at 50% 38%, #3A3A3E, #1A1A1C 45%, #000 80%) and a glossy sphere (radial highlight + rim light) with its drop shadow. The stage gradient is only for the hero stage, the 2×2 feature, the first KPI, the CTA and the mobile featured card
-- Headlines: Inter 600, −0.03em, one or two short lines, centred, display up to ~5.75rem; h1 at least 1.25× h2.
-- Blues: #0071E3 (primary) fills the primary pill and outlines the secondary pill. #0066CC (accent) is only for text links and ghost buttons. On black stage tiles use #2997FF. Primary hover #0077ED. No other blues
-- Borders: tiles never have borders. Allowed hairlines: the nav bottom (text at 8%), FAQ row separators, 1px #D2D2D7 inputs and radio cards, and the 1px blue secondary pill
-- Colour exceptions, declared as named extras next to the tokens: --orange-text #B64400 (eyebrow and solid badge); icon colours --purple #BF5AF2, --orange #FF9F0A, --green #30D158, --pink #FF375F; stat numerals linear-gradient(100deg, #0071E3, #BF5AF2 70%, #FF375F) clipped to text; switch-on #30D158 on track #E9E9EB; forecast band #BF5AF2 at 14%; stage colours #3A3A3E/#1A1A1C/#000; hover blue #0077ED. Colour appears only in these places
-- Orange #B64400 sentence-case eyebrow ('New · …'), no caps or tracking; multicolour SF-Symbols-style 40px line icons with no icon background
+Compact controls and clear grouping carry the interface. Tonal surfaces contain forms and inspectors; operational lists use alignment and separators. The existing product branding remains. No shipping raster asset was produced for this visual system.
 
-## Design tokens — use these exact values
-Historical palette (not used by the application):
-  - background #F5F5F7
-  - surface #FFFFFF
-  - surface-2 #FBFBFD
-  - text #1D1D1F
-  - text-muted #6E6E73
-  - primary #0071E3 (text on it #FFFFFF)
-  - secondary #1D1D1F (text on it #FFFFFF)
-  - accent #0066CC
-  - border #E5E5EA
-  - success #1D8838 · warning #B25000 · danger #D70015
-  - chart series #0071E3, #1D1D1F, #86868B, #BF5AF2, #FF9F0A
-Radius: sm 10px, md 14px, lg 28px, xl 32px, pill 980px
-Border width: 1px
-Shadows: sm `0 1px 3px rgba(0,0,0,0.04)`, md `0 4px 20px rgba(0,0,0,0.05)`, lg `0 18px 50px rgba(0,0,0,0.08)` (where shadows reference var(--c-border) use the border colour)
-Spacing: 8px base unit × 1.1 density
-Motion: 300ms cubic-bezier(.28,.11,.32,1)
+**Key Characteristics:**
+- Navy and cool slate with a clear blue action accent.
+- Compact corners, legible metadata and aligned operational rows.
+- Quiet surfaces, restrained shadows and visible keyboard focus.
+- Honest loading, unknown, failure and empty states.
+
+Source: [global tokens](../src/app/globals.css), [shared components](../src/components/ui/), [shell](../src/components/layout/) and [surface contract](../.impeccable/surfaces/src-app-modern-dashboard-client-tsx.md). The [sidecar](../.impeccable/design.json) adds renderable examples and extensions. The user supplied a navy dashboard reference for color, surface depth and component finish; the registry and namespace workflows retain their existing structure.
+
+## Colors
+
+Cool navy neutrals support a saturated blue action accent. The canvas is lifted slightly above the supplied reference to keep long operational sessions readable. Frontmatter preserves the actual CSS values.
+
+### Primary
+
+**Action Blue** (`primary`) supplies primary fills, links, active icons and focus rings. The hover and active tokens define its interaction sequence; `primary-foreground` provides dark blue button ink.
+
+### Neutral
+
+**Navy Canvas** (`background`) is the page; **Deep Navy Rail** (`sidebar`) distinguishes navigation and the opaque topbar. **Slate Panel** (`card`) contains forms and inspectors. **Raised Slate** (`popover`) also supplies the identical secondary and muted backgrounds. **Slate Selection** (`accent`) marks row hover; `sidebar-accent` marks active navigation. `control` supplies the recessed field and secondary-button fill.
+
+**Cool White** (`foreground`) carries primary text. **Cool Mist** (`muted-foreground`) carries metadata. **Quiet Rule** (`border`) separates lists and controls; `input` is the stronger editable-field stroke. Panel and sidebar strokes supply subtle boundaries without framing every row.
+
+### Status
+
+**Teal** (`success`) means confirmed connection success; **Amber** (`warning`) means checking; **Coral** (`destructive`) marks failures, destructive text and invalid fields. **Deep Rose** (`danger-solid`) fills destructive buttons with white text. Status color accompanies a readable label.
+
+**The One Action Accent Rule.** Use blue for actions, focus and selection; status colors communicate labeled operational states.
 
 ## Typography
-- Headings: Inter 500/600/700; body: Inter 400/500/600.
-- CSS stack: `"Inter", system-ui, sans-serif`.
-- Display size clamp(3rem, 7vw, 5.75rem), heading weight 600, heading tracking -0.03em, sentence-case labels.
+
+**Display and Body Font:** Inter with system sans-serif fallbacks. **Mono Font:** JetBrains Mono for endpoints, digests, tag identifiers and compact technical strings.
+
+The type is direct and workmanlike. Headings use tight tracking and balanced wrapping. Body copy uses sentence case; navigation group labels use small uppercase text. Tabular figures support numeric alignment.
+
+### Hierarchy
+
+- **Display:** the overview uses the display token on wider screens and (30px / 36px) on mobile.
+- **Headline:** operational titles use the headline token, rising to (30px / 36px) at the small breakpoint.
+- **Title:** section headings use the title token; smaller section and card titles use (16px / 24px).
+- **Body:** rows and controls use the body token; overview supporting copy rises to (16px / 24px) on wider screens.
+- **Label:** metadata uses the label token; navigation uses (13px).
+- **Mono:** technical metadata uses the mono token; tag names may use (14px / 20px).
+
+**The Readable Metadata Rule.** Keep ordinary metadata at least (12px); use weight, alignment and cool mist before shrinking text.
+
+## Layout
+
+The desktop shell uses a fixed rail (228px) and sticky topbar (64px). Operational pages center within a maximum (1200px); registry forms narrow to (896px). Main padding progresses from (16px) to (20px), then (28px) horizontally on large screens. Major groups use (24–28px) gaps; standard cards use (24px) padding.
+
+Below (1024px), the rail becomes a navigation sheet (280px). At (640px), stacked headers and controls can align horizontally; breadcrumbs appear from (768px). The overview summary changes from two columns to an inline row; activity changes from one column to two, then three.
+
+Overview repository rows align a flexible name, registry (192px), tag count (64px) and arrow (24px), with (12px) gaps. Mobile hides registry context and narrows the count to (48px), retaining the name, count and arrow. The overview repository index uses one slate panel with a quiet perimeter, inline totals and registry scope above it.
+
+## Elevation & Depth
+
+Depth primarily comes from tonal layers, strokes and spacing. Rows remain flat and change color on hover or keyboard focus. Panels use a small ambient shadow; selected tabs use local elevation; dialogs use stronger overlay separation.
+
+- **Panel:** `0 8px 24px rgb(2 8 18 / 0.16)`.
+- **Selected tab:** `0 1px 4px rgba(0, 0, 0, 0.12)`.
+- **Dialog:** `0 18px 50px rgb(2 8 18 / 0.45)`.
+
+State transitions generally take (150–200ms). Buttons scale to (0.98) when pressed. Sheets retain their existing enter/exit animation. Global reduced-motion rules reduce transition and animation duration to (0.001ms) and disable smooth scrolling.
+
+**The Quiet Surface Rule.** Give data rows color feedback rather than elevation; reserve shadows for contained surfaces and overlays.
+
+## Shapes
+
+Controls and navigation use compact `control` corners; cards use the slightly softer `panel` radius. Shared dialogs use the modal radius (10px), elevated popover fill and a quiet boundary. Compact badges and status dots retain fully rounded silhouettes. Small inline links use the smaller radius for focus outlines.
+
+Thin boundaries distinguish fields, tables and operational rows. Cards use a subtle inset perimeter that does not change their layout dimensions. Avoid nested frames where spacing and type already explain grouping. Standard line icons are usually (16px), with smaller badge icons.
 
 ## Components
-- Global nav: 52px tall, rgba(245,245,247,0.8) with saturate(180%) blur(20px), hairline bottom, 0.82rem links, small blue pill CTA
-- Primary button: #0071E3, white 500-weight text, pill (980px); hover #0077ED, no lift. Secondary: transparent with 1px #0071E3 border and blue text, fills blue on hover. Ghost/text links: #0066CC
-- Bento feature tiles: 2×2 black stage tile with the glossy sphere render (about half the tile width, near the top, clear of the icon and title) + white tiles with 1.4–1.85rem titles at the bottom and a coloured icon at the top
-- Segmented controls/tabs: rgba(0,0,0,0.06) pill track, selected segment white with 0 1px 4px rgba(0,0,0,0.12)
-- Inputs: white, 1px #D2D2D7, 12px radius, 50px tall; focus = blue border + 4px rgba(0,113,227,0.24) ring
-- iOS switch: 51×31 track #E9E9EB → green #30D158, 27px white knob with soft shadow
-- Badges/chips: rgba(0,0,0,0.06) pills; active chip = #1D1D1F with white text
-- Pricing: white tiles; the featured plan is a flat #000 tile with #F5F5F7 text, #A1A1A6 muted text and a blue pill (no stage gradient)
-- Dashboard: translucent top bar with a pill segmented nav, white 28px tiles on grey, first KPI as a black studio tile, blue primary series and purple forecast band
-- FAQ: one large white 32px tile containing rows separated by 1px hairlines, blue '+' toggle
-- Trust: 3 white tiles in a row (28px radius, 32px blue icon top-left, 2-line label)
-- Showcase: a pill segmented tab control above two white 32px-radius cards, set in a white section where tiles flip to #F5F5F7
 
-## Layout for this web page
-Logged-in analytics dashboard: app navigation, page header with date-range control, KPI cards, charts, a data table and an activity feed.
-Shell: top navigation bar. Widgets in order: kpis, forecast, compare, donut, table.
-Translucent thin nav → centred keynote headline with orange eyebrow, lead in 500-weight grey, two pill buttons. Hero: under the centred copy, a 32px-radius black stage tile (the stage gradient) with the product UI rising from its bottom edge: a #F5F5F7 device panel with 22px top corners, a 6px #2A2A2D bezel and a 0 30px 80px rgba(0,0,0,0.6) shadow, filled with white 18px-radius mini cards. The glossy sphere render belongs to the 2×2 feature tile, the CTA and the mobile featured card, not the hero. Then the feature bento (rows completely filled), a white section with the showcase, four stat tiles with gradient numerals, three trust tiles, pricing tiles with a flat black featured plan, testimonials, one FAQ tile and a black stage CTA tile with a lit render above the headline. Generous 88px section padding; let whitespace and size do the work. Dashboard: translucent top bar with a pill segmented nav, white 28px tiles on grey, first KPI as a black stage tile, #0071E3 primary series and a #BF5AF2 14% forecast band.
+### Buttons
 
-## Content
-Use realistic product copy (fictional brand) suited to: Hardware and consumer-tech product pages. Use English for UI copy and set the document language to English.
+Compact and explicit. Primary uses blue with dark ink; outline uses a quiet border and recessed control fill. Secondary uses Raised Slate; ghost gains that fill on hover; link uses blue text and a hover underline. Destructive uses Deep Rose with white text. Default height is (36px), small (32px), large (44px); default padding is (8px 16px), reduced when an icon is present. Focus is a solid (3px) blue ring. Disabled controls reduce opacity to (50%).
 
-## Do
-- Use #F5F5F7 as the page and #FFFFFF tiles with 28–32px radius
-- Set headlines at 600 weight with −0.03em tracking and keep them to one or two short lines
-- Fill hero tiles with a lit product render: radial highlight on a dark or white field
-- Use Apple blue #0071E3 for the primary pill and #0066CC for text links; other colour lives only in icons, the orange eyebrow and gradient stat numerals
+### Inputs / Fields
 
-## Don't
-- No borders on tiles (hairlines only for the nav, FAQ rows and inputs), and no coloured tile fills beyond black/white/grey
-- Don’t use hard or dark drop shadows on tiles — keep them ≤ 8% opacity (token lg)
-- Don’t crowd a tile with more than one message
-- Don’t use playful or rounded display fonts
-- Borders on tiles, or coloured tile fills other than white, grey and black (reads as Bento Box Grid)
-- Tile shadows darker than 8%, hard shadows, and glassmorphism on tiles
-- Small radii (<20px) or square corners on tiles
-- Playful, rounded or display fonts; uppercase tracked labels
-- Blues other than #0071E3 / #0066CC (and #2997FF on black), or several competing CTA colours
-- Crowding a tile with multiple messages or long paragraphs
+Recessed control fill, stronger input stroke, compact corners, height (40px), padding (8px 14px). Focus turns the border blue and adds a solid (2px) ring. Invalid fields use Coral for border and ring. Placeholders use Cool Mist; disabled fields reduce opacity to (50%).
 
-## Stack notes
-Next.js App Router + shadcn/ui. Override the shadcn CSS variables in globals.css (--background, --foreground, --primary, --radius …) with the tokens below, then restyle Button/Card/Input via className so the signature details are visible. Load fonts with next/font/google.
+### Cards / Containers
 
-## Acceptance checklist
-- Someone who knows the "Bento Grids (Apple-style)" style recognises it at a glance from the signature details.
-- Every colour, radius, border and shadow comes from the tokens above.
-- Text renders in its intended font with comfortable line-height.
-- Text contrast meets WCAG AA (4.5:1 body, 3:1 large text) unless the style explicitly trades this off.
-- Interactive elements have hover, focus-visible and pressed states in the style's language.
+Panel corners, Slate Panel fill, padding and internal gap (24px), panel shadow and a quiet inset perimeter. Titles are semibold, descriptions use Cool Mist. Use for related form or inspection content; summaries and lists need no automatic card wrapper.
+
+### Navigation
+
+Deep Navy Rail contains the brand, main destinations and registry shortcuts. Active items use Slate Selection, a blue-tinted inset boundary and blue icon. Ordinary items use Cool Mist, becoming cool white on a raised slate hover fill. Item padding is (8px 12px). Mobile reuses the same navigation and closes after navigation.
+
+### Chips / Status
+
+Secondary badges use Raised Slate, cool white text and pill padding (2px 10px). Outline badges use a quiet border; destructive badges use translucent Coral. Connection chips pair a colored dot with “Live,” “Testing” or “Needs attention”; unknown connection state supplies no claimed status.
+
+### Tabs
+
+Default tabs use a translucent secondary track with (4px) padding and compact corners. Active tabs use selection fill, cool white text and selected-tab shadow. Line tabs use a blue bottom border. Triggers use (14px) text and a (2px) focus ring; disabled tabs reduce opacity to (50%).
+
+### Repository Rows
+
+Aligned links with row rules, folder icon, name, registry context, tabular count and arrow. Overview rows use minimum height (64px) and padding (16px 12px). Hover/focus applies Slate Selection and blue emphasis to name, icon and arrow; keyboard focus adds an inset (2px) ring. Loading skeletons, empty copy, incomplete-data notes and unknown-total em dashes preserve the layout hierarchy.
+
+## Do's and Don'ts
+
+### Do:
+
+- **Do** use shared navy, slate and blue tokens across operational screens.
+- **Do** distinguish editable fields, clickable rows and primary actions.
+- **Do** preserve visible focus, mobile stacking and reduced-motion behavior.
+- **Do** label status and distinguish unknown or failed data from confirmed zero.
+- **Do** use English interface copy while preserving user-provided names.
+
+### Don't:
+
+- **Don't** introduce local palettes or decorative gradients outside the shared tokens.
+- **Don't** introduce light surfaces, oversized pill controls or studio-rendered decoration.
+- **Don't** use status colors as decorative accents.
+- **Don't** turn every summary or data row into a floating card.
+- **Don't** invent registry health, counts or capabilities to fill visual space.

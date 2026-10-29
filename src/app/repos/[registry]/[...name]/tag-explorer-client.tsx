@@ -196,7 +196,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6">
+    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:pt-6">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-control">
@@ -209,7 +209,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{repoName}</h1>
+            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">{repoName}</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
               Review tags, inspect images, and remove unused digests.
             </p>
@@ -237,7 +237,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl p-6 sm:p-7 shadow-panel border bg-card border-panel-border">
+      <div className="rounded-panel p-5 sm:p-7 shadow-panel border-0 bg-card">
         <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
@@ -340,15 +340,15 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             transition={{ type: "spring", damping: 22, stiffness: 320 }}
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
           >
-            <div className="flex items-center gap-3 rounded-full bg-[#1D1D1F] px-4 py-2 text-white shadow-2xl shadow-black/40 ring-1 ring-white/10">
-              <span className="text-xs font-medium tabular-nums text-neutral-200">
+            <div className="flex items-center gap-3 rounded-panel bg-popover px-4 py-2 text-popover-foreground shadow-overlay ring-1 ring-panel-border">
+              <span className="text-xs font-medium tabular-nums text-foreground">
                 {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
               </span>
-              <div className="h-4 w-px bg-white/20" />
+              <div className="h-4 w-px bg-border" />
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-3 text-xs text-neutral-300 hover:text-white hover:bg-white/10 rounded-full"
+                className="h-7 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-control"
                 onClick={() => setRowSelection({})}
               >
                 Clear
@@ -356,7 +356,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-7 px-3.5 text-xs rounded-full"
+                className="h-7 px-3.5 text-xs rounded-control"
                 onClick={() => handleBulkDeleteClick(selectedRowTags)}
               >
                 <Trash2Icon className="size-3" />

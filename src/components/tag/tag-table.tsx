@@ -202,7 +202,7 @@ export function TagTable({
   })
   if (isLoading) {
     return (
-      <div className="overflow-hidden rounded-lg border border-border/60">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader className="bg-transparent">
             <TableRow className="border-b border-border/70 hover:bg-transparent">
@@ -233,7 +233,7 @@ export function TagTable({
           </TableHeader>
           <TableBody>
             {Array.from({ length: 6 }).map((_, i) => (
-              <TableRow key={i} className="border-b border-border/60 hover:bg-transparent">
+              <TableRow key={i} className="border-0 hover:bg-transparent">
                 {canDelete ? (
                   <TableCell>
                     <Skeleton className="size-4 rounded-sm" />
@@ -267,7 +267,7 @@ export function TagTable({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-lg border border-border/60">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader className="bg-transparent">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -299,7 +299,7 @@ export function TagTable({
               {table.getRowModel().rows.map((row) => (
                 <motion.tr
                   key={row.original.name}
-                  className="border-b border-border/60 transition-colors hover:bg-muted/35 data-[state=selected]:bg-primary/10"
+                  className="border-0 odd:bg-secondary/20 transition-colors hover:bg-secondary/60 data-[state=selected]:bg-accent"
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
                   layout

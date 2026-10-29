@@ -93,7 +93,7 @@ export function ModernRegistryCard({
       } as const)[status as "connected" | "error"] ?? null
 
   const providerVisual = registry.provider === "dockerhub"
-    ? { Icon: BoxIcon, bg: "bg-blue-500/10", iconColor: "text-blue-500" }
+    ? { Icon: BoxIcon, bg: "bg-primary/10", iconColor: "text-primary" }
     : { Icon: ServerIcon, bg: "bg-muted", iconColor: "text-muted-foreground" }
 
   const authVisual = {

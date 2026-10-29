@@ -42,7 +42,7 @@ export function ModernRegistryCard({
 
   const { Icon: ProviderIcon, bg: providerBg, iconColor: providerIconColor } =
     registry.provider === "dockerhub"
-      ? { Icon: BoxIcon, bg: "bg-blue-500/10", iconColor: "text-blue-500" }
+      ? { Icon: BoxIcon, bg: "bg-primary/10", iconColor: "text-primary" }
       : { Icon: ServerIcon, bg: "bg-muted", iconColor: "text-primary" }
 
   const providerLabel = registry.provider === "dockerhub" ? "Docker Hub" : "Generic"

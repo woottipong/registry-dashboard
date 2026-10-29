@@ -129,7 +129,7 @@ export function RepositoriesClient({
   }, [filteredRepos, sortBy])
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-6">
+    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:pt-6">
       {!selectedRegistry ? (
         <NoRegistryState />
       ) : (
@@ -149,7 +149,7 @@ export function RepositoriesClient({
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">
+                <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">
                   {selectedNamespace !== null
                     ? selectedNamespaceValue
                       ? `${selectedNamespaceValue}/`
@@ -201,7 +201,7 @@ export function RepositoriesClient({
               )}
             </Panel>
           ) : (
-            <div className="rounded-panel bg-card p-6 sm:p-7 shadow-panel border border-panel-border">
+            <div className="rounded-panel bg-card p-5 sm:p-7 shadow-panel border-0">
               <div className="space-y-4 pb-4">
                 <div className="space-y-1">
                   <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
@@ -287,7 +287,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-panel bg-card p-6 sm:p-7 shadow-panel border border-panel-border">
+    <div className="rounded-panel bg-card p-5 sm:p-7 shadow-panel border-0">
       <div className="mb-4">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
@@ -322,14 +322,14 @@ function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
             key={namespace.name || "_root"}
             type="button"
             onClick={() => onSelect(namespace.name)}
-            className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-control bg-secondary/25 p-4 text-left transition-all duration-200 hover:bg-secondary/60 hover:-translate-y-0.5 hover:shadow-xs"
+            className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-control bg-transparent p-4 text-left transition-colors duration-200 hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex min-w-0 items-center gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 group-hover:scale-105 transition-transform text-blue-400">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary/60 text-muted-foreground">
                 <FolderIcon className="size-5" />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-link transition-colors">
                   {label}{isRoot ? "" : "/"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -400,7 +400,7 @@ function NoRegistryState() {
           <Link href="/registries/new">{"Add registry"}</Link>
         </Button>
       }
-      className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+      className="rounded-panel border-0 bg-card p-12 text-center shadow-panel"
     />
   )
 }

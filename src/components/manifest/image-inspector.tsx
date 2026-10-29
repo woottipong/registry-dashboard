@@ -59,7 +59,7 @@ interface MetricCardProps {
 }
 
 const MetricCard = React.memo(({ icon: Icon, label, value }: MetricCardProps) => (
-  <div className="rounded-2xl p-4 shadow-panel border bg-card border-panel-border">
+  <div className="min-w-0 px-1 py-3">
     <div className="mb-1.5 flex items-center gap-1.5">
       <Icon className="size-3.5 text-muted-foreground" />
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
@@ -146,7 +146,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
   const { manifest, config } = data
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-5">
+    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:pt-6">
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
@@ -160,7 +160,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{repoName}</h1>
+            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">{repoName}</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
               Inspect layers, configuration, history, and raw manifest data.
             </p>
@@ -174,35 +174,35 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard
             icon={CpuIcon}
-            label="PLATFORM"
+            label="Platform"
             value={platform}
           />
           <MetricCard
             icon={HardDriveIcon}
-            label="SIZE"
+            label="Size"
             value={formatBytes(manifest.totalSize)}
           />
           <MetricCard
             icon={LayersIcon}
-            label="LAYERS"
+            label="Layers"
             value={manifest.layers.length.toString()}
           />
           <MetricCard
             icon={CalendarIcon}
-            label="CREATED"
+            label="Created"
             value={config?.created ? formatDate(config.created) : '—'}
           />
         </div>
       </div>
 
-      <div className="rounded-panel p-7 shadow-panel border bg-card border-panel-border">
+      <div className="rounded-panel p-5 sm:p-7 shadow-panel border-0 bg-card">
         <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Manifest Workspace</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">Review layers, configuration, history, and raw manifest data.</p>
         </div>
         <div>
           <Tabs defaultValue="layers">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList variant="line" className="grid w-full grid-cols-4 sm:max-w-md">
               <TabsTrigger value="layers">Layers</TabsTrigger>
               <TabsTrigger value="config">Config</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
@@ -261,7 +261,7 @@ function useHydrated() {
 
 function ImageInspectorLoading({ detailed }: { detailed: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-7xl xl:max-w-[1400px] space-y-5">
+    <div className="mx-auto w-full max-w-page space-y-5">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-8 w-64" />

@@ -27,10 +27,10 @@ function formatCommand(createdBy: string): string {
 }
 
 const commandStyles: Record<CommandType, string> = {
-  RUN: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  COPY: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-  ADD: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  OTHER: "bg-muted text-muted-foreground border-border",
+  RUN: "bg-secondary text-foreground",
+  COPY: "bg-secondary text-foreground",
+  ADD: "bg-secondary text-foreground",
+  OTHER: "bg-secondary text-muted-foreground",
 }
 
 interface HistoryEntryProps {
@@ -53,7 +53,7 @@ function HistoryEntry({ entry, index, isLast }: HistoryEntryProps) {
       {/* Step indicator */}
       <div
         className={cn(
-          "relative mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-mono font-medium",
+          "relative mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-mono font-medium",
           entry.empty_layer ? "bg-muted text-muted-foreground" : commandStyles[commandType],
         )}
       >
@@ -61,7 +61,7 @@ function HistoryEntry({ entry, index, isLast }: HistoryEntryProps) {
       </div>
 
       <div className="min-w-0 flex-1 pb-6">
-        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md border bg-muted/40 px-3 py-2 font-mono text-xs leading-relaxed">
+        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-control bg-secondary/30 px-3 py-2 font-mono text-xs leading-relaxed">
           {command}
         </pre>
         <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-muted-foreground">

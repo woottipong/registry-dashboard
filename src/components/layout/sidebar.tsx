@@ -43,14 +43,14 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      {/* Brand Header - 52px height aligning with Topbar */}
-      <div className="flex h-[52px] items-center justify-between border-b border-border/70 px-4">
+      {/* Brand header aligned with the topbar */}
+      <div className="flex h-16 items-center justify-between border-b border-border/70 px-4">
         <Link
           href="/"
           onNavigate={onNavigate}
-          className="group flex items-center gap-2.5 rounded-[7px] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="group flex items-center gap-2.5 rounded-control transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-card border-panel-border">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-control shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-card border-panel-border">
             <Image src="/logo.svg" alt="Registry" width={18} height={18} className="rounded-xs" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -80,10 +80,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                   href={href}
                   onNavigate={onNavigate}
                   className={cn(
-                    "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                    "group flex items-center justify-between rounded-control px-3 py-2 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     active
-                      ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
+                      ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                   )}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -110,7 +110,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Link
               href="/registries/new"
               onNavigate={onNavigate}
-              className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground transition-colors hover:bg-white/10 hover:text-primary"
+              className="flex size-5 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
               title={"Add registry"}
               aria-label={"Add registry"}
             >
@@ -121,8 +121,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           <div className="flex flex-col gap-1">
             {!isMounted || isLoading ? (
               <div className="flex flex-col gap-1.5 px-1">
-                <Skeleton className="h-8 w-full rounded-[6px]" />
-                <Skeleton className="h-8 w-3/4 rounded-[6px]" />
+                <Skeleton className="h-8 w-full rounded-panel" />
+                <Skeleton className="h-8 w-3/4 rounded-panel" />
               </div>
             ) : registries && registries.length > 0 ? (
               registries.map((registry: RegistryConnection) => {
@@ -132,22 +132,23 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 return (
                   <Link
                     key={registry.id}
+                    title={registry.name}
                     href={`/repos?registry=${registry.id}`}
                     onNavigate={onNavigate}
                     className={cn(
-                      "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] transition-colors duration-150",
+                      "group flex items-center justify-between rounded-control px-3 py-2 text-[13px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       active
-                        ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent"
-                        : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
+                        ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                     )}
                   >
                     <div className="flex flex-1 items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
-                          "flex size-5 shrink-0 items-center justify-center rounded-[5px] text-xs transition-colors",
+                          "flex size-5 shrink-0 items-center justify-center rounded-control text-xs transition-colors",
                           active
                             ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground group-hover:text-foreground bg-white/10",
+                            : "text-muted-foreground group-hover:text-foreground bg-secondary",
                         )}
                       >
                         {isDockerHub ? <ServerIcon className="size-3" /> : <DatabaseIcon className="size-3" />}
@@ -155,7 +156,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       <span className="truncate text-xs">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-xs text-muted-foreground bg-white/[0.06]">
+                      <span className="shrink-0 rounded-control px-1.5 py-0.5 font-mono text-xs text-muted-foreground bg-secondary/70">
                         {"Default"}
                       </span>
                     )}
@@ -167,7 +168,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 <Link
                   href="/registries/new"
                   onNavigate={onNavigate}
-                  className="flex items-center gap-2 rounded-[7px] border border-dashed border-border/80 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  className="flex items-center gap-2 rounded-control border border-dashed border-border/80 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
                 >
                   <PlusIcon className="size-3.5" />
                   <span>{"Add registry"}</span>
@@ -188,7 +189,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-[280px] lg:border-r lg:border-border/70 lg:bg-sidebar">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-[228px] lg:border-r lg:border-border/70 lg:bg-sidebar">
         <div className="flex h-full flex-col">
           <SidebarBody />
         </div>

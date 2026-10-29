@@ -70,7 +70,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
         {repositories.map((repo) => (
           <TableRow
             key={repo.fullName}
-            className="cursor-pointer border-b border-border/60 hover:bg-secondary/40 transition-colors"
+            className="cursor-pointer border-0 hover:bg-secondary/40 transition-colors"
             onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
             onMouseEnter={() => setHoveredRepo(repo)}
             onMouseLeave={() => setHoveredRepo(null)}

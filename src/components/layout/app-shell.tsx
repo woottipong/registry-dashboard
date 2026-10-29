@@ -49,7 +49,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="relative flex min-h-screen bg-background text-foreground">
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
-      <div className="relative flex min-w-0 flex-1 flex-col lg:ml-[280px]">
+      <div className="relative flex min-w-0 flex-1 flex-col lg:ml-[228px]">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} onOpenSearch={() => openPalette(true)} />
         <main className="flex-1 p-4 sm:p-5 lg:px-7 lg:py-5">{children}</main>
       </div>

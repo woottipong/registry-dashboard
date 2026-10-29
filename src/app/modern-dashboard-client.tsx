@@ -3,18 +3,17 @@
 import Link from "next/link"
 import {
   ArrowRightIcon,
-  ArrowUpRightIcon,
   ClockIcon,
   DatabaseIcon,
   FolderIcon,
   PlusIcon,
-  ShieldCheckIcon,
-  TagIcon,
+  SearchIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { useActivity } from "@/contexts/activity-context"
+import { useCommandPalette } from "@/hooks/use-command-palette"
 import { useMounted } from "@/hooks/use-mounted"
 import type { RegistryConnection } from "@/types/registry"
 
@@ -28,35 +27,22 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   })
   const { activities, isLoading: isLoadingActivity } = useActivity()
   const isMounted = useMounted()
+  const { setOpen: setSearchOpen } = useCommandPalette()
 
   const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
   const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size
-  const defaultRegistry = registries.find((r) => r.isDefault) ?? registries[0] ?? null
 
   // Empty dashboard: Single stage CTA tile
   if (!isLoadingRegistries && !isRegistryError && registries.length === 0) {
     return (
       <section className="mx-auto flex max-w-5xl flex-col items-center justify-center py-10">
-        <div className="relative w-full max-w-2xl overflow-hidden rounded-panel p-10 text-center border bento-stage-card text-white border-white/10 shadow-2xl">
-          {/* Studio glossy sphere render */}
-          <div className="relative mx-auto my-6 flex size-28 items-center justify-center">
-            <div className="absolute -bottom-4 h-6 w-24 rounded-full bg-black/80 blur-md" />
-            <div
-              className="relative size-24 rounded-full shadow-[inset_0_-8px_16px_rgba(0,0,0,0.8),inset_0_4px_12px_rgba(255,255,255,0.4)]"
-              style={{
-                background: "radial-gradient(circle at 35% 30%, #52525b 0%, #27272a 40%, #09090b 85%)",
-              }}
-            >
-              <div className="absolute left-4 top-3 h-5 w-8 rounded-full bg-white/35 blur-[2px]" />
-              <div className="absolute inset-0 rounded-full border border-white/20" />
-              <DatabaseIcon className="absolute inset-0 m-auto size-8 text-white/80" />
-            </div>
-          </div>
+        <div className="w-full max-w-2xl rounded-panel bg-card p-8 sm:p-12 text-center shadow-panel">
+          <DatabaseIcon className="mx-auto mb-6 size-10 text-muted-foreground" aria-hidden />
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl text-white">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground">
             {"Add registry"}
           </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-400">
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             {"Container registries, repositories, and tag telemetry."}
           </p>
 
@@ -73,297 +59,40 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     )
   }
 
+  const summary = [
+    { label: "Registries", value: isRegistryError && registries.length === 0 ? null : registries.length, href: "/registries", loading: isLoadingRegistries },
+    { label: "Repositories", value: isRegistryError || (registries.length > 0 && failedRegistryIds.length === registries.length) ? null : totalRepositories, href: "/repos", loading: isLoadingRegistries || isLoadingRepos },
+    { label: "Tags", value: isRegistryError || failedRegistryIds.length > 0 || hasUnknownTagCounts ? null : totalTags, href: "/repos", loading: isLoadingRegistries || isLoadingRepos },
+    { label: "Providers", value: isRegistryError && registries.length === 0 ? null : providerCount, href: "/registries", loading: isLoadingRegistries },
+  ]
+
   return (
-    <section className="mx-auto flex w-full max-w-7xl xl:max-w-[1400px] flex-col gap-5 sm:gap-6">
-      {/* Header */}
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-0.5">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {"Overview"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {"Container registries, repositories, and tag telemetry."}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="rounded-control shadow-xs text-xs h-9 px-3 border-link text-link hover:text-primary-foreground" asChild>
-            <Link href="/repos">
-              <FolderIcon data-icon="inline-start" className="size-3.5" />
-              {"Browse repositories"}
-            </Link>
-          </Button>
-          <Button size="sm" className="rounded-control shadow-xs text-xs h-9 px-3" asChild>
-            <Link href="/registries/new">
-              <PlusIcon data-icon="inline-start" className="size-3.5" />
-              {"Add registry"}
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {(isRegistryError || failedRegistryIds.length > 0) && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-destructive/30 bg-card px-4 py-3 text-sm">
-          <p>{"Some registry data could not be loaded. Counts may be incomplete."}</p>
-          <Button variant="outline" size="sm" className="rounded-control border-link text-link hover:text-primary-foreground" onClick={retry}>
-            {"Try again"}
-          </Button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { label: "Registries", value: isRegistryError && registries.length === 0 ? null : registries.length, href: "/registries", icon: DatabaseIcon, loading: isLoadingRegistries },
-          { label: "Repositories", value: isRegistryError || (registries.length > 0 && failedRegistryIds.length === registries.length) ? null : totalRepositories, href: "/repos", icon: FolderIcon, loading: isLoadingRegistries || isLoadingRepos },
-          { label: "Tags", value: isRegistryError || failedRegistryIds.length > 0 || hasUnknownTagCounts ? null : totalTags, href: "/repos", icon: TagIcon, loading: isLoadingRegistries || isLoadingRepos },
-          { label: "Providers", value: isRegistryError && registries.length === 0 ? null : providerCount, href: "/registries", icon: ShieldCheckIcon, loading: isLoadingRegistries },
-        ].map(({ label, value, href, icon: Icon, loading }) => (
-          <Link key={label} href={href} className="group rounded-panel border border-panel-border bg-card p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:border-white/25">
-            <div className="flex items-center justify-between gap-2 text-muted-foreground">
-              <span className="flex min-w-0 items-center gap-2 text-xs font-medium"><Icon className="size-4 shrink-0" /><span className="truncate">{label}</span></span>
-              <ArrowUpRightIcon className="size-3.5 shrink-0 opacity-50 group-hover:opacity-100" />
-            </div>
-            {loading ? <Skeleton className="mt-3 h-7 w-16 rounded-md" /> : (
-              <div className="mt-3 text-2xl font-semibold tabular-nums">{value === null ? "—" : value.toLocaleString()}</div>
-            )}
-          </Link>
-        ))}
-      </div>
-      {!isLoadingRepos && (
-        <p className="-mt-2 text-xs text-muted-foreground">
-          Counts and rankings reflect loaded repositories; additional results may not be included.
-          {hasUnknownTagCounts && " Some providers do not supply tag counts."}
-          {hasIncompleteData && " Some registry data is incomplete."}
-        </p>
-      )}
-
-      {/* Bento Grid: 2-Column Section */}
-      <div className="grid grid-cols-1 items-start gap-4 sm:gap-5 lg:grid-cols-2">
-        {/* Registry Inventory Tile */}
-        <div className="flex flex-col justify-between rounded-panel bg-card p-5 sm:p-6 shadow-panel border border-panel-border">
-          <div>
-            <div className="flex items-center justify-between pb-3.5">
-              <div>
-                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Registry inventory"}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{"Repository volume by connected endpoint"}</p>
-              </div>
-              <Link
-                href="/registries"
-                className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-link hover:underline"
-              >
-                {"Manage"}
-                <ArrowRightIcon className="size-3" />
-              </Link>
-            </div>
-
-            {/* Distribution share meter (only if > 1 registry) */}
-            {!isLoadingRepos && !hasIncompleteData && registriesWithStats.length > 1 && totalRepositories > 0 && (
-              <div className="mb-4 space-y-1.5 rounded-control bg-secondary/30 p-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium">{"Repository share"}</span>
-                  <span className="font-mono text-xs">{totalRepositories} {"total"}</span>
-                </div>
-                <div className="flex h-2 w-full gap-1 overflow-hidden rounded-full bg-secondary/50">
-                  {registriesWithStats.map((reg, idx) => {
-                    const share = (reg.repoCount / totalRepositories) * 100
-                    if (share <= 0) return null
-                    const colors = ["bg-chart-1", "bg-chart-2", "bg-chart-4", "bg-chart-3", "bg-chart-5"]
-                    const color = colors[idx % colors.length]
-                    return (
-                      <div
-                        key={reg.id}
-                        title={`${reg.name}: ${reg.repoCount} repos`}
-                        style={{ width: `${Math.max(share, 3)}%` }}
-                        className={`h-full rounded-full ${color}`}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {isLoadingRegistries ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-panel" />
-                ))
-              ) : (
-                registriesWithStats.map((registry) => {
-                  return (
-                    <Link
-                      key={registry.id}
-                      href={`/repos?registry=${registry.id}`}
-                      className="group flex items-center justify-between rounded-control border-b border-border/60 px-1 py-3 transition-colors last:border-0 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-control bg-secondary text-foreground/70 group-hover:text-primary transition-colors">
-                          <DatabaseIcon className="size-3.5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="truncate text-xs sm:text-sm font-semibold tracking-tight text-foreground">
-                              {registry.name}
-                            </p>
-                            {registry.isDefault && (
-                              <span className="rounded bg-foreground/10 px-1.5 py-0.5 text-xs font-medium text-foreground">
-                                {"Default"}
-                              </span>
-                            )}
-                            <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
-                              {registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"}
-                            </span>
-                          </div>
-                          <p className="truncate font-mono text-xs text-muted-foreground mt-0.5">
-                            {registry.url}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="ml-3 shrink-0 text-right">
-                        <div className="font-mono text-xs font-semibold text-foreground">
-                          {isLoadingRepos || failedRegistryIds.includes(registry.id) ? "—" : registry.repoCount} <span className="font-normal text-muted-foreground text-xs">repos</span>
-                        </div>
-                        <div className="font-mono text-xs text-muted-foreground">
-                          {isLoadingRepos || failedRegistryIds.includes(registry.id) || registry.tagCount === null ? "—" : registry.tagCount} tags
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })
-              )}
-            </div>
-          </div>
-
-          {defaultRegistry && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              {"Default registry"}: <span className="font-medium text-foreground">{defaultRegistry.name}</span>
-            </p>
-          )}
-        </div>
-
-        {/* Top Repositories Tile */}
-        <div className="flex flex-col justify-between lg:row-span-2 rounded-panel bg-card p-5 sm:p-6 shadow-panel border border-panel-border">
-          <div>
-            <div className="flex items-center justify-between pb-3.5">
-              <div>
-                <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Top repositories"}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{"Highest tag volume across connected registries"}</p>
-              </div>
-              <Link
-                href="/repos"
-                className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-link hover:underline"
-              >
-                {"View all"}
-                <ArrowRightIcon className="size-3" />
-              </Link>
-            </div>
-
-            <div className="space-y-2">
-              {isLoadingRegistries || isLoadingRepos ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full rounded-panel" />
-                ))
-              ) : chartData.length === 0 ? (
-                <p className="py-6 text-center text-xs text-muted-foreground">
-                  {"No repository ranking data available yet."}
-                </p>
-              ) : (
-                chartData.slice(0, 5).map((repo, index) => {
-                  const registry = registriesWithStats.find((item) => item.id === repo.registryId)
-                  return (
-                    <Link
-                      key={`${repo.registryId}-${repo.name}`}
-                      href={`/repos/${repo.registryId}/${repo.name}`}
-                      className="group flex items-center justify-between rounded-control border-b border-border/60 px-1 py-3 transition-colors last:border-0 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground">
-                          {index + 1}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs sm:text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                            {repo.name}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {registry?.name ?? repo.registryId}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="ml-3 shrink-0">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-mono text-xs font-medium text-foreground">
-                          <TagIcon className="size-2.5 text-muted-foreground" />
-                          {repo.tagCount}
-                        </span>
-                      </div>
-                    </Link>
-                  )
-                })
-              )}
-            </div>
-          </div>
-
-          <p className="mt-3 text-xs text-muted-foreground">
-            {"Ranked by available tag counts in loaded repositories."}
-          </p>
-        </div>
-
-        {/* Recent Activity Feed */}
-        <div className="flex flex-col rounded-panel bg-card p-5 sm:p-6 shadow-panel border border-panel-border">
-          <div className="flex items-center justify-between pb-3">
-            <div className="flex items-center gap-2">
-              <ClockIcon className="size-3.5 text-muted-foreground" />
-              <h2 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">{"Recent activity"}</h2>
-            </div>
-            <span className="text-xs text-muted-foreground">{"Recent recorded operations"}</span>
-          </div>
-
-          <div className="space-y-1.5">
-            {!isMounted || isLoadingActivity ? (
-              <div className="space-y-1.5">
-                <Skeleton className="h-9 w-full rounded-control" />
-                <Skeleton className="h-9 w-full rounded-control" />
-                <Skeleton className="h-9 w-full rounded-control" />
-              </div>
-            ) : activities.length === 0 ? (
-              <p className="py-5 text-center text-xs text-muted-foreground">
-                {"No recent activity recorded yet. Activity will appear here when images or registries are accessed."}
-              </p>
-            ) : (
-              activities.slice(0, 6).map((item) => {
-                const typeBadgeStyle = {
-                  pull: "bg-blue-500/10 text-blue-400",
-                  push: "bg-emerald-500/10 text-emerald-400",
-                  delete: "bg-rose-500/10 text-rose-400",
-                  inspect: "bg-purple-500/10 text-purple-400",
-                }[item.type as "pull" | "push" | "delete" | "inspect"] || "bg-secondary text-foreground"
-
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between border-b border-border/60 px-1 py-2.5 text-xs last:border-0"
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-semibold uppercase ${typeBadgeStyle}`}>
-                        {item.type}
-                      </span>
-                      <span className="truncate font-mono text-xs text-foreground font-medium">
-                        {item.repository}
-                      </span>
-                      {item.tag && (
-                        <span className="font-mono text-xs text-muted-foreground">:{item.tag}</span>
-                      )}
-                    </div>
-                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                      {new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      </div>
+    <section className="mx-auto w-full max-w-page pb-10 pt-4 sm:pt-6">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Registry overview</h1><p className="mt-2 text-sm text-muted-foreground sm:text-base">Find a repository, then inspect its tags and images.</p></div>
+        <Button className="h-11 px-4" asChild><Link href="/repos">Browse repositories<ArrowRightIcon className="size-4" /></Link></Button>
+      </header>
+      {(isRegistryError || failedRegistryIds.length > 0) && <div role="alert" className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-control bg-destructive/10 px-4 py-3 text-sm"><p>Some registry data could not be loaded. Counts may be incomplete.</p><Button size="sm" variant="outline" onClick={retry}>Try again</Button></div>}
+      <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-3 border-b border-border pb-5 text-sm text-muted-foreground sm:flex sm:flex-wrap">
+        {summary.map(({label,value,href,loading}) => <div key={label} className="flex items-baseline gap-2"><dd><Link href={href} className="rounded-sm text-xl font-medium tabular-nums text-foreground hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{loading ? <Skeleton className="h-6 w-8" /> : value === null ? "—" : value.toLocaleString()}<span className="sr-only"> {label.toLowerCase()}</span></Link></dd><dt>{label.toLowerCase()}</dt></div>)}
+      </dl>
+      <section aria-label="Registry inventory" className="py-5">
+        {isLoadingRegistries ? <Skeleton className="h-14 w-full" /> : registriesWithStats.map((registry) => <div key={registry.id} className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-2 sm:flex sm:gap-4"><DatabaseIcon className="size-5 shrink-0 text-muted-foreground" /><div className="min-w-0 flex-1"><Link href={`/repos?registry=${registry.id}`} className="rounded-sm text-base font-semibold hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{registry.name}</Link><p className="mt-1 truncate text-xs text-muted-foreground">{registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"}{registry.isDefault ? " · Default registry" : ""}</p></div><div className="col-start-2 row-start-2 text-xs text-muted-foreground sm:ml-auto sm:text-right"><span>{isLoadingRepos || failedRegistryIds.includes(registry.id) ? "—" : registry.repoCount} repos</span><span className="ml-3">{isLoadingRepos || failedRegistryIds.includes(registry.id) || registry.tagCount === null ? "—" : registry.tagCount} tags</span></div><Button variant="outline" size="sm" className="col-start-3 row-span-2 row-start-1" asChild><Link href={`/registries/${registry.id}/edit`}>Manage</Link></Button></div>)}
+      </section>
+      <section aria-labelledby="overview-repositories" className="rounded-panel bg-card p-4 shadow-panel ring-1 ring-inset ring-panel-border sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="overview-repositories" className="text-xl font-medium tracking-tight">Top repositories</h2><Link href="/repos" className="rounded-sm text-sm text-link hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">View all repositories →</Link></div>
+        <div className="my-4 flex flex-col gap-3 sm:flex-row"><Button variant="outline" onClick={() => setSearchOpen(true)} className="h-11 flex-1 justify-start text-muted-foreground"><SearchIcon className="size-4" /><span className="truncate">Search repositories, registries, or actions…</span></Button><Button variant="outline" className="h-11" asChild><Link href="/repos">Browse namespaces</Link></Button></div>
+        <div className="grid grid-cols-[minmax(0,1fr)_3rem_1.5rem] gap-3 border-y border-border/70 px-3 py-3 text-xs text-muted-foreground sm:grid-cols-[minmax(0,1fr)_12rem_4rem_1.5rem]"><span>Repository</span><span className="hidden sm:block">Registry</span><span className="text-right">Tags</span><span /></div>
+        {isLoadingRegistries || isLoadingRepos ? Array.from({length:5}).map((_,index)=><Skeleton key={index} className="my-3 h-14 w-full" />) : chartData.length === 0 ? <p className="py-10 text-sm text-muted-foreground">No repository ranking data available yet.</p> : chartData.slice(0,5).map((repo)=>{
+          const registry = registriesWithStats.find((item)=>item.id===repo.registryId)
+          return <Link key={`${repo.registryId}-${repo.name}`} href={`/repos/${repo.registryId}/${repo.name}`} className="group grid min-h-16 grid-cols-[minmax(0,1fr)_3rem_1.5rem] items-center gap-3 border-b border-border/60 px-3 py-4 transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_12rem_4rem_1.5rem]"><span className="flex min-w-0 items-center gap-3"><FolderIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-link group-focus-visible:text-link" /><span className="truncate text-sm font-medium group-hover:text-link group-focus-visible:text-link sm:text-base">{repo.name}</span></span><span className="hidden truncate text-sm text-muted-foreground sm:block">{registry?.name ?? repo.registryId}</span><span className="text-right text-sm tabular-nums">{repo.tagCount}</span><ArrowRightIcon className="size-4 text-muted-foreground group-hover:text-link group-focus-visible:text-link" /></Link>
+        })}
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Ranked by available tag counts in loaded repositories.{hasIncompleteData && " Some registry data is incomplete."}{hasUnknownTagCounts && " Some providers do not supply tag counts."}</p>
+      </section>
+      <section aria-labelledby="overview-activity" className="mt-9">
+        <h2 id="overview-activity" className="flex items-center gap-2 text-base font-medium"><ClockIcon className="size-4 text-muted-foreground" />Recent activity</h2>
+        <div className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">{!isMounted || isLoadingActivity ? Array.from({length:3}).map((_,index)=><Skeleton key={index} className="h-10 w-full" />) : activities.length===0 ? <p className="text-sm text-muted-foreground">No recent activity recorded yet.</p> : activities.slice(0,6).map((item)=><div key={item.id} className="min-w-0"><div className="flex justify-between gap-3 text-xs text-muted-foreground"><span className="capitalize">{item.type}</span><time dateTime={item.timestamp}>{new Date(item.timestamp).toLocaleTimeString("en",{hour:"2-digit",minute:"2-digit"})}</time></div><p className="mt-1 truncate text-sm">{item.repository}{item.tag && <span className="text-muted-foreground"> : {item.tag}</span>}</p></div>)}</div>
+      </section>
     </section>
   )
 }
