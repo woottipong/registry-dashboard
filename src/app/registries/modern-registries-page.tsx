@@ -160,14 +160,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {/* Card 1: Total Endpoints */}
         <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Endpoints</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Endpoints</span>
             <ServerIcon className="size-3.5 text-primary" />
           </div>
           <div className="mt-2">
             <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
               {isLoading ? "…" : registries.length}
             </p>
-            <p className="text-[10px] text-muted-foreground font-mono">
+            <p className="text-xs text-muted-foreground font-mono">
               {registries.length === 1 ? "1 connection active" : `${registries.length} connections active`}
             </p>
           </div>
@@ -176,14 +176,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {/* Card 2: Default Target */}
         <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Default Target</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Default Target</span>
             <CheckIcon className="size-3.5 text-primary" />
           </div>
           <div className="mt-2">
             <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate font-mono">
               {defaultRegistry ? defaultRegistry.name : "None"}
             </p>
-            <p className="text-[10px] text-muted-foreground font-mono">
+            <p className="text-xs text-muted-foreground font-mono">
               Primary push/pull endpoint
             </p>
           </div>
@@ -192,14 +192,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {/* Card 3: Provider Drivers */}
         <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Drivers</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Drivers</span>
             <LayersIcon className="size-3.5 text-primary" />
           </div>
           <div className="mt-2">
             <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
               {new Set(registries.map((r) => r.provider)).size} Active
             </p>
-            <p className="text-[10px] text-muted-foreground font-mono">
+            <p className="text-xs text-muted-foreground font-mono">
               V2 & Docker Hub support
             </p>
           </div>
@@ -208,14 +208,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         {/* Card 4: Access Security */}
         <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Security</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Security</span>
             <LockIcon className="size-3.5 text-primary" />
           </div>
           <div className="mt-2">
             <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
               {securedCount} Secured
             </p>
-            <p className="text-[10px] text-muted-foreground font-mono">
+            <p className="text-xs text-muted-foreground font-mono">
               Encrypted session store
             </p>
           </div>
@@ -239,7 +239,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               )}
             >
               <span>All</span>
-              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
                 {registries.length}
               </span>
             </button>
@@ -256,7 +256,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 )}
               >
                 <span>Registry V2</span>
-                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
                   {providerCounts.generic}
                 </span>
               </button>
@@ -274,7 +274,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 )}
               >
                 <span>Docker Hub</span>
-                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+                <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
                   {providerCounts.dockerhub}
                 </span>
               </button>
@@ -307,7 +307,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
                   aria-label="Clear search"
                 >
                   ✕
@@ -381,14 +381,14 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
 
         {/* Footer Banner */}
         <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
-          <span className="truncate text-[11px]">
-            {"All connected registry endpoints are operational with active credentials."}
+          <span className="truncate text-xs">
+            {`${filteredRegistries.length} registry ${filteredRegistries.length === 1 ? "endpoint" : "endpoints"} configured.`}
           </span>
 
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 text-[11px] font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
+            className="h-6 text-xs font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
             onClick={handleAddRegistry}
           >
             <PlusIcon className="mr-1 size-3" />

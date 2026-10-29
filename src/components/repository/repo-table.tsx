@@ -70,11 +70,13 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       <Table className="w-full text-left text-xs">
         <TableHeader className="border-b border-border/70 bg-secondary/25">
           <TableRow className="border-b border-border/70 hover:bg-transparent text-muted-foreground">
-            <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-[10px]">#</TableHead>
+            <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-xs">#</TableHead>
             <TableHead className="py-2.5 px-3 font-medium">Repository</TableHead>
             <TableHead className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</TableHead>
             <TableHead className="py-2.5 px-3 font-medium min-w-[130px]">Tags & Volume</TableHead>
-            <TableHead className="py-2.5 px-3 font-medium text-right hidden sm:table-cell">Est. Size</TableHead>
+            <TableHead className="py-2.5 px-3 font-medium text-right hidden sm:table-cell" title="Confirmed layer size from manifest">
+              Size
+            </TableHead>
             <TableHead className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
           </TableRow>
         </TableHeader>
@@ -88,21 +90,14 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             return (
               <TableRow
                 key={repo.fullName}
-                tabIndex={0}
-                role="row"
                 onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    router.push(`/repos/${registryId}/${repo.fullName}`)
-                  }
-                }}
                 onMouseEnter={() => setHoveredRepo(repo)}
                 onMouseLeave={() => setHoveredRepo(null)}
-                className="group cursor-pointer hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground/90 transition-colors duration-100"
+                className="group cursor-pointer hover:bg-secondary/40 text-foreground/90 transition-colors duration-100"
               >
                 {/* # Rank */}
                 <TableCell className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
-                  <span className="text-[11px] font-mono text-muted-foreground/70">
+                  <span className="text-xs font-mono text-muted-foreground/70">
                     {idx + 1}
                   </span>
                 </TableCell>
@@ -121,17 +116,17 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                           {repo.name}
                         </Link>
                         {repo.isOfficial ? (
-                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground border border-border/50">
+                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-xs text-muted-foreground border border-border/50">
                             Official
                           </span>
                         ) : null}
                         {repo.isPrivate ? (
-                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground border border-border/50">
+                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-xs text-muted-foreground border border-border/50">
                             Private
                           </span>
                         ) : null}
                       </div>
-                      <span className="truncate font-mono text-[10px] text-muted-foreground">
+                      <span className="truncate font-mono text-xs text-muted-foreground">
                         {repo.fullName}
                       </span>
                     </div>
@@ -140,26 +135,33 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
 
                 {/* Namespace */}
                 <TableCell className="py-2.5 px-3 hidden sm:table-cell">
-                  <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
-                    {repo.namespace || "_root"}
+                  <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground">
+                    {repo.namespace && repo.namespace !== "_root" ? repo.namespace : "(root)"}
                   </span>
                 </TableCell>
 
                 {/* Tags & Volume Bar */}
                 <TableCell className="py-2.5 px-3">
                   <div className="flex flex-col gap-1 min-w-[110px]">
-                    <div className="flex items-center justify-between text-[11px] font-mono">
+                    <div className="flex items-center justify-between text-xs font-mono">
                       <span className="font-semibold text-foreground">
                         {formatTagText(repo.tagCount)}
                       </span>
                       {hasTags ? (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           {Math.round(((repo.tagCount ?? 0) / maxTagCount) * 100)}%
                         </span>
                       ) : null}
                     </div>
                     {hasTags ? (
-                      <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                      <div
+                        role="progressbar"
+                        aria-valuenow={repo.tagCount ?? 0}
+                        aria-valuemin={0}
+                        aria-valuemax={maxTagCount}
+                        aria-label={`Tag volume for ${repo.name}`}
+                        className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
+                      >
                         <div
                           className="h-full rounded-full bg-primary/80 transition-all duration-300"
                           style={{ width: `${volumePercentage}%` }}
@@ -169,10 +171,10 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                   </div>
                 </TableCell>
 
-                {/* Est. Image Size */}
+                {/* Confirmed Image Size */}
                 <TableCell
-                  className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell"
-                  title="Estimated total image disk footprint"
+                  className="py-2.5 px-3 text-right font-mono text-xs text-foreground whitespace-nowrap hidden sm:table-cell"
+                  title="Confirmed layer size from manifest"
                 >
                   {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
                 </TableCell>

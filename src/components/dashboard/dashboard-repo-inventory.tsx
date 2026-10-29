@@ -186,15 +186,8 @@ export function DashboardRepoInventory({
                 return (
                   <tr
                     key={rowKey}
-                    tabIndex={0}
-                    role="row"
                     onClick={() => router.push(`/repos/${repo.registryId}/${repo.fullName}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        router.push(`/repos/${repo.registryId}/${repo.fullName}`)
-                      }
-                    }}
-                    className="group cursor-pointer hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground/90 transition-colors duration-100"
+                    className="group cursor-pointer hover:bg-secondary/40 text-foreground/90 transition-colors duration-100"
                   >
                     {/* Rank # */}
                     <td className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
@@ -300,7 +293,7 @@ export function DashboardRepoInventory({
                               e.stopPropagation()
                               onCopyCommand(pullCmd, rowKey)
                             }}
-                            className="p-1 rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                            className="p-1.5 min-w-[24px] min-h-[24px] flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                             title={`Copy: ${pullCmd}`}
                             aria-label={`Copy pull command for ${repo.fullName}`}
                           >

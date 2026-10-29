@@ -68,14 +68,14 @@ export function NamespaceList({
                   <p className="truncate text-xs font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors font-mono">
                     {label}{isRoot ? "" : "/"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground font-mono">
+                  <p className="text-xs text-muted-foreground font-mono">
                     {isRoot ? "Root namespace partition" : "Namespace partition"}
                   </p>
                 </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
-                <span className="inline-flex items-center rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 font-mono text-[11px] font-medium text-foreground">
+                <span className="inline-flex items-center rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 font-mono text-xs font-medium text-foreground">
                   {namespace.repositoryCount} <span className="text-muted-foreground ml-1">repos</span>
                 </span>
                 <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -89,22 +89,22 @@ export function NamespaceList({
                   {sampleRepos.map((r) => (
                     <span
                       key={r.fullName}
-                      className="inline-flex items-center rounded-control bg-background/60 border border-border/50 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground group-hover:text-foreground truncate max-w-[130px]"
+                      className="inline-flex items-center rounded-control bg-background/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground group-hover:text-foreground truncate max-w-[130px]"
                       title={r.name}
                     >
                       {r.name}
                     </span>
                   ))}
                   {remainingCount > 0 ? (
-                    <span className="font-mono text-[10px] text-muted-foreground/70">
+                    <span className="font-mono text-xs text-muted-foreground/70">
                       +{remainingCount} more
                     </span>
                   ) : null}
                 </div>
               ) : (
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">
-                  <span className="font-mono text-[10px]">Partition volume</span>
-                  <span className="font-mono text-[10px] text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1">
+                <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                  <span className="font-mono text-xs">Partition volume</span>
+                  <span className="font-mono text-xs text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1">
                     <span>Inspect</span>
                     <ArrowRightIcon className="size-2.5" />
                   </span>
@@ -113,11 +113,18 @@ export function NamespaceList({
 
               {/* Share volume bar */}
               <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
                   <span>{sharePercentage}% of registry</span>
                   <span>{namespace.repositoryCount} {namespace.repositoryCount === 1 ? "repo" : "repos"}</span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={sharePercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Repository share for ${label}`}
+                  className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
+                >
                   <div
                     className="h-full rounded-full bg-primary/80 transition-all duration-300"
                     style={{ width: `${Math.max(sharePercentage, 8)}%` }}

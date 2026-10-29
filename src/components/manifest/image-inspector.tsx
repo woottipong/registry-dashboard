@@ -141,15 +141,15 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
           </Button>
           <span className="text-muted-foreground/40">/</span>
           {registryName ? (
-            <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 text-xs text-muted-foreground">
               {registryName}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1.5 rounded-control border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-mono font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-control border border-primary/40 bg-primary/10 px-2 py-0.5 text-xs font-mono font-semibold text-primary">
             <span className="size-1.5 rounded-full bg-primary" />
             {tag}
           </span>
-          <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 font-mono text-xs text-muted-foreground">
             {truncatedDigest}
           </span>
         </div>
@@ -182,7 +182,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
               <CpuIcon className="size-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Platform</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Platform</div>
               <div className="text-xs font-mono font-medium text-foreground truncate">{platform}</div>
             </div>
           </div>
@@ -192,7 +192,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
               <HardDriveIcon className="size-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Size</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Total Size</div>
               <div className="text-xs font-mono font-medium text-foreground flex items-center gap-1.5">
                 <span className="size-1.5 rounded-full bg-emerald-400 shrink-0" />
                 {formatBytes(manifest.totalSize)}
@@ -205,7 +205,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
               <LayersIcon className="size-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Layers</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Layers</div>
               <div className="text-xs font-mono font-medium text-foreground">{manifest.layers.length} layers</div>
             </div>
           </div>
@@ -215,7 +215,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
               <CalendarIcon className="size-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Created</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Created</div>
               <div className="text-xs font-mono font-medium text-foreground truncate" title={config?.created ? formatDate(config.created) : undefined}>
                 {config?.created ? formatDate(config.created) : "—"}
               </div>

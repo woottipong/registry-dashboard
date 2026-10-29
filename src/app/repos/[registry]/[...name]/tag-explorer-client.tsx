@@ -203,11 +203,11 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             Repositories
           </Button>
           {registryQuery.data ? (
-            <span className="rounded-control bg-secondary px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+            <span className="rounded-control bg-secondary px-2 py-0.5 text-xs font-mono text-muted-foreground">
               {registryQuery.data.name}
             </span>
           ) : null}
-          <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-[11px] font-mono text-foreground font-medium">
+          <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-xs font-mono text-foreground font-medium">
             {tagCountDisplay}
           </span>
         </div>

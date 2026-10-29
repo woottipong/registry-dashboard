@@ -115,7 +115,7 @@ export function RegistryCard({
 
         <div className="flex items-center gap-1.5 shrink-0">
           {registry.isDefault ? (
-            <span className="inline-flex items-center gap-1 rounded-control bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 text-[11px] font-mono font-medium">
+            <span className="inline-flex items-center gap-1 rounded-control bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 text-xs font-mono font-medium">
               <span className="size-1.5 rounded-full bg-emerald-400" />
               Default
             </span>
@@ -170,23 +170,23 @@ export function RegistryCard({
 
       {/* Badges & Telemetry Strip */}
       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/40">
-        <span className="inline-flex items-center rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 font-mono text-[11px] font-medium text-foreground">
+        <span className="inline-flex items-center rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 font-mono text-xs font-medium text-foreground">
           {providerLabel}
         </span>
 
-        <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
           <authVisual.Icon className="size-3" />
           <span>{authVisual.label}</span>
         </span>
 
-        <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
           <LayersIcon className="size-3" />
           <span>{registry.namespace ?? "Global scope"}</span>
         </span>
 
         <ConnectionStatus state={status} latencyMs={latencyMs} compact />
         {status === null ? (
-          <span className="inline-flex items-center rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center rounded-control bg-secondary/60 border border-border/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
             Not tested
           </span>
         ) : null}
@@ -195,12 +195,12 @@ export function RegistryCard({
       {/* Capabilities Row */}
       {capabilityLabels.length > 0 ? (
         <div className="flex items-center justify-between text-xs pt-1">
-          <span className="text-[11px] text-muted-foreground font-mono">Capabilities</span>
+          <span className="text-xs text-muted-foreground font-mono">Capabilities</span>
           <div className="flex flex-wrap items-center gap-1">
             {capabilityLabels.map((cap) => (
               <span
                 key={cap}
-                className="rounded-control bg-background/50 border border-border/40 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground"
+                className="rounded-control bg-background/50 border border-border/40 px-1.5 py-0.2 font-mono text-xs text-muted-foreground"
               >
                 {cap}
               </span>
@@ -212,7 +212,7 @@ export function RegistryCard({
       {/* Quota / Rate limit (if applicable) */}
       {typeof rateLimitPercent === "number" ? (
         <div className="rounded-control bg-secondary/30 p-2.5 border border-border/40 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] font-mono">
+          <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-muted-foreground">Rate limit quota</span>
             <span className="text-foreground font-medium">
               {registry.rateLimit?.remaining ?? 0} / {registry.rateLimit?.limit ?? 0} ({rateLimitPercent.toFixed(0)}%)

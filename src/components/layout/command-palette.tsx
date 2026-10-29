@@ -69,7 +69,7 @@ export function CommandPalette() {
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground/60 mr-1 select-none">
+              <span className="text-xs uppercase font-mono tracking-wider text-muted-foreground/60 mr-1 select-none">
                 {registries.length > 1 ? "Scope" : "Registry"}
               </span>
               {registries.map((registry) => {
@@ -93,13 +93,13 @@ export function CommandPalette() {
               })}
             </div>
 
-            <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0 hidden sm:inline">
+            <span className="text-xs font-mono text-muted-foreground/50 shrink-0 hidden sm:inline">
               {canSearch ? "Catalog search enabled" : "Namespace browse only"}
             </span>
           </div>
 
           {!canSearch ? (
-            <p className="text-[11px] text-amber-400/90 pt-1.5">
+            <p className="text-xs text-amber-400/90 pt-1.5">
               This registry does not support repository search. Browse by namespace instead.
             </p>
           ) : null}
@@ -120,7 +120,7 @@ export function CommandPalette() {
           ) : (
             <div className="py-8 text-center space-y-1">
               <p className="text-xs font-medium text-foreground">No results found</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 No matching repositories, registries, or actions
               </p>
             </div>
@@ -139,7 +139,7 @@ export function CommandPalette() {
                     </div>
                     <span className="text-xs truncate font-mono">{item}</span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
+                  <span className="text-xs text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
                     Search ↵
                   </span>
                 </CommandItem>
@@ -176,8 +176,8 @@ export function CommandPalette() {
                     <span className="text-xs font-medium text-foreground">{registry.name}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-mono text-[11px] text-muted-foreground/70">{registry.url}</span>
-                    <span className="text-[10px] text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
+                    <span className="font-mono text-xs text-muted-foreground/70">{registry.url}</span>
+                    <span className="text-xs text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
                       Configure ↵
                     </span>
                   </div>
@@ -210,11 +210,11 @@ export function CommandPalette() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {repo.tagCount !== undefined ? (
-                      <span className="rounded-control border border-panel-border/60 bg-secondary/40 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                      <span className="rounded-control border border-panel-border/60 bg-secondary/40 px-2 py-0.5 text-xs font-mono text-muted-foreground">
                         {repo.tagCount} {repo.tagCount === 1 ? "tag" : "tags"}
                       </span>
                     ) : null}
-                    <span className="text-[10px] text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
+                    <span className="text-xs text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
                       Open ↵
                     </span>
                   </div>
@@ -238,7 +238,7 @@ export function CommandPalette() {
               </div>
               <span className="text-xs font-medium text-foreground">Add Registry</span>
             </div>
-            <span className="text-[10px] text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
+            <span className="text-xs text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
               Create ↵
             </span>
           </CommandItem>
@@ -253,7 +253,7 @@ export function CommandPalette() {
               </div>
               <span className="text-xs font-medium text-foreground">Browse Repositories</span>
             </div>
-            <span className="text-[10px] text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
+            <span className="text-xs text-muted-foreground/40 font-mono hidden group-data-[selected=true]:inline">
               Explore ↵
             </span>
           </CommandItem>
@@ -261,23 +261,23 @@ export function CommandPalette() {
       </CommandList>
 
       {/* Hotkey Footer */}
-      <div className="flex items-center justify-between border-t border-border/40 bg-secondary/15 px-4 py-2.5 text-[11px] text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-border/40 bg-secondary/15 px-4 py-2.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-[10px] text-foreground">↑↓</kbd>
+            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-xs text-foreground">↑↓</kbd>
             <span>Navigate</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-[10px] text-foreground">↵</kbd>
+            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-xs text-foreground">↵</kbd>
             <span>Select</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-[10px] text-foreground">esc</kbd>
+            <kbd className="rounded-control bg-secondary/80 border border-border/70 px-1.5 py-0.5 font-mono text-xs text-foreground">esc</kbd>
             <span>Close</span>
           </span>
         </div>
         {searchRegistry ? (
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground/70">
+          <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground/70">
             <span className="size-1.5 rounded-full bg-emerald-400" />
             <span>{searchRegistry.name}</span>
           </div>

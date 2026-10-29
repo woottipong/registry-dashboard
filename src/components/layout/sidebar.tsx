@@ -58,7 +58,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               <span className="truncate text-[15px] font-bold tracking-tight text-foreground leading-tight">
                 Registry
               </span>
-              <span className="rounded-control bg-secondary/80 border border-border/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground font-medium">
+              <span className="rounded-control bg-secondary/80 border border-border/60 px-1.5 py-0.5 font-mono text-xs text-muted-foreground font-medium">
                 v0.1.0
               </span>
             </div>
@@ -73,7 +73,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex flex-1 flex-col gap-5 px-3 py-4 overflow-y-auto">
         {/* EXPLORE */}
         <div className="flex flex-col gap-1">
-          <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+          <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
             {"Explore"}
           </p>
           <nav className="flex flex-col gap-0.5">
@@ -124,7 +124,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         {/* INFRASTRUCTURE */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between px-2.5 pb-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
               {"Infrastructure"}
             </p>
             <Link
@@ -159,7 +159,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="truncate">{"Registries"}</span>
               </div>
               {isMounted && registries && registries.length > 0 && (
-                <span className="rounded-control bg-secondary px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground">
+                <span className="rounded-control bg-secondary px-1.5 py-0.5 text-xs font-mono text-muted-foreground">
                   {registries.length}
                 </span>
               )}
@@ -192,7 +192,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       <span className="truncate">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.2 text-[9px] font-mono text-muted-foreground font-medium">
+                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.2 text-xs font-mono text-muted-foreground font-medium">
                         default
                       </span>
                     )}
@@ -206,7 +206,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Minimal status indicator */}
       <div className="border-t border-border/70 px-4 py-3">
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+        <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
           <span className="flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-emerald-400" />
             <span>Operational</span>

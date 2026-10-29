@@ -179,7 +179,7 @@ export function TagTable({
         header: "Platform",
         meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) => (
-          <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 font-mono text-[11px] text-foreground">
+          <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 font-mono text-xs text-foreground">
             {row.original.os}/{row.original.architecture}
           </span>
         ),

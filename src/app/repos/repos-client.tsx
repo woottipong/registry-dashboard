@@ -200,14 +200,14 @@ export function RepositoriesClient({
             {/* Card 1: Active Registry */}
             <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
               <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Active Registry</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Active Registry</span>
                 <ServerIcon className="size-3.5 text-primary" />
               </div>
               <div className="mt-2">
                 <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                   {selectedRegistryData?.name ?? "Registry"}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-mono truncate">
+                <p className="text-xs text-muted-foreground font-mono truncate">
                   {selectedRegistryData?.provider === "dockerhub" ? "Docker Hub" : "Docker Registry V2"}
                 </p>
               </div>
@@ -216,14 +216,14 @@ export function RepositoriesClient({
             {/* Card 2: Namespaces */}
             <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
               <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Namespaces</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Namespaces</span>
                 <LayersIcon className="size-3.5 text-primary" />
               </div>
               <div className="mt-2">
                 <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
                   {namespacesQuery.isLoading ? "…" : namespaceList.length}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-mono">
+                <p className="text-xs text-muted-foreground font-mono">
                   Catalog partitions
                 </p>
               </div>
@@ -232,14 +232,14 @@ export function RepositoriesClient({
             {/* Card 3: Total Repositories */}
             <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
               <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Repositories</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Repositories</span>
                 <FolderIcon className="size-3.5 text-primary" />
               </div>
               <div className="mt-2">
                 <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
                   {repositoriesQuery.isLoading && selectedNamespace === null ? "…" : totalRepositoriesCount}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-mono">
+                <p className="text-xs text-muted-foreground font-mono">
                   {selectedNamespace !== null ? "in active namespace" : "across all namespaces"}
                 </p>
               </div>
@@ -248,14 +248,14 @@ export function RepositoriesClient({
             {/* Card 4: Catalog Scope / Tags */}
             <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
               <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-[11px] font-medium uppercase tracking-wider">Catalog Scope</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Catalog Scope</span>
                 <DatabaseIcon className="size-3.5 text-primary" />
               </div>
               <div className="mt-2">
                 <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate font-mono">
                   {selectedNamespace !== null ? (selectedNamespaceValue || "_root") : "Global Catalog"}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-mono">
+                <p className="text-xs text-muted-foreground font-mono">
                   {totalTagsCount > 0 ? `${totalTagsCount} tags indexed` : "Namespace-first load"}
                 </p>
               </div>
@@ -287,7 +287,7 @@ export function RepositoriesClient({
                     >
                       <span className="truncate max-w-[140px]">{reg.name}</span>
                       {reg.id === selectedRegistry && totalRepositoriesCount > 0 && (
-                        <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px] font-mono">
+                        <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
                           {totalRepositoriesCount}
                         </span>
                       )}
@@ -297,7 +297,7 @@ export function RepositoriesClient({
 
                 {/* Quick Search & Count Pill */}
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground whitespace-nowrap">
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-xs font-mono text-muted-foreground whitespace-nowrap">
                     {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"} available
                   </span>
                   <div className="relative w-full sm:w-60">
@@ -313,7 +313,7 @@ export function RepositoriesClient({
                       <button
                         type="button"
                         onClick={() => setSearch("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
                         aria-label="Clear search"
                       >
                         ✕
@@ -335,7 +335,7 @@ export function RepositoriesClient({
                         <div className="flex items-center justify-between pb-2 border-b border-border/60">
                           <div>
                             <h2 className="text-xs font-semibold text-foreground">Matching Repositories</h2>
-                            <p className="text-[11px] text-muted-foreground">{activeRepos.length} results found across all namespaces</p>
+                            <p className="text-xs text-muted-foreground">{activeRepos.length} results found across all namespaces</p>
                           </div>
                           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
                             <SelectTrigger className="w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories">
@@ -358,7 +358,7 @@ export function RepositoriesClient({
                       <div className="space-y-3">
                         <div className="pb-2 border-b border-border/60">
                           <h2 className="text-xs font-semibold text-foreground">Matching Namespaces</h2>
-                          <p className="text-[11px] text-muted-foreground">{filteredNamespaces.length} namespaces match your query</p>
+                          <p className="text-xs text-muted-foreground">{filteredNamespaces.length} namespaces match your query</p>
                         </div>
                         <NamespaceList
                           namespaces={filteredNamespaces}
@@ -395,10 +395,10 @@ export function RepositoriesClient({
 
               {/* Footer Banner */}
               <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
-                <span className="truncate text-[11px]">
+                <span className="truncate text-xs">
                   {`Available namespaces in ${selectedRegistryData?.name ?? "Registry"}. Click any partition to browse repositories and tags.`}
                 </span>
-                <span className="font-mono text-[11px] text-muted-foreground shrink-0 hidden sm:inline">
+                <span className="font-mono text-xs text-muted-foreground shrink-0 hidden sm:inline">
                   {totalRepositoriesCount} repositories cataloged
                 </span>
               </div>
@@ -423,7 +423,7 @@ export function RepositoriesClient({
                   <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
                     {selectedNamespaceValue ? `${selectedNamespaceValue}/` : "_root"}
                   </span>
-                  <span className="hidden md:inline text-[11px] text-muted-foreground font-mono">
+                  <span className="hidden md:inline text-xs text-muted-foreground font-mono">
                     {repositoriesQuery.isLoading
                       ? "Loading repositories…"
                       : repositoriesQuery.isError
@@ -447,7 +447,7 @@ export function RepositoriesClient({
                       <button
                         type="button"
                         onClick={() => setSearch("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
                         aria-label="Clear search"
                       >
                         ✕
@@ -496,7 +496,7 @@ export function RepositoriesClient({
 
               {/* Footer Banner */}
               <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
-                <span className="truncate text-[11px]">
+                <span className="truncate text-xs">
                   {repositoriesQuery.isLoading
                     ? "Fetching repository tags and manifests from registry…"
                     : repositoriesQuery.isError
@@ -508,7 +508,7 @@ export function RepositoriesClient({
                   variant="ghost"
                   size="sm"
                   onClick={handleBackToNamespaces}
-                  className="h-6 text-[11px] font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
+                  className="h-6 text-xs font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
                 >
                   <ChevronLeftIcon className="mr-1 size-3" />
                   <span>All namespaces</span>
