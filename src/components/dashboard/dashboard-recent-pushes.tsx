@@ -81,7 +81,12 @@ export function DashboardRecentPushes({
             <Skeleton className="h-5 w-16 rounded-control" />
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-xs font-mono text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-emerald-400" />
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  recentPushedImages.length > 0 ? "bg-emerald-400" : "bg-muted-foreground/40",
+                )}
+              />
               {recentPushedImages.length > 0 ? `${recentPushedImages.length} latest` : "0 latest"}
             </span>
           )}
@@ -188,7 +193,7 @@ export function DashboardRecentPushes({
           asChild
         >
           <Link href="/repos">
-            <span>{"View all repos"}</span>
+            <span>{"Browse catalog"}</span>
             <ArrowRightIcon className="ml-1 size-3" />
           </Link>
         </Button>

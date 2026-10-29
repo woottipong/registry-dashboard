@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ServerIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -45,9 +46,14 @@ export function DashboardRegistryDistribution({
                 : 0
 
             return (
-              <div key={reg.id} className="flex flex-col gap-1.5">
+              <Link
+                key={reg.id}
+                href={`/repos?registry=${reg.id}`}
+                className="group flex flex-col gap-1.5 rounded-control p-1.5 -mx-1.5 transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                title={`Filter repositories by ${reg.name}`}
+              >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-foreground truncate max-w-[150px]">
+                  <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate max-w-[150px]">
                     {reg.name}
                   </span>
                   <span className="font-mono text-xs text-muted-foreground">
@@ -63,11 +69,11 @@ export function DashboardRegistryDistribution({
                   className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
                 >
                   <div
-                    className="h-full rounded-full bg-primary transition-all duration-300"
+                    className="h-full rounded-full bg-primary group-hover:bg-primary/90 transition-all duration-300"
                     style={{ width: `${Math.max(sharePercentage, 4)}%` }}
                   />
                 </div>
-              </div>
+              </Link>
             )
           })
         )}

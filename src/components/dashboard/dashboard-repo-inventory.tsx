@@ -10,6 +10,7 @@ import {
   FolderIcon,
   SearchIcon,
   ServerIcon,
+  XIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -62,14 +63,21 @@ export function DashboardRepoInventory({
             type="button"
             onClick={() => onTabChange("all")}
             className={cn(
-              "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+              "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer shrink-0",
               activeTab === "all"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
             <span>All</span>
-            <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.2 text-xs font-mono",
+                activeTab === "all"
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-secondary text-muted-foreground border border-border/50",
+              )}
+            >
               {repositories.length}
             </span>
           </button>
@@ -80,14 +88,21 @@ export function DashboardRepoInventory({
               type="button"
               onClick={() => onTabChange(reg.id)}
               className={cn(
-                "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+                "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer shrink-0",
                 activeTab === reg.id
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               <span className="truncate max-w-[120px]">{reg.name}</span>
-              <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.2 text-xs font-mono",
+                  activeTab === reg.id
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-secondary text-muted-foreground border border-border/50",
+                )}
+              >
                 {reg.repoCount}
               </span>
             </button>
@@ -100,15 +115,25 @@ export function DashboardRepoInventory({
             {"Top 10 repositories"}
           </span>
           <div className="relative w-full sm:w-48">
-            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               placeholder="Filter repos…"
               aria-label="Filter repositories"
               value={tableSearch}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-8 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
+            {tableSearch.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onSearchChange("")}
+                aria-label="Clear repository filter"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 min-w-[24px] min-h-[24px] flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <XIcon className="size-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -164,7 +189,16 @@ export function DashboardRepoInventory({
             ) : topRepositories.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
-                  No repositories found matching this filter.
+                  <p>No repositories found matching this filter.</p>
+                  {tableSearch ? (
+                    <button
+                      type="button"
+                      onClick={() => onSearchChange("")}
+                      className="mt-2 inline-flex items-center text-xs text-primary hover:underline cursor-pointer font-medium"
+                    >
+                      Clear search filter
+                    </button>
+                  ) : null}
                 </td>
               </tr>
             ) : (
