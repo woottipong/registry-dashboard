@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useQueryClient } from "@tanstack/react-query"
-import { BoxIcon, TagsIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { FolderIcon } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -56,12 +55,12 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
 
   return (
     <Table>
-      <TableHeader className="bg-transparent">
+      <TableHeader className="bg-secondary/25">
         <TableRow className="border-b border-border/70 hover:bg-transparent">
-          <TableHead className="px-5 py-3 text-xs font-medium text-muted-foreground">
+          <TableHead className="py-2.5 px-4 text-xs font-medium text-muted-foreground">
             Repository
           </TableHead>
-          <TableHead className="px-5 py-3 text-right text-xs font-medium text-muted-foreground">
+          <TableHead className="py-2.5 px-4 text-right text-xs font-medium text-muted-foreground">
             Tags
           </TableHead>
         </TableRow>
@@ -70,32 +69,44 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
         {repositories.map((repo) => (
           <TableRow
             key={repo.fullName}
-            className="cursor-pointer border-0 hover:bg-secondary/40 transition-colors"
+            className="cursor-pointer border-b border-border/50 hover:bg-secondary/40 transition-colors"
             onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
             onMouseEnter={() => setHoveredRepo(repo)}
             onMouseLeave={() => setHoveredRepo(null)}
           >
-            <TableCell className="px-5 py-3.5">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground">
-                  <BoxIcon className="size-4" />
-                </div>
+            <TableCell className="py-2.5 px-4">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <FolderIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/repos/${registryId}/${repo.fullName}`} onClick={(event) => event.stopPropagation()} className="truncate rounded-sm text-sm font-semibold tracking-tight text-foreground hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{repo.name}</Link>
-                    {repo.isOfficial ? <Badge variant="outline" className="rounded-full text-xs px-2">Official</Badge> : null}
-                    {repo.isPrivate ? <Badge variant="secondary" className="rounded-full text-xs px-2">Private</Badge> : null}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Link
+                      href={`/repos/${registryId}/${repo.fullName}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="truncate font-semibold text-xs text-foreground hover:text-primary"
+                    >
+                      {repo.name}
+                    </Link>
+                    {repo.isOfficial ? (
+                      <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+                        Official
+                      </span>
+                    ) : null}
+                    {repo.isPrivate ? (
+                      <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+                        Private
+                      </span>
+                    ) : null}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">{repo.fullName}</p>
+                  <p className="truncate font-mono text-[10px] text-muted-foreground">{repo.fullName}</p>
                 </div>
               </div>
             </TableCell>
 
-            <TableCell className="px-5 py-3.5 text-right">
-              <Badge variant="secondary" className="h-6 justify-center whitespace-nowrap rounded-full px-2.5 font-mono text-xs text-foreground">
-                <TagsIcon className="size-3" />
+            <TableCell className="py-2.5 px-4 text-right">
+              <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                <span className="size-1 rounded-full bg-success" />
                 <span>{formatCount(repo.tagCount)}</span>
-              </Badge>
+              </span>
             </TableCell>
           </TableRow>
         ))}

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { TagActions } from "@/components/tag/tag-actions"
 import { formatBytes, formatDate, truncateDigest } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import type { Tag } from "@/types/registry"
 
 interface TagTableProps {
@@ -88,15 +89,15 @@ export function TagTable({
             type="button"
             variant="ghost"
             size="sm"
-            className="-ml-2"
+            className="-ml-2 h-7 text-xs font-medium text-muted-foreground hover:text-foreground"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Tag
-            <ArrowUpDownIcon data-icon="inline-end" />
+            <ArrowUpDownIcon className="size-3 ml-1" />
           </Button>
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-sm font-medium">{row.original.name}</span>
+          <span className="font-mono text-xs font-semibold text-foreground">{row.original.name}</span>
         ),
       },
       {
@@ -120,16 +121,19 @@ export function TagTable({
             type="button"
             variant="ghost"
             size="sm"
-            className="-ml-2"
+            className="-ml-2 h-7 text-xs font-medium text-muted-foreground hover:text-foreground"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Size
-            <ArrowUpDownIcon data-icon="inline-end" />
+            <ArrowUpDownIcon className="size-3 ml-1" />
           </Button>
         ),
         cell: ({ row }) =>
           row.original.size > 0 ? (
-            formatBytes(row.original.size)
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-foreground font-medium">
+              <span className="size-1 rounded-full bg-success" />
+              {formatBytes(row.original.size)}
+            </span>
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
@@ -142,16 +146,16 @@ export function TagTable({
             type="button"
             variant="ghost"
             size="sm"
-            className="-ml-2"
+            className="-ml-2 h-7 text-xs font-medium text-muted-foreground hover:text-foreground"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Created
-            <ArrowUpDownIcon data-icon="inline-end" />
+            <ArrowUpDownIcon className="size-3 ml-1" />
           </Button>
         ),
         cell: ({ row }) =>
           row.original.createdAt ? (
-            <span className="text-sm text-muted-foreground">{formatDate(row.original.createdAt)}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(row.original.createdAt)}</span>
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
@@ -161,7 +165,7 @@ export function TagTable({
         header: "Platform",
         meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 font-mono text-[11px] text-foreground">
             {row.original.os}/{row.original.architecture}
           </span>
         ),
@@ -269,13 +273,16 @@ export function TagTable({
     <div>
       <div className="overflow-hidden">
         <Table>
-          <TableHeader className="bg-transparent">
+          <TableHeader className="bg-secondary/25">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b border-border/70 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={(header.column.columnDef.meta as { className?: string })?.className}
+                    className={cn(
+                      "py-2 px-3 text-xs font-medium text-muted-foreground",
+                      (header.column.columnDef.meta as { className?: string })?.className,
+                    )}
                     aria-sort={
                       !header.column.getCanSort()
                         ? undefined
@@ -299,7 +306,7 @@ export function TagTable({
               {table.getRowModel().rows.map((row) => (
                 <motion.tr
                   key={row.original.name}
-                  className="border-0 odd:bg-secondary/20 transition-colors hover:bg-secondary/60 data-[state=selected]:bg-accent"
+                  className="border-b border-border/50 text-xs transition-colors hover:bg-secondary/40 data-[state=selected]:bg-primary/10 data-[state=selected]:ring-1 data-[state=selected]:ring-inset data-[state=selected]:ring-primary/40"
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
                   layout
@@ -307,7 +314,10 @@ export function TagTable({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={(cell.column.columnDef.meta as { className?: string })?.className}
+                      className={cn(
+                        "py-2.5 px-3",
+                        (cell.column.columnDef.meta as { className?: string })?.className,
+                      )}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

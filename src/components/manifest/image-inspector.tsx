@@ -17,7 +17,6 @@ import {
 import { useRouter } from "next/navigation"
 import { copyToClipboard } from "@/lib/clipboard"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -50,25 +49,6 @@ interface ImageInspectorProps {
   registryName?: string
   registryUrl?: string
 }
-
-// Extract MetricCard component
-interface MetricCardProps {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  value: string
-}
-
-const MetricCard = React.memo(({ icon: Icon, label, value }: MetricCardProps) => (
-  <div className="min-w-0 px-1 py-3">
-    <div className="mb-1.5 flex items-center gap-1.5">
-      <Icon className="size-3.5 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-    </div>
-    <div className="text-sm font-semibold tracking-tight text-foreground">{value}</div>
-  </div>
-))
-
-MetricCard.displayName = 'MetricCard'
 
 // Main component wrapped with error boundary
 const ImageInspectorWithBoundary = React.memo((props: ImageInspectorProps) => (
@@ -146,56 +126,105 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
   const { manifest, config } = data
 
   return (
-    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:pt-6">
-      <div className="flex flex-col gap-4 pb-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleBack} className="w-fit">
-            <ChevronLeftIcon data-icon="inline-start" />
-            Tags
+    <section className="mx-auto flex w-full max-w-page flex-col gap-5 pt-2 sm:pt-4">
+      <div className="flex flex-col gap-3 pb-1">
+        {/* Breadcrumb / Tag Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground -ml-1 gap-1"
+          >
+            <ChevronLeftIcon className="size-3.5" />
+            <span>Tags</span>
           </Button>
-          {registryName ? <Badge variant="outline">{registryName}</Badge> : null}
-          <Badge>{tag}</Badge>
-          <Badge variant="outline" className="font-mono">{truncatedDigest}</Badge>
+          <span className="text-muted-foreground/40">/</span>
+          {registryName ? (
+            <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 text-[11px] text-muted-foreground">
+              {registryName}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1.5 rounded-control border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-mono font-semibold text-primary">
+            <span className="size-1.5 rounded-full bg-primary" />
+            {tag}
+          </span>
+          <span className="inline-flex items-center rounded-control border border-panel-border bg-secondary/30 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+            {truncatedDigest}
+          </span>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">{repoName}</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+        {/* Title and Pull Action */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
+              {repoName}
+            </h1>
+            <p className="text-xs text-muted-foreground">
               Inspect layers, configuration, history, and raw manifest data.
             </p>
           </div>
-          <Button size="sm" variant="outline" onClick={copyPullCommand} className="w-fit">
-            <ClipboardIcon data-icon="inline-start" />
-            Copy Pull Command
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={copyPullCommand}
+            className="rounded-control border-panel-border bg-secondary/30 px-3 text-xs font-mono shadow-xs gap-1.5 hover:bg-secondary/60 hover:text-foreground text-foreground w-fit shrink-0"
+          >
+            <ClipboardIcon className="size-3.5 text-muted-foreground" />
+            <span>Copy Pull Command</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard
-            icon={CpuIcon}
-            label="Platform"
-            value={platform}
-          />
-          <MetricCard
-            icon={HardDriveIcon}
-            label="Size"
-            value={formatBytes(manifest.totalSize)}
-          />
-          <MetricCard
-            icon={LayersIcon}
-            label="Layers"
-            value={manifest.layers.length.toString()}
-          />
-          <MetricCard
-            icon={CalendarIcon}
-            label="Created"
-            value={config?.created ? formatDate(config.created) : '—'}
-          />
+        {/* Compact Metadata Strip */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 rounded-panel border border-panel-border bg-card/60 divide-y sm:divide-y-0 sm:divide-x divide-panel-border shadow-panel overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex size-7 items-center justify-center rounded-control bg-secondary/50 text-muted-foreground shrink-0 border border-panel-border/50">
+              <CpuIcon className="size-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Platform</div>
+              <div className="text-xs font-mono font-medium text-foreground truncate">{platform}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex size-7 items-center justify-center rounded-control bg-secondary/50 text-muted-foreground shrink-0 border border-panel-border/50">
+              <HardDriveIcon className="size-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Size</div>
+              <div className="text-xs font-mono font-medium text-foreground flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-emerald-400 shrink-0" />
+                {formatBytes(manifest.totalSize)}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex size-7 items-center justify-center rounded-control bg-secondary/50 text-muted-foreground shrink-0 border border-panel-border/50">
+              <LayersIcon className="size-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Layers</div>
+              <div className="text-xs font-mono font-medium text-foreground">{manifest.layers.length} layers</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex size-7 items-center justify-center rounded-control bg-secondary/50 text-muted-foreground shrink-0 border border-panel-border/50">
+              <CalendarIcon className="size-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Created</div>
+              <div className="text-xs font-mono font-medium text-foreground truncate" title={config?.created ? formatDate(config.created) : undefined}>
+                {config?.created ? formatDate(config.created) : "—"}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-panel p-5 sm:p-7 shadow-panel border-0 bg-card">
+      <div className="rounded-panel p-5 sm:p-7 shadow-panel border border-panel-border bg-card">
         <div className="pb-4">
           <h2 className="text-base font-semibold tracking-tight">Manifest Workspace</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">Review layers, configuration, history, and raw manifest data.</p>
@@ -261,44 +290,30 @@ function useHydrated() {
 
 function ImageInspectorLoading({ detailed }: { detailed: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-page space-y-5">
+    <div className="mx-auto w-full max-w-page space-y-4 pt-2 sm:pt-4">
       <div className="flex flex-col gap-2">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-7 w-60" />
       </div>
-      <div className="rounded-lg border border-border/70 bg-card/80">
-        <div className="gap-3 p-4 pb-0">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-28 rounded-xl" />
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="p-4">
-          <Skeleton className="h-16 w-full rounded-xl" />
-          <div className="mt-4 space-y-3">
-            {detailed ? (
-              <>
-                <div className="grid h-9 w-full grid-cols-4 gap-1 rounded-md bg-muted p-1">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-7 rounded-md bg-background/70" />
-                  ))}
-                </div>
-                <LayerListSkeleton />
-              </>
-            ) : (
-              <>
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-64 w-full rounded-xl" />
-              </>
-            )}
-          </div>
+      <Skeleton className="h-14 w-full rounded-panel" />
+      <div className="rounded-panel border border-panel-border bg-card p-5">
+        <Skeleton className="h-6 w-48 mb-4" />
+        <div className="space-y-3">
+          {detailed ? (
+            <>
+              <div className="grid h-9 w-full grid-cols-4 gap-1 rounded-md bg-muted p-1">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-7 rounded-md bg-background/70" />
+                ))}
+              </div>
+              <LayerListSkeleton />
+            </>
+          ) : (
+            <>
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -87,7 +87,7 @@ export function RegistryCard({
   return (
     <Card
       className={cn(
-        "h-auto self-start overflow-hidden rounded-panel bg-card p-6 shadow-panel border-0 transition-shadow duration-200 gap-4",
+        "h-auto self-start overflow-hidden rounded-panel bg-card p-5 shadow-panel border border-panel-border transition-colors duration-150 gap-4",
         className,
       )}
     >

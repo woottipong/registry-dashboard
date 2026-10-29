@@ -5,7 +5,7 @@ import { AlertCircleIcon, HomeIcon } from "lucide-react"
 export default function NotFound() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-panel border-0 bg-card p-8 text-center space-y-6 shadow-panel">
+      <div className="w-full max-w-md rounded-panel border border-panel-border bg-card p-8 text-center space-y-6 shadow-panel">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-secondary/80">
           <AlertCircleIcon className="size-7 text-muted-foreground" />
         </div>

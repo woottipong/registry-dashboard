@@ -117,69 +117,69 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:gap-7 sm:pt-6">
-      <div className="flex flex-col gap-5 pb-2">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
+      <div className="flex flex-col gap-4 border-b border-border/70 pb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">Registries</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Registries</h1>
+            <p className="max-w-2xl text-xs text-muted-foreground sm:text-sm">
               Manage registry connections, defaults, authentication, and repository entry points.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={handleAddRegistry}>
-              <PlusIcon data-icon="inline-start" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" className="h-9 rounded-control font-medium px-3.5 gap-1.5" onClick={handleAddRegistry}>
+              <PlusIcon className="size-3.5" />
               Add Registry
             </Button>
-            <Button size="sm" variant="outline" asChild>
+            <Button size="sm" variant="outline" className="h-9 rounded-control font-medium px-3.5 gap-1.5 border-border/80 hover:bg-secondary" asChild>
               <Link href="/repos">
                 Browse repositories
-                <ArrowRightIcon data-icon="inline-end" />
+                <ArrowRightIcon className="size-3.5" />
               </Link>
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 py-3 sm:grid-cols-3 [&>div:last-child]:col-span-2 sm:[&>div:last-child]:col-span-1">
-          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} />
-          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} />
-          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} subtext="Live endpoints" />
+          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} subtext="Active driver" />
+          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} subtext="Primary target" />
         </div>
 
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name, URL, or namespace"
-              className="pl-9.5 rounded-control h-10"
+              placeholder="Search by name, URL, or namespace…"
+              className="pl-8 rounded-control h-9 text-xs bg-secondary/50 border border-border/70 focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-wrap items-center gap-2">
             <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="w-full sm:w-[150px] rounded-control h-10">
+              <SelectTrigger className="w-full sm:w-[130px] rounded-control h-9 text-xs bg-secondary/50 border border-border/70">
                 <SelectValue placeholder="Provider" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="all">All providers</SelectItem>
-                <SelectItem value="generic">Registry V2</SelectItem>
-                <SelectItem value="dockerhub">Docker Hub</SelectItem>
+              <SelectContent className="rounded-control">
+                <SelectItem value="all" className="text-xs">All providers</SelectItem>
+                <SelectItem value="generic" className="text-xs">Registry V2</SelectItem>
+                <SelectItem value="dockerhub" className="text-xs">Docker Hub</SelectItem>
               </SelectContent>
             </Select>
             <Select value={authFilter} onValueChange={setAuthFilter}>
-              <SelectTrigger className="w-full sm:w-[140px] rounded-control h-10">
+              <SelectTrigger className="w-full sm:w-[130px] rounded-control h-9 text-xs bg-secondary/50 border border-border/70">
                 <SelectValue placeholder="Auth" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="all">All auth</SelectItem>
-                <SelectItem value="none">Anonymous</SelectItem>
-                <SelectItem value="basic">Basic Auth</SelectItem>
-                <SelectItem value="bearer">Token</SelectItem>
+              <SelectContent className="rounded-control">
+                <SelectItem value="all" className="text-xs">All auth</SelectItem>
+                <SelectItem value="none" className="text-xs">Anonymous</SelectItem>
+                <SelectItem value="basic" className="text-xs">Basic Auth</SelectItem>
+                <SelectItem value="bearer" className="text-xs">Token</SelectItem>
               </SelectContent>
             </Select>
             {hasActiveFilters ? (
-              <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="rounded-control h-10">
+              <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="rounded-control h-9 text-xs">
                 Clear
               </Button>
             ) : null}
@@ -199,7 +199,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Try again
             </Button>
           }
-          className="rounded-panel bg-card p-12 shadow-panel border-0"
+          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
         />
       ) : isEmpty ? (
         <EmptyState
@@ -212,7 +212,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Add Registry
             </Button>
           }
-          className="rounded-panel bg-card p-12 shadow-panel border-0"
+          className="rounded-panel bg-card p-12 shadow-panel border border-panel-border"
         />
       ) : filteredRegistries.length === 0 ? (
         <EmptyState
@@ -224,7 +224,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               Clear filters
             </Button>
           }
-          className="rounded-panel bg-card p-10 shadow-panel border-0"
+          className="rounded-panel bg-card p-10 shadow-panel border border-panel-border"
         />
       ) : (
         <div className="grid items-start gap-3 xl:grid-cols-2">
@@ -281,26 +281,30 @@ function SummaryStat({
   label,
   value,
   mono = true,
-  compact = false,
   icon: Icon,
+  subtext,
 }: {
   label: string
   value: string
   mono?: boolean
-  compact?: boolean
   icon?: React.ComponentType<{ className?: string }>
+  subtext?: string
 }) {
   return (
-    <div className={`flex min-w-0 flex-col justify-between ${compact ? "py-2" : "py-3"}`}>
-      <div className="flex items-center gap-2.5 text-muted-foreground">
-        {Icon ? (
-          <Icon className="size-4 shrink-0" />
-        ) : null}
-        <span className="text-sm font-medium">{label}</span>
+    <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel transition-colors">
+      <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
+        <span className="flex items-center gap-1.5">
+          {Icon ? <Icon className="size-3.5 text-primary" /> : null}
+          {label}
+        </span>
       </div>
-      <p className={`mt-3 truncate font-semibold tracking-tight text-foreground ${mono ? "text-2xl tabular-nums" : "text-base sm:text-lg"}`}>
+      <div className={`mt-2 font-semibold tracking-tight text-foreground truncate ${mono ? "text-2xl tabular-nums sm:text-3xl" : "text-xl sm:text-2xl"}`}>
         {value}
-      </p>
+      </div>
+      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-success font-medium">
+        <span className="size-1.5 rounded-full bg-success" />
+        <span>{subtext ?? "Active"}</span>
+      </div>
     </div>
   )
 }

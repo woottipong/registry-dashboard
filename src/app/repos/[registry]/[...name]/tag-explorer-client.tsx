@@ -7,7 +7,6 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIc
 import { toast } from "sonner"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
@@ -196,38 +195,44 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-page flex-col gap-6 pt-3 sm:pt-6">
-      <div className="flex flex-col gap-4 pb-2">
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
+      <div className="flex flex-col gap-4 border-b border-border/70 pb-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-control">
-            <ChevronLeftIcon data-icon="inline-start" />
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-control h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1">
+            <ChevronLeftIcon className="size-3.5" />
             Repositories
           </Button>
-          {registryQuery.data ? <Badge variant="outline" className="rounded-full">{registryQuery.data.name}</Badge> : null}
-          <Badge variant="secondary" className="rounded-full">{tagCountDisplay}</Badge>
+          {registryQuery.data ? (
+            <span className="rounded-control bg-secondary px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+              {registryQuery.data.name}
+            </span>
+          ) : null}
+          <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-[11px] font-mono text-foreground font-medium">
+            {tagCountDisplay}
+          </span>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
-            <h1 className="text-page-title font-semibold tracking-tight sm:text-3xl">{repoName}</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{repoName}</h1>
+            <p className="max-w-2xl text-xs text-muted-foreground sm:text-sm">
               Review tags, inspect images, and remove unused digests.
             </p>
           </div>
 
-          <div className="relative w-full lg:max-w-md">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full lg:max-w-xs">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={handleSearchChange}
-              className="pl-9.5 pr-9 rounded-xl h-10"
-              placeholder="Filter tags"
+              className="pl-8 pr-8 rounded-control h-9 text-xs bg-secondary/50 border border-border/70 focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Filter tags…"
             />
             {search ? (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-8 w-8 rounded-full p-0"
+                className="absolute right-1 top-1 h-7 w-7 rounded-control p-0"
                 onClick={handleClearSearch}
               >
                 <XIcon className="size-3.5" />
@@ -237,9 +242,9 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      <div className="rounded-panel p-5 sm:p-7 shadow-panel border-0 bg-card">
-        <div className="pb-4">
-          <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
+      <div className="rounded-panel border border-panel-border bg-card p-4 sm:p-5 shadow-panel overflow-hidden">
+        <div className="pb-3.5 border-b border-border/70 mb-3">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">Tag Inventory</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
         </div>
         <div>
@@ -248,7 +253,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               icon={<TagIcon className="size-5" />}
               title="Failed to load tags"
               description={tagsQuery.error?.message ?? "Unable to fetch tags."}
-              className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
+              className="rounded-panel border border-panel-border bg-card p-8 text-center"
             />
           ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
             <AppEmptyState
@@ -256,7 +261,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               title={search ? "No matching tags" : "No tags yet"}
               description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
               action={search ? <Button variant="outline" className="rounded-control shadow-xs" onClick={handleClearSearch}>Clear search</Button> : undefined}
-              className="rounded-2xl border-0 bg-secondary/30 p-8 text-center"
+              className="rounded-panel border border-panel-border bg-card p-8 text-center"
             />
           ) : (
             <>
