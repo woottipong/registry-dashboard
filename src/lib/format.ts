@@ -140,16 +140,3 @@ export function parseRepositoryName(fullName: string): ParsedRepositoryName {
     name: parts[parts.length - 1] ?? fullName,
   }
 }
-
-/**
- * Formats a confirmed repository layer disk footprint.
- * Returns formatted bytes if confirmed sizeBytes is provided and positive; otherwise returns "—".
- * Avoids fictitious multiplication estimates that ignore container layer deduplication.
- */
-export function formatEstimatedSize(tagCount?: number | null, sizeBytes?: number | null): string {
-  if (sizeBytes !== undefined && sizeBytes !== null && sizeBytes > 0) {
-    return formatBytes(sizeBytes)
-  }
-
-  return "—"
-}

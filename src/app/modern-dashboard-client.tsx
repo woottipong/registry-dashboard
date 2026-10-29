@@ -234,8 +234,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSortChange={handleSortChange}
-            copiedCommandId={copiedCommandId}
-            onCopyCommand={handleCopyCommand}
           />
         </div>
 

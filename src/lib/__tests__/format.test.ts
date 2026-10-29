@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { formatBytes, formatDate, truncateDigest, generatePullCommand, parseRepositoryName, formatEstimatedSize } from "@/lib/format"
+import { formatBytes, formatDate, truncateDigest, generatePullCommand, parseRepositoryName } from "@/lib/format"
 
 describe("formatBytes", () => {
   it("returns '0 B' for zero", () => {
@@ -129,24 +129,5 @@ describe("parseRepositoryName", () => {
 
   it("handles empty string gracefully", () => {
     expect(parseRepositoryName("")).toEqual({ namespace: "", name: "" })
-  })
-})
-
-describe("formatEstimatedSize", () => {
-  it("returns dash for undefined, null, or zero inputs", () => {
-    expect(formatEstimatedSize(undefined, undefined)).toBe("—")
-    expect(formatEstimatedSize(null, null)).toBe("—")
-    expect(formatEstimatedSize(0, 0)).toBe("—")
-  })
-
-  it("formats confirmed sizeBytes accurately", () => {
-    expect(formatEstimatedSize(10, 1024 * 1024)).toBe("1.0 MB")
-    expect(formatEstimatedSize(1, 1024 * 1024 * 1024)).toBe("1.0 GB")
-  })
-
-  it("returns dash instead of a fabricated multiplier when sizeBytes is missing", () => {
-    expect(formatEstimatedSize(1, undefined)).toBe("—")
-    expect(formatEstimatedSize(20, null)).toBe("—")
-    expect(formatEstimatedSize(100, 0)).toBe("—")
   })
 })

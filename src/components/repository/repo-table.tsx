@@ -16,7 +16,6 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import { queryKeys } from "@/lib/constants/query-keys"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
-import { formatEstimatedSize } from "@/lib/format"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -74,9 +73,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
             <TableHead className="py-2.5 px-3 font-medium">Repository</TableHead>
             <TableHead className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</TableHead>
             <TableHead className="py-2.5 px-3 font-medium min-w-[130px]">Tags & Volume</TableHead>
-            <TableHead className="py-2.5 px-3 font-medium text-right hidden sm:table-cell" title="Confirmed layer size from manifest">
-              Size
-            </TableHead>
             <TableHead className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
           </TableRow>
         </TableHeader>
@@ -169,14 +165,6 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                       </div>
                     ) : null}
                   </div>
-                </TableCell>
-
-                {/* Confirmed Image Size */}
-                <TableCell
-                  className="py-2.5 px-3 text-right font-mono text-xs text-foreground whitespace-nowrap hidden sm:table-cell"
-                  title="Confirmed layer size from manifest"
-                >
-                  {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
                 </TableCell>
 
                 {/* Action Link (Inspect) */}

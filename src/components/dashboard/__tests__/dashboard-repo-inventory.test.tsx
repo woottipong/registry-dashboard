@@ -57,9 +57,8 @@ describe("DashboardRepoInventory", () => {
     expect(onTabChange).toHaveBeenCalledWith("reg-1")
   })
 
-  it("handles column sorting and inline pull command copy", () => {
+  it("handles column sorting and inspect link navigation", () => {
     const onSortChange = vi.fn()
-    const onCopyCommand = vi.fn()
 
     render(
       <DashboardRepoInventory
@@ -76,8 +75,6 @@ describe("DashboardRepoInventory", () => {
         sortBy="tags"
         sortOrder="desc"
         onSortChange={onSortChange}
-        copiedCommandId={null}
-        onCopyCommand={onCopyCommand}
       />
     )
 
@@ -90,10 +87,10 @@ describe("DashboardRepoInventory", () => {
     fireEvent.click(tagsSortBtn)
     expect(onSortChange).toHaveBeenCalledWith("tags")
 
-    // Copy pull command button
-    const copyBtn = screen.getByLabelText("Copy pull command for apps/web")
-    fireEvent.click(copyBtn)
-    expect(onCopyCommand).toHaveBeenCalledWith("docker pull apps/web:latest", "reg-1-apps/web")
+    // Inspect link navigation exists without copy button
+    expect(screen.getByLabelText("Inspect web repository")).toHaveAttribute("href", "/repos/reg-1/apps/web")
+    expect(screen.queryByLabelText(/copy pull command/i)).toBeNull()
+    expect(screen.queryByText("Size")).toBeNull()
   })
 
   it("shows empty state when no repositories match filter", () => {

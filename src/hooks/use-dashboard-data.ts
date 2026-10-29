@@ -15,7 +15,6 @@ export interface DashboardRepoItem extends Repository {
 interface DashboardData {
   totalRepositories: number
   totalTags: number
-  totalSizeBytes: number
   chartData: Array<{ name: string; registryId: string; tagCount: number }>
   repositories: DashboardRepoItem[]
   registriesWithStats: Array<{
@@ -32,7 +31,6 @@ interface DashboardData {
     updatedAt?: string
     repoCount: number
     tagCount: number | null
-    sizeBytes: number
   }>
 }
 
@@ -94,7 +92,6 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       return {
         totalRepositories: 0,
         totalTags: 0,
-        totalSizeBytes: 0,
         chartData: [],
         repositories: [],
         registriesWithStats: []
@@ -105,7 +102,6 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     const allRepoItems: DashboardRepoItem[] = []
     let totalRepos = 0
     let totalTagsCount = 0
-    let totalSize = 0
 
     const regStats = memoizedRegistries.map((registry, index) => {
       const queryResult = repoQueries[index]
@@ -116,7 +112,6 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       // A missing tag count means the total for this registry is unknown.
       const tagCount = repos.some((r) => r.tagCount === undefined) ? null :
         repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
-      const sizeBytes = repos.reduce((sum: number, r: Repository) => sum + (r.sizeBytes ?? 0), 0)
 
       // Only add to chart data if we have repositories
       if (repoCount > 0) {
@@ -139,13 +134,11 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
 
       totalRepos += repoCount
       totalTagsCount += tagCount ?? 0  // Only add if tagCount is defined
-      totalSize += sizeBytes
 
       return {
         ...registry,
         repoCount,
         tagCount,
-        sizeBytes
       }
     })
 
@@ -157,7 +150,6 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     return {
       totalRepositories: totalRepos,
       totalTags: totalTagsCount,
-      totalSizeBytes: totalSize,
       chartData: sortedChartData,
       repositories: allRepoItems,
       registriesWithStats: regStats

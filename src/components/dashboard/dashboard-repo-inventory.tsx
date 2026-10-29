@@ -6,15 +6,12 @@ import { useRouter } from "next/navigation"
 import {
   ArrowRightIcon,
   ArrowUpDownIcon,
-  CheckIcon,
-  CopyIcon,
   DatabaseIcon,
   FolderIcon,
   SearchIcon,
   ServerIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatEstimatedSize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { DashboardRepoItem } from "@/hooks/use-dashboard-data"
 
@@ -32,8 +29,6 @@ export interface DashboardRepoInventoryProps {
   sortBy?: "name" | "tags"
   sortOrder?: "asc" | "desc"
   onSortChange?: (column: "name" | "tags") => void
-  copiedCommandId?: string | null
-  onCopyCommand?: (cmd: string, id: string) => void
 }
 
 export function DashboardRepoInventory({
@@ -50,8 +45,6 @@ export function DashboardRepoInventory({
   sortBy = "tags",
   sortOrder = "desc",
   onSortChange,
-  copiedCommandId,
-  onCopyCommand,
 }: DashboardRepoInventoryProps) {
   const router = useRouter()
 
@@ -156,24 +149,21 @@ export function DashboardRepoInventory({
                   "Tags & Volume"
                 )}
               </th>
-              <th className="py-2.5 px-3 font-medium text-right hidden sm:table-cell" title="Confirmed layer size from manifest">
-                Size
-              </th>
-              <th className="w-16 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Actions" />
+              <th className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50 font-sans">
             {isLoadingRegistries || isLoadingRepos ? (
               Array.from({ length: 6 }).map((_, index) => (
                 <tr key={index} className="h-12">
-                  <td colSpan={7} className="px-4 py-3">
+                  <td colSpan={6} className="px-4 py-3">
                     <Skeleton className="h-5 w-full rounded-control" />
                   </td>
                 </tr>
               ))
             ) : topRepositories.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-xs text-muted-foreground">
+                <td colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
                   No repositories found matching this filter.
                 </td>
               </tr>
@@ -181,7 +171,6 @@ export function DashboardRepoInventory({
               topRepositories.map((repo, idx) => {
                 const rowKey = `${repo.registryId}-${repo.fullName}`
                 const isTopRanked = idx === 0 && sortBy === "tags" && sortOrder === "desc"
-                const pullCmd = `docker pull ${repo.fullName}:latest`
 
                 return (
                   <tr
@@ -278,42 +267,17 @@ export function DashboardRepoInventory({
                       </div>
                     </td>
 
-                    {/* Confirmed Image Size */}
-                    <td className="py-2.5 px-3 text-right font-mono text-xs text-foreground whitespace-nowrap hidden sm:table-cell" title="Confirmed layer size from manifest">
-                      {formatEstimatedSize(repo.tagCount, repo.sizeBytes)}
-                    </td>
-
-                    {/* Actions: Inline Copy Pull & Inspect */}
-                    <td className="w-16 py-2.5 pl-2 pr-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {onCopyCommand && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onCopyCommand(pullCmd, rowKey)
-                            }}
-                            className="p-1.5 min-w-[24px] min-h-[24px] flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
-                            title={`Copy: ${pullCmd}`}
-                            aria-label={`Copy pull command for ${repo.fullName}`}
-                          >
-                            {copiedCommandId === rowKey ? (
-                              <CheckIcon className="size-3 text-success" />
-                            ) : (
-                              <CopyIcon className="size-3" />
-                            )}
-                          </button>
-                        )}
-                        <Link
-                          href={`/repos/${repo.registryId}/${repo.fullName}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          title={`Inspect ${repo.name} repository`}
-                          aria-label={`Inspect ${repo.name} repository`}
-                        >
-                          <ArrowRightIcon className="size-3.5" />
-                        </Link>
-                      </div>
+                    {/* Action: Inspect */}
+                    <td className="w-10 py-2.5 pl-2 pr-4 text-right">
+                      <Link
+                        href={`/repos/${repo.registryId}/${repo.fullName}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        title={`Inspect ${repo.name} repository`}
+                        aria-label={`Inspect ${repo.name} repository`}
+                      >
+                        <ArrowRightIcon className="size-3.5" />
+                      </Link>
                     </td>
                   </tr>
                 )
