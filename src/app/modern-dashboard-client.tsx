@@ -167,7 +167,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </div>
       )}
 
-      {/* Top 4-card KPI Stat Strip (Doorlog style: Large numbers, clean text, vivid status dots) */}
+      {/* Top 4-card KPI Stat Strip (Doorlog style: Large numbers, clean text) */}
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
         {/* Card 1: Registries */}
         <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel transition-colors">
@@ -185,10 +185,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 {registries.length}
               </span>
             )}
-          </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-success font-medium">
-            <span className="size-1.5 rounded-full bg-success" />
-            <span>{"Live connected"}</span>
           </div>
         </div>
 
@@ -209,10 +205,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </span>
             )}
           </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-primary font-medium">
-            <span className="size-1.5 rounded-full bg-primary" />
-            <span>{`${totalRepositories} indexed`}</span>
-          </div>
         </div>
 
         {/* Card 3: Tags */}
@@ -232,10 +224,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </span>
             )}
           </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-success font-medium">
-            <span className="size-1.5 rounded-full bg-success" />
-            <span>{`+${totalTags} tags ready`}</span>
-          </div>
         </div>
 
         {/* Card 4: Providers */}
@@ -254,10 +242,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                 {providerCount}
               </span>
             )}
-          </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
-            <span className="size-1.5 rounded-full bg-primary" />
-            <span>{"100% operational"}</span>
           </div>
         </div>
       </div>

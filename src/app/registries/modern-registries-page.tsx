@@ -4,12 +4,9 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 import {
   ArrowRightIcon,
-  CheckIcon,
-  DatabaseIcon,
   PlusIcon,
   SearchIcon,
   ServerIcon,
-  ShieldCheckIcon,
   Trash2Icon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -65,10 +62,6 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
     () => registries.find((registry) => registry.isDefault) ?? null,
     [registries],
   )
-  const providerCount = useMemo(
-    () => new Set(registries.map((registry) => registry.provider)).size,
-    [registries],
-  )
   const filteredRegistries = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -120,13 +113,25 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
       <div className="flex flex-col gap-4 border-b border-border/70 pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Registries</h1>
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Registries</h1>
+              <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-[11px] font-mono text-muted-foreground font-medium">
+                {registries.length} {registries.length === 1 ? "endpoint" : "endpoints"}
+              </span>
+              {defaultRegistry ? (
+                <span className="inline-flex items-center gap-1.5 rounded-control border border-border/70 bg-secondary/50 px-2.5 py-0.5 font-mono text-[11px] text-muted-foreground">
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                  <span>Default:</span>
+                  <span className="text-foreground font-medium">{defaultRegistry.name}</span>
+                </span>
+              ) : null}
+            </div>
             <p className="max-w-2xl text-xs text-muted-foreground sm:text-sm">
               Manage registry connections, defaults, authentication, and repository entry points.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button size="sm" className="h-9 rounded-control font-medium px-3.5 gap-1.5" onClick={handleAddRegistry}>
               <PlusIcon className="size-3.5" />
               Add Registry
@@ -138,12 +143,6 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
               </Link>
             </Button>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <SummaryStat label="Registries" value={String(registries.length)} icon={DatabaseIcon} subtext="Live endpoints" />
-          <SummaryStat label="Providers" value={String(providerCount)} icon={ShieldCheckIcon} subtext="Active driver" />
-          <SummaryStat label="Default Registry" value={defaultRegistry?.name ?? "Unset"} mono={false} icon={CheckIcon} subtext="Primary target" />
         </div>
 
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
@@ -274,37 +273,5 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         </AlertDialogContent>
       </AlertDialog>
     </section>
-  )
-}
-
-function SummaryStat({
-  label,
-  value,
-  mono = true,
-  icon: Icon,
-  subtext,
-}: {
-  label: string
-  value: string
-  mono?: boolean
-  icon?: React.ComponentType<{ className?: string }>
-  subtext?: string
-}) {
-  return (
-    <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel transition-colors">
-      <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
-        <span className="flex items-center gap-1.5">
-          {Icon ? <Icon className="size-3.5 text-primary" /> : null}
-          {label}
-        </span>
-      </div>
-      <div className={`mt-2 font-semibold tracking-tight text-foreground truncate ${mono ? "text-2xl tabular-nums sm:text-3xl" : "text-xl sm:text-2xl"}`}>
-        {value}
-      </div>
-      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-success font-medium">
-        <span className="size-1.5 rounded-full bg-success" />
-        <span>{subtext ?? "Active"}</span>
-      </div>
-    </div>
   )
 }

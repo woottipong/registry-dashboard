@@ -11,7 +11,10 @@ vi.mock("next/navigation", () => ({
 }))
 vi.mock("@/hooks/use-registries", () => ({ useRegistries: ({ initialData }: { initialData: RegistryConnection[] }) => ({ data: initialData }) }))
 vi.mock("@/hooks/use-namespaces", () => ({ useNamespaces: () => ({ data: [] }) }))
-vi.mock("@/hooks/use-repositories", () => ({ useRepositories: () => ({ isLoading: state.loading, isError: state.error, data: undefined, refetch: vi.fn() }) }))
+vi.mock("@/hooks/use-repositories", () => ({
+  useRepositories: () => ({ isLoading: state.loading, isError: state.error, data: undefined, refetch: vi.fn() }),
+  useSearchRepositories: () => ({ isLoading: false, isError: false, data: undefined }),
+}))
 
 const registry: RegistryConnection = { id: "reg", name: "Registry", url: "https://example.com", provider: "generic", authType: "none", createdAt: "2024-01-01" }
 

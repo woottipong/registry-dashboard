@@ -341,7 +341,7 @@ export function RepositoriesClient({
                   <RepoSkeleton />
                 ) : repositoriesQuery.isError ? (
                   <ErrorState onRetry={() => repositoriesQuery.refetch()} />
-                ) : filteredRepos.length === 0 ? (
+                ) : sortedRepos.length === 0 ? (
                   <EmptyState
                     message={
                       debouncedSearch

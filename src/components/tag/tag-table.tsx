@@ -60,26 +60,33 @@ export function TagTable({
           {
             id: "select",
             header: ({ table }) => (
-              <Checkbox
-                checked={
-                  table.getIsAllPageRowsSelected()
-                    ? true
-                    : table.getIsSomePageRowsSelected()
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all visible tags"
-              />
+              <div className="flex items-center justify-center">
+                <Checkbox
+                  checked={
+                    table.getIsAllPageRowsSelected()
+                      ? true
+                      : table.getIsSomePageRowsSelected()
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                  aria-label="Select all visible tags"
+                />
+              </div>
             ),
             cell: ({ row }) => (
-              <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label={`Select tag ${row.original.name}`}
-              />
+              <div className="flex items-center justify-center">
+                <Checkbox
+                  checked={row.getIsSelected()}
+                  onCheckedChange={(value) => row.toggleSelected(!!value)}
+                  aria-label={`Select tag ${row.original.name}`}
+                />
+              </div>
             ),
             enableSorting: false,
+            meta: {
+              className: "w-10 px-2 text-center",
+            },
           } satisfies ColumnDef<Tag>,
         ]
         : []),

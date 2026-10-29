@@ -90,8 +90,13 @@ export function BulkDeleteDialog({
         )}
 
         <div className="flex items-start gap-3">
-          <Checkbox id={acknowledgmentId} checked={acknowledged} onCheckedChange={(checked) => setAcknowledgedSelection(checked === true ? selectionKey : "")} />
-          <label htmlFor={acknowledgmentId} className="text-sm leading-6">
+          <Checkbox
+            id={acknowledgmentId}
+            checked={acknowledged}
+            onCheckedChange={(checked) => setAcknowledgedSelection(checked === true ? selectionKey : "")}
+            className="mt-0.5"
+          />
+          <label htmlFor={acknowledgmentId} className="text-xs text-foreground/90 leading-relaxed cursor-pointer select-none">
             I understand that the selected tags{sideEffectTags.length > 0 ? " and the unselected tags listed above" : ""} will be permanently deleted.
           </label>
         </div>
