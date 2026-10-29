@@ -124,20 +124,20 @@ export function RegistryCard({
                 <MoreHorizontalIcon />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44 rounded-2xl p-1.5 shadow-lg">
+            <DropdownMenuContent align="end" className="w-44 rounded-control p-1 shadow-overlay border border-panel-border bg-popover">
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={runPing} disabled={ping.isPending} className="rounded-lg">
+                <DropdownMenuItem onClick={runPing} disabled={ping.isPending} className="rounded-control">
                   <RefreshCwIcon data-icon="inline-start" />
                   {ping.isPending ? "Testing..." : "Test"}
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="rounded-lg">
+                <DropdownMenuItem asChild className="rounded-control">
                   <Link href={`/registries/${registry.id}/edit`}>
                     <PencilIcon data-icon="inline-start" />
                     Edit
                   </Link>
                 </DropdownMenuItem>
                 {!registry.isDefault ? (
-                  <DropdownMenuItem onClick={() => onSetDefault(registry.id)} disabled={isActionPending} className="rounded-lg">
+                  <DropdownMenuItem onClick={() => onSetDefault(registry.id)} disabled={isActionPending} className="rounded-control">
                     <CheckIcon data-icon="inline-start" />
                     Set Default
                   </DropdownMenuItem>

@@ -15,7 +15,7 @@ interface AppShellProps {
 function SidebarWrapper({ mobileOpen, onMobileOpenChange }: { mobileOpen?: boolean; onMobileOpenChange?: (open: boolean) => void }) {
   return (
     <Suspense fallback={
-      <div className="h-full w-[280px] bg-sidebar p-5">
+      <div className="h-full w-64 bg-sidebar p-5">
         <Skeleton className="h-8 w-36 rounded-full" />
         <div className="mt-6 flex flex-col gap-2">
           <Skeleton className="h-9 w-full rounded-full" />
@@ -49,7 +49,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="relative flex min-h-screen bg-background text-foreground">
       <SidebarWrapper mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
 
-      <div className="relative flex min-w-0 flex-1 flex-col lg:ml-[228px]">
+      <div className="relative flex min-w-0 flex-1 flex-col lg:ml-64">
         <Topbar onOpenSidebar={() => setSidebarOpen(true)} onOpenSearch={() => openPalette(true)} />
         <main className="flex-1 p-4 sm:p-5 lg:px-7 lg:py-5">{children}</main>
       </div>

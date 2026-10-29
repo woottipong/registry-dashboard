@@ -189,7 +189,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps) {
   return (
     <>
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-[228px] lg:border-r lg:border-border/70 lg:bg-sidebar">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-64 lg:border-r lg:border-border/70 lg:bg-sidebar">
         <div className="flex h-full flex-col">
           <SidebarBody />
         </div>
