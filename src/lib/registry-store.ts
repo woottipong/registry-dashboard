@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto"
-import fs from "fs"
 import { isIP } from "net"
 import path from "path"
 import * as z from "zod"
+import { AtomicJsonStore } from "@/lib/atomic-file-store"
 import { config } from "@/lib/config"
 import { decryptCredential, encryptCredential } from "@/lib/crypto"
 import type { RegistryConnection } from "@/types/registry"
@@ -112,38 +112,11 @@ const registryInputSchema = z.object({
 
 export type RegistryInput = z.infer<typeof registryInputSchema>
 
-function getStorePath(): string {
-  return path.join(config.DATA_DIR, "registries.json")
-}
-
-function ensureDataDir(): void {
-  fs.mkdirSync(config.DATA_DIR, { recursive: true })
-}
-
-// ---------------------------------------------------------------------------
-// Atomic write: back up the current file then swap in via rename (POSIX atomic)
-// ---------------------------------------------------------------------------
-function atomicWrite(filePath: string, content: string): void {
-  const tmpPath = `${filePath}.tmp`
-  fs.writeFileSync(tmpPath, content, "utf-8")
-  if (fs.existsSync(filePath)) {
-    fs.copyFileSync(filePath, `${filePath}.bak`)
-  }
-  fs.renameSync(tmpPath, filePath)
-}
-
-// Safe read: falls back to the .bak file if the main file is corrupt/missing
-function safeReadFile(filePath: string): string | null {
-  try {
-    return fs.readFileSync(filePath, "utf-8")
-  } catch {
-    try {
-      return fs.readFileSync(`${filePath}.bak`, "utf-8")
-    } catch {
-      return null
-    }
-  }
-}
+const fileStore = new AtomicJsonStore<RegistryConnection[]>(
+  () => path.join(config.DATA_DIR, "registries.json"),
+  () => [],
+  "[registry-store]",
+)
 
 // ---------------------------------------------------------------------------
 // Credential encryption helpers
@@ -172,29 +145,18 @@ function decryptCredentials(creds: Credentials): Credentials {
 // Store read / write
 // ---------------------------------------------------------------------------
 function readStore(): Map<string, RegistryConnection> {
-  const storePath = getStorePath()
-  const raw = safeReadFile(storePath)
-  if (!raw) return new Map()
-
-  try {
-    const parsed = JSON.parse(raw) as RegistryConnection[]
-    return new Map(
-      parsed.map((r) => [r.id, { ...r, credentials: decryptCredentials(r.credentials) }]),
-    )
-  } catch {
-    console.error("[registry-store] Failed to parse store, starting fresh")
-    return new Map()
-  }
+  const records = fileStore.read()
+  return new Map(
+    records.map((r) => [r.id, { ...r, credentials: decryptCredentials(r.credentials) }]),
+  )
 }
 
 function writeStore(registries: Map<string, RegistryConnection>): void {
-  ensureDataDir()
-  const storePath = getStorePath()
   const encrypted = Array.from(registries.values()).map((r) => ({
     ...r,
     credentials: encryptCredentials(r.credentials),
   }))
-  atomicWrite(storePath, JSON.stringify(encrypted, null, 2))
+  fileStore.write(encrypted)
 }
 
 export function parseRegistryInput(payload: unknown): RegistryInput {

@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto"
-import fs from "fs"
 import path from "path"
+import { AtomicJsonStore } from "@/lib/atomic-file-store"
 import { config } from "@/lib/config"
 import type { ActivityItem } from "@/contexts/activity-context"
 
@@ -12,54 +12,18 @@ export interface ActivityInput {
   user?: string
 }
 
-function getStorePath(): string {
-  return path.join(config.DATA_DIR, "activities.json")
-}
-
-function ensureDataDir(): void {
-  fs.mkdirSync(config.DATA_DIR, { recursive: true })
-}
-
-// Atomic write: back up the current file then swap in via rename (POSIX atomic)
-function atomicWrite(filePath: string, content: string): void {
-  const tmpPath = `${filePath}.tmp`
-  fs.writeFileSync(tmpPath, content, "utf-8")
-  if (fs.existsSync(filePath)) {
-    fs.copyFileSync(filePath, `${filePath}.bak`)
-  }
-  fs.renameSync(tmpPath, filePath)
-}
-
-// Safe read: falls back to the .bak file if the main file is corrupt/missing
-function safeReadFile(filePath: string): string | null {
-  try {
-    return fs.readFileSync(filePath, "utf-8")
-  } catch {
-    try {
-      return fs.readFileSync(`${filePath}.bak`, "utf-8")
-    } catch {
-      return null
-    }
-  }
-}
+const fileStore = new AtomicJsonStore<ActivityItem[]>(
+  () => path.join(config.DATA_DIR, "activities.json"),
+  () => [],
+  "[activity-store]",
+)
 
 function readStore(): ActivityItem[] {
-  const storePath = getStorePath()
-  const raw = safeReadFile(storePath)
-  if (!raw) return []
-
-  try {
-    return JSON.parse(raw) as ActivityItem[]
-  } catch {
-    console.error("[activity-store] Failed to parse store, starting fresh")
-    return []
-  }
+  return fileStore.read()
 }
 
 function writeStore(activities: ActivityItem[]): void {
-  ensureDataDir()
-  const storePath = getStorePath()
-  atomicWrite(storePath, JSON.stringify(activities, null, 2))
+  fileStore.write(activities)
 }
 
 export function listActivities(options: { limit?: number; registry?: string } = {}): ActivityItem[] {
