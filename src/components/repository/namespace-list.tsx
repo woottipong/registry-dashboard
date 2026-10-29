@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { ArrowRightIcon, ChevronRightIcon, FolderIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { parseRepositoryName } from "@/lib/format"
 import type { Namespace, Repository } from "@/types/registry"
 
 export interface NamespaceListProps {
@@ -35,10 +36,12 @@ export function NamespaceList({
 
         // Find repositories belonging to this namespace
         const nsRepos = allRepositories.filter((repo) => {
+          const parsed = parseRepositoryName(repo.fullName)
+          const repoNs = repo.namespace || parsed.namespace
           if (isRoot) {
-            return !repo.namespace || repo.namespace === "_root" || repo.namespace === "root"
+            return !repoNs || repoNs === "_root" || repoNs === "root"
           }
-          return repo.namespace === namespace.name || repo.fullName.startsWith(`${namespace.name}/`)
+          return repoNs === namespace.name
         })
 
         const sampleRepos = nsRepos.slice(0, 3)

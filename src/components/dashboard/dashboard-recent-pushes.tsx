@@ -32,6 +32,35 @@ export interface DashboardRecentPushesProps {
   onCopyCommand: (cmd: string, id: string) => void
 }
 
+function safeFormatDate(dateInput?: string | null): string {
+  if (!dateInput) return "Indexed in catalog"
+  try {
+    return formatDate(dateInput)
+  } catch {
+    return "Indexed in catalog"
+  }
+}
+
+function formatRelativeTime(dateInput?: string | null): string {
+  if (!dateInput) return "catalog"
+  try {
+    const formatted = formatDate(dateInput).split(" (")[0] || ""
+    return formatted
+      .replace(" seconds ago", "s ago")
+      .replace(" second ago", "s ago")
+      .replace(" minutes ago", "m ago")
+      .replace(" minute ago", "m ago")
+      .replace(" hours ago", "h ago")
+      .replace(" hour ago", "h ago")
+      .replace(" days ago", "d ago")
+      .replace(" day ago", "d ago")
+      .replace(" months ago", "mo ago")
+      .replace(" month ago", "mo ago") || formatted
+  } catch {
+    return "catalog"
+  }
+}
+
 export function DashboardRecentPushes({
   recentPushedImages,
   isMounted,
@@ -39,35 +68,6 @@ export function DashboardRecentPushes({
   onCopyCommand,
 }: DashboardRecentPushesProps) {
   const router = useRouter()
-
-  const safeFormatDate = (dateInput?: string | null): string => {
-    if (!dateInput) return "Indexed in catalog"
-    try {
-      return formatDate(dateInput)
-    } catch {
-      return "Indexed in catalog"
-    }
-  }
-
-  const formatRelativeTime = (dateInput?: string | null): string => {
-    if (!dateInput) return "catalog"
-    try {
-      const formatted = formatDate(dateInput).split(" (")[0] || ""
-      return formatted
-        .replace(" seconds ago", "s ago")
-        .replace(" second ago", "s ago")
-        .replace(" minutes ago", "m ago")
-        .replace(" minute ago", "m ago")
-        .replace(" hours ago", "h ago")
-        .replace(" hour ago", "h ago")
-        .replace(" days ago", "d ago")
-        .replace(" day ago", "d ago")
-        .replace(" months ago", "mo ago")
-        .replace(" month ago", "mo ago") || formatted
-    } catch {
-      return "catalog"
-    }
-  }
 
   return (
     <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden flex flex-col justify-between flex-1">

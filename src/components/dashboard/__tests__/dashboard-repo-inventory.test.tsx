@@ -37,7 +37,6 @@ describe("DashboardRepoInventory", () => {
         isLoadingRegistries={false}
         isLoadingRepos={false}
         totalTags={10}
-        maxTopTagCount={5}
       />
     )
 
@@ -45,6 +44,7 @@ describe("DashboardRepoInventory", () => {
     expect(screen.getAllByText("apps").length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText("5 tags")).toBeInTheDocument()
     expect(screen.getByText("50%")).toBeInTheDocument()
+    expect(screen.getByText("View all 1 repos")).toBeInTheDocument()
 
     // Test filter input
     const input = screen.getByPlaceholderText("Filter repos…")
@@ -70,7 +70,6 @@ describe("DashboardRepoInventory", () => {
         isLoadingRegistries={false}
         isLoadingRepos={false}
         totalTags={10}
-        maxTopTagCount={5}
       />
     )
 

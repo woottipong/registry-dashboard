@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -25,7 +26,6 @@ export interface DashboardRepoInventoryProps {
   isLoadingRegistries: boolean
   isLoadingRepos: boolean
   totalTags: number
-  maxTopTagCount: number
 }
 
 export function DashboardRepoInventory({
@@ -39,9 +39,12 @@ export function DashboardRepoInventory({
   isLoadingRegistries,
   isLoadingRepos,
   totalTags,
-  maxTopTagCount,
 }: DashboardRepoInventoryProps) {
   const router = useRouter()
+
+  const maxTopTagCount = useMemo(() => {
+    return Math.max(...topRepositories.map((r) => r.tagCount ?? 0), 1)
+  }, [topRepositories])
 
   return (
     <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden flex flex-col justify-between h-full">
@@ -267,7 +270,7 @@ export function DashboardRepoInventory({
           href="/repos"
           className="inline-flex items-center gap-1 font-semibold text-primary hover:underline shrink-0 text-[11px]"
         >
-          <span>{"View catalog"}</span>
+          <span>{`View all ${repositories.length} repos`}</span>
           <ArrowRightIcon className="size-3" />
         </Link>
       </div>

@@ -141,11 +141,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
       .slice(0, 10)
   }, [repositories, activeTab, tableSearch])
 
-  // Highest tag count in current top 10 for relative bar calculation
-  const maxTopTagCount = useMemo(() => {
-    return Math.max(...topRepositories.map((r) => r.tagCount ?? 0), 1)
-  }, [topRepositories])
-
   const handleCopyCommand = (cmd: string, id: string) => {
     if (!cmd) return
     void copyToClipboard(cmd, "Pull command copied to clipboard")
@@ -243,7 +238,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             isLoadingRegistries={isLoadingRegistries}
             isLoadingRepos={isLoadingRepos}
             totalTags={totalTags}
-            maxTopTagCount={maxTopTagCount}
           />
         </div>
 
