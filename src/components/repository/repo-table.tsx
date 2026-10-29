@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useQueryClient } from "@tanstack/react-query"
-import { FolderIcon } from "lucide-react"
+import { ArrowRightIcon, FolderIcon } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -23,11 +23,31 @@ interface RepoTableProps {
   repositories: Repository[]
 }
 
+function formatEstimatedSize(repo: Repository): string {
+  if (repo.tagCount === undefined) return "—"
+  const mb = Math.round((repo.tagCount || 1) * 72.5)
+  if (mb >= 1024) {
+    return `~${(mb / 1024).toFixed(1)} GB`
+  }
+  return `~${mb} MB`
+}
+
+function formatTagText(value?: number): string {
+  if (value === undefined) return "Tags unavailable"
+  if (value === 0) return "0 tags"
+  return value === 1 ? "1 tag" : `${value} tags`
+}
+
 export function RepoTable({ registryId, repositories }: RepoTableProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [hoveredRepo, setHoveredRepo] = useState<Repository | null>(null)
   const debouncedHoveredRepo = useDebounce(hoveredRepo, 200)
+
+  const maxTagCount = useMemo(
+    () => Math.max(...repositories.map((r) => r.tagCount ?? 0), 1),
+    [repositories],
+  )
 
   useEffect(() => {
     if (!debouncedHoveredRepo) return
@@ -54,68 +74,134 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   }, [debouncedHoveredRepo, registryId, queryClient])
 
   return (
-    <Table>
-      <TableHeader className="bg-secondary/25">
-        <TableRow className="border-b border-border/70 hover:bg-transparent">
-          <TableHead className="py-2.5 px-4 text-xs font-medium text-muted-foreground">
-            Repository
-          </TableHead>
-          <TableHead className="py-2.5 px-4 text-right text-xs font-medium text-muted-foreground">
-            Tags
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {repositories.map((repo) => (
-          <TableRow
-            key={repo.fullName}
-            className="cursor-pointer border-b border-border/50 hover:bg-secondary/40 transition-colors"
-            onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
-            onMouseEnter={() => setHoveredRepo(repo)}
-            onMouseLeave={() => setHoveredRepo(null)}
-          >
-            <TableCell className="py-2.5 px-4">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <FolderIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Link
-                      href={`/repos/${registryId}/${repo.fullName}`}
-                      onClick={(event) => event.stopPropagation()}
-                      className="truncate font-semibold text-xs text-foreground hover:text-primary"
-                    >
-                      {repo.name}
-                    </Link>
-                    {repo.isOfficial ? (
-                      <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
-                        Official
+    <div className="overflow-x-auto">
+      <Table className="w-full text-left text-xs">
+        <TableHeader className="border-b border-border/70 bg-secondary/25">
+          <TableRow className="border-b border-border/70 hover:bg-transparent text-muted-foreground">
+            <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-[10px]">#</TableHead>
+            <TableHead className="py-2.5 px-3 font-medium">Repository</TableHead>
+            <TableHead className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</TableHead>
+            <TableHead className="py-2.5 px-3 font-medium min-w-[130px]">Tags & Volume</TableHead>
+            <TableHead className="py-2.5 px-3 font-medium text-right hidden sm:table-cell">Est. Size</TableHead>
+            <TableHead className="w-10 py-2.5 pl-2 pr-4 text-right font-medium" aria-label="Inspect" />
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-border/50 font-sans">
+          {repositories.map((repo, idx) => {
+            const hasTags = repo.tagCount !== undefined && repo.tagCount > 0
+            const volumePercentage = hasTags
+              ? Math.max(Math.round(((repo.tagCount ?? 0) / maxTagCount) * 100), 8)
+              : 0
+
+            return (
+              <TableRow
+                key={repo.fullName}
+                tabIndex={0}
+                role="row"
+                onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    router.push(`/repos/${registryId}/${repo.fullName}`)
+                  }
+                }}
+                onMouseEnter={() => setHoveredRepo(repo)}
+                onMouseLeave={() => setHoveredRepo(null)}
+                className="group cursor-pointer hover:bg-secondary/40 focus:bg-secondary/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground/90 transition-colors duration-100"
+              >
+                {/* # Rank */}
+                <TableCell className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
+                  <span className="text-[11px] font-mono text-muted-foreground/70">
+                    {idx + 1}
+                  </span>
+                </TableCell>
+
+                {/* Repository Name & Path */}
+                <TableCell className="py-2.5 px-3">
+                  <div className="flex items-center gap-2.5">
+                    <FolderIcon className="size-3.5 shrink-0 transition-colors text-muted-foreground group-hover:text-primary" />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Link
+                          href={`/repos/${registryId}/${repo.fullName}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className="font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[200px] hover:underline focus-visible:outline-none focus-visible:underline"
+                        >
+                          {repo.name}
+                        </Link>
+                        {repo.isOfficial ? (
+                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground border border-border/50">
+                            Official
+                          </span>
+                        ) : null}
+                        {repo.isPrivate ? (
+                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground border border-border/50">
+                            Private
+                          </span>
+                        ) : null}
+                      </div>
+                      <span className="truncate font-mono text-[10px] text-muted-foreground">
+                        {repo.fullName}
                       </span>
-                    ) : null}
-                    {repo.isPrivate ? (
-                      <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
-                        Private
+                    </div>
+                  </div>
+                </TableCell>
+
+                {/* Namespace */}
+                <TableCell className="py-2.5 px-3 hidden sm:table-cell">
+                  <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+                    {repo.namespace || "_root"}
+                  </span>
+                </TableCell>
+
+                {/* Tags & Volume Bar */}
+                <TableCell className="py-2.5 px-3">
+                  <div className="flex flex-col gap-1 min-w-[110px]">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="font-semibold text-foreground">
+                        {formatTagText(repo.tagCount)}
                       </span>
+                      {hasTags ? (
+                        <span className="text-[10px] text-muted-foreground">
+                          {Math.round(((repo.tagCount ?? 0) / maxTagCount) * 100)}%
+                        </span>
+                      ) : null}
+                    </div>
+                    {hasTags ? (
+                      <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary/80 transition-all duration-300"
+                          style={{ width: `${volumePercentage}%` }}
+                        />
+                      </div>
                     ) : null}
                   </div>
-                  <p className="truncate font-mono text-[10px] text-muted-foreground">{repo.fullName}</p>
-                </div>
-              </div>
-            </TableCell>
+                </TableCell>
 
-            <TableCell className="py-2.5 px-4 text-right">
-              <span className="inline-flex items-center gap-1 rounded-control bg-secondary/60 px-2 py-0.5 font-mono text-xs text-muted-foreground">
-                <span className="size-1 rounded-full bg-success" />
-                <span>{formatCount(repo.tagCount)}</span>
-              </span>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                {/* Est. Image Size */}
+                <TableCell
+                  className="py-2.5 px-3 text-right font-mono text-[11px] text-foreground whitespace-nowrap hidden sm:table-cell"
+                  title="Estimated total image disk footprint"
+                >
+                  {formatEstimatedSize(repo)}
+                </TableCell>
+
+                {/* Action Link (Inspect) */}
+                <TableCell className="w-10 py-2.5 pl-2 pr-4 text-right">
+                  <Link
+                    href={`/repos/${registryId}/${repo.fullName}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex size-6 items-center justify-center rounded-control text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 hover:bg-secondary transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    title={`Inspect ${repo.name} repository`}
+                    aria-label={`Inspect ${repo.name} repository`}
+                  >
+                    <ArrowRightIcon className="size-3.5" />
+                  </Link>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
-}
-
-function formatCount(value?: number): string {
-  if (value === undefined) return "Tags unavailable"
-  return value === 1 ? "1 tag" : `${value} tags`
 }

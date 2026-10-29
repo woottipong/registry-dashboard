@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData, type DashboardRepoItem } from "@/hooks/use-dashboard-data"
-import { useCommandPalette } from "@/hooks/use-command-palette"
 import { useMounted } from "@/hooks/use-mounted"
 import { useActivity } from "@/contexts/activity-context"
 import { formatBytes, formatDate, generatePullCommand, registryHostFromUrl } from "@/lib/format"
@@ -43,7 +42,6 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   } = useDashboardData({ initialRegistries })
 
   const { activities } = useActivity()
-  const { setOpen: setSearchOpen } = useCommandPalette()
 
   const { totalRepositories, totalTags, registriesWithStats, repositories } = dashboardData
   const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size
@@ -263,25 +261,12 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSearchOpen(true)}
-            className="h-9 rounded-control gap-2 text-xs font-medium border-border/80 hover:bg-secondary"
-          >
-            <SearchIcon className="size-3.5 text-muted-foreground" />
-            <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden sm:inline-block font-mono text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">⌘K</kbd>
-          </Button>
-
-          <Button size="sm" className="h-9 rounded-control gap-1.5 px-4 font-medium" asChild>
-            <Link href="/registries/new">
-              <PlusIcon className="size-3.5" />
-              <span>{"Add registry"}</span>
-            </Link>
-          </Button>
-        </div>
+        <Button size="sm" className="h-9 rounded-control gap-1.5 px-4 font-medium self-start sm:self-auto" asChild>
+          <Link href="/registries/new">
+            <PlusIcon className="size-3.5" />
+            <span>{"Add registry"}</span>
+          </Link>
+        </Button>
       </header>
 
       {/* Error / Incomplete Data Banner */}
@@ -377,10 +362,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
       </div>
 
       {/* Main Two-Column Layout (Doorlog Asymmetric Split: ~70% Left, ~30% Right) */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12 items-stretch">
         {/* LEFT COLUMN: Top 10 Repositories by Tag Volume (~70% width) */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
-          <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden">
+        <div className="lg:col-span-8 flex flex-col">
+          <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden flex flex-col justify-between h-full">
             {/* Table Header Toolbar */}
             <div className="flex flex-col gap-3 border-b border-border/70 p-3.5 sm:flex-row sm:items-center sm:justify-between">
               {/* Filter Tabs (Doorlog style: All, Registry 1, Registry 2) */}
@@ -441,7 +426,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
 
             {/* Table Rows */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto flex-1">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-border/70 bg-secondary/20 text-muted-foreground">
@@ -595,7 +580,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             </div>
 
             {/* Table Footer Banner */}
-            <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground mt-auto">
               <span className="truncate text-[11px]">
                 {"Top 10 repositories ranked by tag volume. Click any row to inspect tags and manifests."}
               </span>
@@ -611,9 +596,9 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         </div>
 
         {/* RIGHT COLUMN: Inspector & Distribution Widgets (~30% width) */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
+        <div className="lg:col-span-4 flex flex-col gap-5">
           {/* Card 1: Registry Distribution (Doorlog style: "Crews this week" progress bars) */}
-          <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel">
+          <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel shrink-0">
             <div className="flex items-center justify-between pb-3 border-b border-border/70">
               <div className="flex items-center gap-2">
                 <ServerIcon className="size-3.5 text-primary" />
@@ -668,10 +653,10 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </div>
 
           {/* Card 2: 5 Most Recent Pushed Images */}
-          <div className="rounded-panel border border-panel-border bg-card p-4 shadow-panel flex flex-col justify-between">
-            <div>
+          <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden flex flex-col justify-between flex-1">
+            <div className="flex flex-col flex-1">
               {/* Card Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-border/70">
+              <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <UploadIcon className="size-3.5 text-primary" />
                   <h2 className="text-xs font-semibold text-foreground">
@@ -689,7 +674,12 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </div>
 
               {/* Items List */}
-              <div className="mt-2 divide-y divide-border/40">
+              <div
+                className={cn(
+                  "divide-y divide-border/40 px-4 flex flex-col flex-1 py-1",
+                  recentPushedImages.length >= 4 ? "justify-between" : "justify-start gap-1",
+                )}
+              >
                 {!isMounted ? (
                   Array.from({ length: 5 }).map((_, idx) => (
                     <div key={idx} className="py-2.5 flex flex-col gap-1.5">
@@ -704,7 +694,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                     </div>
                   ))
                 ) : recentPushedImages.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-muted-foreground">
+                  <div className="py-8 text-center text-xs text-muted-foreground flex-1 flex items-center justify-center">
                     {"No pushed images recorded yet."}
                   </div>
                 ) : (
@@ -787,16 +777,20 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
               </div>
             </div>
 
-            {/* Footer summary */}
-            <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-              <span>{"Push telemetry feed"}</span>
-              <Link
-                href="/repos"
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-sans font-medium"
+            {/* Footer summary - aligned with Left Table footer banner */}
+            <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground mt-auto">
+              <span className="font-mono text-[11px]">{"Push telemetry feed"}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-[11px] font-mono px-2 hover:text-primary transition-colors cursor-pointer"
+                asChild
               >
-                <span>{"View all repos"}</span>
-                <ArrowRightIcon className="size-3" />
-              </Link>
+                <Link href="/repos">
+                  <span>{"View all repos"}</span>
+                  <ArrowRightIcon className="ml-1 size-3" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
