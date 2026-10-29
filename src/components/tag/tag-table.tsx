@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   type ColumnDef,
@@ -97,7 +98,13 @@ export function TagTable({
           </Button>
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-semibold text-foreground">{row.original.name}</span>
+          <Link
+            href={`/repos/${registryId}/${repoName}?tag=${encodeURIComponent(row.original.name)}`}
+            className="font-mono text-xs font-semibold text-foreground hover:text-primary transition-colors hover:underline"
+            title={`Inspect tag ${row.original.name}`}
+          >
+            {row.original.name}
+          </Link>
         ),
       },
       {

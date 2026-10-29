@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
 import { GenericProvider } from "@/lib/providers/generic-provider"
-import { UnsupportedError } from "@/lib/providers/types"
 import type { RegistryConnection } from "@/types/registry"
 
 const CONNECTION: RegistryConnection = {
@@ -58,11 +57,11 @@ describe("GenericProvider", () => {
   })
 
   describe("capabilities()", () => {
-    it("reports canDelete and canListCatalog as true", () => {
+    it("reports canDelete, canListCatalog, and canSearch as true", () => {
       const caps = new GenericProvider(CONNECTION).capabilities()
       expect(caps.canDelete).toBe(true)
       expect(caps.canListCatalog).toBe(true)
-      expect(caps.canSearch).toBe(false)
+      expect(caps.canSearch).toBe(true)
     })
   })
 
@@ -481,9 +480,13 @@ describe("GenericProvider", () => {
   })
 
   describe("searchRepositories()", () => {
-    it("throws UnsupportedError", async () => {
+    it("searches catalog and returns matching repositories", async () => {
+      global.fetch = mockFetchCatalogAndTags(["backend/auth", "frontend/web", "nginx"], ["latest"])
+
       const provider = new GenericProvider(CONNECTION)
-      await expect(provider.searchRepositories("nginx")).rejects.toThrow(UnsupportedError)
+      const result = await provider.searchRepositories("nginx")
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0].name).toBe("nginx")
     })
   })
 

@@ -72,7 +72,7 @@ describe("GenericProvider.capabilities()", () => {
     const caps = provider.capabilities()
     expect(caps.canListCatalog).toBe(true)
     expect(caps.canDelete).toBe(true)
-    expect(caps.canSearch).toBe(false)
+    expect(caps.canSearch).toBe(true)
     expect(caps.hasRateLimit).toBe(false)
   })
 })

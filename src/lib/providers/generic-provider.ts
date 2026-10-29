@@ -3,7 +3,6 @@ import * as z from "zod"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
-import { UnsupportedError } from "@/lib/providers/types"
 
 const INDEX_MEDIA_TYPES = new Set([
   "application/vnd.oci.image.index.v1+json",
@@ -360,8 +359,47 @@ export class GenericProvider implements RegistryProvider {
   }
 
    
-  async searchRepositories(_query: string): Promise<PaginatedResult<Repository>> {
-    throw new UnsupportedError("Search is not supported for generic registry providers")
+  async searchRepositories(query: string): Promise<PaginatedResult<Repository>> {
+    const allRepoNames = await this.fetchAllCatalogNames()
+    const queryLower = query.trim().toLowerCase()
+
+    const matchingNames = allRepoNames.filter((repoName) =>
+      repoName.toLowerCase().includes(queryLower),
+    )
+
+    // Fetch tag counts in parallel for matching repos (capped at 50)
+    const pageNames = matchingNames.slice(0, 50)
+    const repositories = (
+      await Promise.all(
+        pageNames.map(async (repoName) => {
+          try {
+            const tagsResponse = tagListResponseSchema.parse(
+              await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`),
+            )
+            const tags = tagsResponse.tags ?? []
+            if (tags.length === 0) return null
+
+            const ns = repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : ""
+            return {
+              name: repoName.split("/").pop() ?? repoName,
+              fullName: repoName,
+              namespace: ns,
+              tagCount: tags.length,
+            }
+          } catch {
+            return null
+          }
+        }),
+      )
+    ).filter((repo): repo is NonNullable<typeof repo> => repo !== null)
+
+    return {
+      items: repositories,
+      page: 1,
+      perPage: 50,
+      total: matchingNames.length,
+      nextCursor: null,
+    }
   }
 
   async authenticate(): Promise<void> {
@@ -372,7 +410,7 @@ export class GenericProvider implements RegistryProvider {
     return {
       canListCatalog: true,
       canDelete: true,
-      canSearch: false,
+      canSearch: true,
       hasRateLimit: false,
     }
   }

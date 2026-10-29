@@ -420,6 +420,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
                                 size="icon"
                                 className="size-7 rounded-control text-muted-foreground hover:text-foreground"
                                 title="Copy docker pull command"
+                                aria-label="Copy docker pull command"
                                 onClick={() => handleCopyPull(repo)}
                               >
                                 <CopyIcon className="size-3" />

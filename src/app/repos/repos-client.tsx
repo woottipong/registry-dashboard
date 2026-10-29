@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useNamespaces } from "@/hooks/use-namespaces"
 import { useRegistries } from "@/hooks/use-registries"
-import { useRepositories } from "@/hooks/use-repositories"
+import { useRepositories, useSearchRepositories } from "@/hooks/use-repositories"
 import type { Namespace, RegistryConnection } from "@/types/registry"
 
 type SortOption =
@@ -99,9 +99,25 @@ export function RepositoriesClient({
     namespace: selectedNamespace !== null ? selectedNamespaceValue : undefined,
   })
 
-  const namespaceList = namespacesQuery.data ?? []
+  const namespaceList = useMemo(() => namespacesQuery.data ?? [], [namespacesQuery.data])
 
-  const filteredRepos = useMemo(() => {
+  const filteredNamespaces = useMemo(() => {
+    if (!debouncedSearch.trim()) return namespaceList
+    const term = debouncedSearch.toLowerCase()
+    return namespaceList.filter((ns) =>
+      ns.name.toLowerCase().includes(term) || (ns.name === "" && "(root)".includes(term)),
+    )
+  }, [debouncedSearch, namespaceList])
+
+  const searchReposQuery = useSearchRepositories(
+    selectedNamespace === null ? selectedRegistry : "",
+    debouncedSearch,
+  )
+
+  const activeRepos = useMemo(() => {
+    if (selectedNamespace === null) {
+      return searchReposQuery.data?.items ?? []
+    }
     const repos = repositoriesQuery.data?.items ?? []
     if (!debouncedSearch.trim()) return repos
     const term = debouncedSearch.toLowerCase()
@@ -109,10 +125,10 @@ export function RepositoriesClient({
       (repo) =>
         repo.name.toLowerCase().includes(term) || repo.fullName.toLowerCase().includes(term),
     )
-  }, [debouncedSearch, repositoriesQuery.data])
+  }, [selectedNamespace, searchReposQuery.data, repositoriesQuery.data, debouncedSearch])
 
   const sortedRepos = useMemo(() => {
-    const repos = [...filteredRepos]
+    const repos = [...activeRepos]
     switch (sortBy) {
       case "name-asc":
         return repos.sort((a, b) => a.name.localeCompare(b.name))
@@ -125,7 +141,7 @@ export function RepositoriesClient({
       default:
         return repos
     }
-  }, [filteredRepos, sortBy])
+  }, [activeRepos, sortBy])
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
@@ -180,24 +196,94 @@ export function RepositoriesClient({
           </div>
 
           {selectedNamespace === null ? (
-            <Panel
-              title="Namespace Index"
-              description={
-                selectedRegistryData
-                  ? `Available namespaces in ${selectedRegistryData.name}`
-                  : "Available namespaces"
-              }
-            >
-              {namespacesQuery.isLoading ? (
-                <NamespaceSkeleton />
-              ) : namespacesQuery.isError ? (
-                <ErrorState onRetry={() => namespacesQuery.refetch()} />
-              ) : !namespaceList.length ? (
-                <EmptyState message="No repositories found in this registry." />
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative flex-1 max-w-md">
+                  <SearchIcon className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={handleSearchChange}
+                    className="pl-8 pr-12 rounded-control h-9 text-xs bg-secondary/50 border border-border/70 focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="Search repositories or filter namespaces…"
+                    aria-label="Search repositories or namespaces"
+                  />
+                  {search ? (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      aria-label="Clear search"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"} available
+                </div>
+              </div>
+
+              {debouncedSearch ? (
+                <div className="space-y-5">
+                  {searchReposQuery.isLoading ? (
+                    <RepoSkeleton />
+                  ) : activeRepos.length > 0 ? (
+                    <div className="rounded-panel border border-panel-border bg-card p-4 sm:p-5 shadow-panel overflow-hidden">
+                      <div className="pb-3 border-b border-border/70 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                          <h2 className="text-sm font-semibold tracking-tight text-foreground">Matching Repositories</h2>
+                          <p className="text-xs text-muted-foreground">{activeRepos.length} results found across all namespaces</p>
+                        </div>
+                        <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                          <SelectTrigger className="w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-control">
+                            <SelectItem value="name-asc" className="text-xs">Name A-Z</SelectItem>
+                            <SelectItem value="name-desc" className="text-xs">Name Z-A</SelectItem>
+                            <SelectItem value="tags-desc" className="text-xs">Most tags</SelectItem>
+                            <SelectItem value="tags-asc" className="text-xs">Fewest tags</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
+                    </div>
+                  ) : null}
+
+                  {filteredNamespaces.length > 0 ? (
+                    <Panel
+                      title="Matching Namespaces"
+                      description={`${filteredNamespaces.length} namespaces match your query`}
+                    >
+                      <NamespaceList namespaces={filteredNamespaces} onSelect={handleNamespaceSelect} />
+                    </Panel>
+                  ) : null}
+
+                  {!searchReposQuery.isLoading && activeRepos.length === 0 && filteredNamespaces.length === 0 ? (
+                    <EmptyState message="No namespaces or repositories match your search." />
+                  ) : null}
+                </div>
               ) : (
-                <NamespaceList namespaces={namespaceList} onSelect={handleNamespaceSelect} />
+                <Panel
+                  title="Namespace Index"
+                  description={
+                    selectedRegistryData
+                      ? `Available namespaces in ${selectedRegistryData.name}`
+                      : "Available namespaces"
+                  }
+                >
+                  {namespacesQuery.isLoading ? (
+                    <NamespaceSkeleton />
+                  ) : namespacesQuery.isError ? (
+                    <ErrorState onRetry={() => namespacesQuery.refetch()} />
+                  ) : !namespaceList.length ? (
+                    <EmptyState message="No repositories found in this registry." />
+                  ) : (
+                    <NamespaceList namespaces={namespaceList} onSelect={handleNamespaceSelect} />
+                  )}
+                </Panel>
               )}
-            </Panel>
+            </div>
           ) : (
             <div className="rounded-panel border border-panel-border bg-card p-4 sm:p-5 shadow-panel overflow-hidden">
               <div className="space-y-3 pb-4 border-b border-border/70 mb-3">
