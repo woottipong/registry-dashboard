@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { CheckIcon, ClipboardIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { copyToClipboard } from "@/lib/clipboard"
 
 interface PullCommandProps {
   commands: { label: string; command: string }[]
@@ -20,12 +21,12 @@ export function PullCommand({ commands, className }: PullCommandProps) {
     }
   }, [])
 
-  function copy(command: string, index: number) {
-    void navigator.clipboard.writeText(command).then(() => {
+  async function copy(command: string, index: number) {
+    if (await copyToClipboard(command)) {
       setCopiedIndex(index)
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => setCopiedIndex(null), 2000)
-    })
+    }
   }
 
   return (

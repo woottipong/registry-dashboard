@@ -69,6 +69,7 @@ describe("BulkDeleteDialog", () => {
   it("calls onConfirm when delete button is clicked", () => {
     render(<BulkDeleteDialog {...defaultProps} />)
     const deleteButton = screen.getByRole("button", { name: /delete 2 tags/i })
+    fireEvent.click(screen.getByRole("checkbox", { name: /I understand/i }))
     fireEvent.click(deleteButton)
     expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1)
   })
@@ -79,10 +80,19 @@ describe("BulkDeleteDialog", () => {
     expect(button).toBeDisabled()
   })
 
-  it("delete button is enabled when not pending", () => {
-    render(<BulkDeleteDialog {...defaultProps} isPending={false} />)
+  it("requires acknowledgement before deletion, including unselected shared tags", () => {
+    render(<BulkDeleteDialog {...defaultProps} sideEffectTags={["v3"]} />)
     const button = screen.getByRole("button", { name: /delete 2 tags/i })
+    expect(button).toBeDisabled()
+    fireEvent.click(screen.getByRole("checkbox", { name: /unselected tags listed above/i }))
     expect(button).not.toBeDisabled()
+  })
+
+  it("requires fresh acknowledgement when the selection changes", () => {
+    const { rerender } = render(<BulkDeleteDialog {...defaultProps} />)
+    fireEvent.click(screen.getByRole("checkbox", { name: /I understand/i }))
+    rerender(<BulkDeleteDialog {...defaultProps} sideEffectTags={["v3"]} />)
+    expect(screen.getByRole("button", { name: /delete 2 tags/i })).toBeDisabled()
   })
 
   it("shows 'cannot be undone' warning in description", () => {
@@ -130,6 +140,11 @@ describe("DeleteDialog", () => {
     render(<DeleteDialog {...defaultProps} />)
     const button = screen.getByRole("button", { name: /delete tag/i })
     expect(button).toBeDisabled()
+  })
+
+  it("associates the confirmation label with the input", () => {
+    render(<DeleteDialog {...defaultProps} />)
+    expect(screen.getByLabelText(/type v1\.0\.0 to confirm/i)).toHaveAttribute("placeholder", "v1.0.0")
   })
 
   it("delete button is disabled when confirmation text does not match tag name", () => {

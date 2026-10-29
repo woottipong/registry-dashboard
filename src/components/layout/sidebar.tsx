@@ -22,10 +22,12 @@ interface SidebarProps {
   onMobileOpenChange?: (open: boolean) => void
 }
 
-function SidebarBody() {
+function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const currentRegistryId = searchParams.get("registry")
+  const currentRegistryId = pathname.startsWith("/repos/")
+    ? pathname.split("/")[2]
+    : searchParams.get("registry")
   const { data: registries, isLoading } = useRegistries()
   const isMounted = useMounted()
 
@@ -45,6 +47,7 @@ function SidebarBody() {
       <div className="flex h-[52px] items-center justify-between border-b border-border/70 px-4">
         <Link
           href="/"
+          onNavigate={onNavigate}
           className="group flex items-center gap-2.5 rounded-[7px] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <div className="flex size-7 shrink-0 items-center justify-center rounded-[7px] shadow-[0_1px_2px_rgba(0,0,0,0.06)] border transition-transform duration-150 group-hover:scale-105 bg-[#1C1C1E] border-white/[0.08]">
@@ -75,6 +78,7 @@ function SidebarBody() {
                 <Link
                   key={href}
                   href={href}
+                  onNavigate={onNavigate}
                   className={cn(
                     "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] font-medium transition-colors duration-150",
                     active
@@ -105,6 +109,7 @@ function SidebarBody() {
             </p>
             <Link
               href="/registries/new"
+              onNavigate={onNavigate}
               className="flex size-5 items-center justify-center rounded-[5px] text-muted-foreground transition-colors hover:bg-white/10 hover:text-primary"
               title={"Add registry"}
               aria-label={"Add registry"}
@@ -128,6 +133,7 @@ function SidebarBody() {
                   <Link
                     key={registry.id}
                     href={`/repos?registry=${registry.id}`}
+                    onNavigate={onNavigate}
                     className={cn(
                       "group flex items-center justify-between rounded-[7px] px-3 py-2 text-[13px] transition-colors duration-150",
                       active
@@ -160,6 +166,7 @@ function SidebarBody() {
               <div className="px-1 pt-1">
                 <Link
                   href="/registries/new"
+                  onNavigate={onNavigate}
                   className="flex items-center gap-2 rounded-[7px] border border-dashed border-border/80 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
                 >
                   <PlusIcon className="size-3.5" />
@@ -190,7 +197,7 @@ export function Sidebar({ mobileOpen = false, onMobileOpenChange }: SidebarProps
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent side="left" className="w-[280px] border-r border-border/70 bg-sidebar p-0" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <SidebarBody />
+          <SidebarBody onNavigate={() => onMobileOpenChange?.(false)} />
         </SheetContent>
       </Sheet>
     </>

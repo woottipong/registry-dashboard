@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDownIcon, ChevronRightIcon, ClipboardIcon } from "lucide-react"
-import { toast } from "sonner"
+import { copyToClipboard } from "@/lib/clipboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ImageConfig } from "@/types/manifest"
@@ -42,8 +42,7 @@ interface CopyableValueProps {
 
 function CopyableValue({ value }: CopyableValueProps) {
   function copy() {
-    void navigator.clipboard.writeText(value)
-    toast.success("Copied to clipboard")
+    void copyToClipboard(value, "Copied to clipboard")
   }
 
   return (

@@ -206,8 +206,15 @@ export function RepositoriesClient({
                 <div className="space-y-1">
                   <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
                   <p className="text-sm text-muted-foreground">
-                    {sortedRepos.length} {sortedRepos.length === 1 ? "repository" : "repositories"} in {selectedNamespaceValue || "root"}
+                    {repositoriesQuery.isLoading
+                      ? "Loading repositories…"
+                      : repositoriesQuery.isError
+                        ? "Repository count unavailable"
+                        : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"} in ${selectedNamespaceValue || "root"}`}
                   </p>
+                  {repositoriesQuery.data && (Boolean(repositoriesQuery.data.meta?.nextCursor) || (repositoriesQuery.data.meta?.totalPages ?? 1) > 1) ? (
+                    <p className="text-xs text-muted-foreground">Showing loaded repositories only; additional results may be available.</p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col gap-2.5 md:flex-row md:items-center">

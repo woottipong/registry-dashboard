@@ -193,7 +193,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
               ) : (
                 <ShieldCheckIcon className="size-3.5 text-primary" />
               )}
-              <span>{pingRegistry.isPending ? "Testing…" : "Test"}</span>
+              <span>{pingRegistry.isPending ? "Testing saved connection…" : "Test saved connection"}</span>
             </Button>
           ) : null}
         </div>

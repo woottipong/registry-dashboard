@@ -163,6 +163,7 @@ export function RegistryCard({
           <RegistryMetaChip icon={authVisual.Icon} label={authVisual.label} />
           <RegistryMetaChip label={registry.namespace ?? "Global scope"} />
         </div>
+        <p className="text-xs text-muted-foreground">Connection status reflects the latest test on this page.</p>
       </CardHeader>
 
       <CardContent className="space-y-2 p-0">

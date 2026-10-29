@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useId, useState } from "react"
 import { AlertTriangleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { truncateDigest } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
@@ -33,9 +34,18 @@ export function BulkDeleteDialog({
   isPending = false,
 }: BulkDeleteDialogProps) {
   const count = tags.length
+  const acknowledgmentId = useId()
+  const [acknowledgedSelection, setAcknowledgedSelection] = useState("")
+  const selectionKey = JSON.stringify([tags.map((tag) => tag.name).sort(), [...sideEffectTags].sort()])
+  const acknowledged = acknowledgedSelection === selectionKey
+
+  function handleOpenChange(value: boolean) {
+    if (!value) setAcknowledgedSelection("")
+    onOpenChange(value)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -79,8 +89,15 @@ export function BulkDeleteDialog({
           </div>
         )}
 
+        <div className="flex items-start gap-3">
+          <Checkbox id={acknowledgmentId} checked={acknowledged} onCheckedChange={(checked) => setAcknowledgedSelection(checked === true ? selectionKey : "")} />
+          <label htmlFor={acknowledgmentId} className="text-sm leading-6">
+            I understand that the selected tags{sideEffectTags.length > 0 ? " and the unselected tags listed above" : ""} will be permanently deleted.
+          </label>
+        </div>
+
         <DialogFooter showCloseButton>
-          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
+          <Button variant="destructive" disabled={isPending || !acknowledged || count === 0} onClick={() => { setAcknowledgedSelection(""); onConfirm() }}>
             {isPending ? "Deleting…" : `Delete ${count} ${count === 1 ? "tag" : "tags"}`}
           </Button>
         </DialogFooter>
@@ -107,6 +124,7 @@ export function DeleteDialog({
   isPending = false,
 }: DeleteDialogProps) {
   const [confirmation, setConfirmation] = useState("")
+  const confirmationId = useId()
 
   const isConfirmed = confirmation === tag?.name
 
@@ -161,11 +179,12 @@ export function DeleteDialog({
             )}
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">
+              <label htmlFor={confirmationId} className="text-sm text-muted-foreground">
                 Type <span className="font-mono font-medium text-foreground">{tag.name}</span> to
                 confirm
               </label>
               <Input
+                id={confirmationId}
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 placeholder={tag.name}

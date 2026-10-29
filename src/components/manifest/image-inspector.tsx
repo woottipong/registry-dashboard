@@ -15,7 +15,7 @@ import {
   SettingsIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { copyToClipboard } from "@/lib/clipboard"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -110,8 +110,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
 
   // Memoize event handlers
   const copyPullCommand = useCallback(() => {
-    void navigator.clipboard.writeText(pullCommand)
-    toast.success("Pull command copied to clipboard")
+    void copyToClipboard(pullCommand, "Pull command copied to clipboard")
   }, [pullCommand])
 
   const handleBack = useCallback(() => {

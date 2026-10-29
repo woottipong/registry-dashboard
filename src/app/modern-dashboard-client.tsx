@@ -128,11 +128,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </Link>
         ))}
       </div>
-      {(hasIncompleteData || hasUnknownTagCounts) && !isLoadingRepos && (
+      {!isLoadingRepos && (
         <p className="-mt-2 text-xs text-muted-foreground">
-          {hasIncompleteData && "Counts and rankings include only loaded repositories."}
-          {hasIncompleteData && hasUnknownTagCounts && " "}
-          {hasUnknownTagCounts && "Some providers do not supply tag counts."}
+          Counts and rankings reflect loaded repositories; additional results may not be included.
+          {hasUnknownTagCounts && " Some providers do not supply tag counts."}
+          {hasIncompleteData && " Some registry data is incomplete."}
         </p>
       )}
 

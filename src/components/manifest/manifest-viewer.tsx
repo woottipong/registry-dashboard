@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ClipboardIcon } from "lucide-react"
-import { toast } from "sonner"
+import { copyToClipboard } from "@/lib/clipboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { truncateDigest } from "@/lib/format"
@@ -18,8 +18,7 @@ export function ManifestViewer({ manifest }: ManifestViewerProps) {
   const formatted = JSON.stringify(manifest, null, 2)
 
   function copyManifest() {
-    void navigator.clipboard.writeText(formatted)
-    toast.success("Manifest copied to clipboard")
+    void copyToClipboard(formatted, "Manifest copied to clipboard")
   }
 
   return (

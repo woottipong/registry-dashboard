@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import {
   ClockIcon,
   DatabaseIcon,
@@ -27,9 +28,13 @@ export function CommandPalette() {
     useCommandPalette()
 
   const registriesQuery = useRegistries()
-  const searchableRegistries = registriesQuery.data?.filter((registry) => registry.capabilities?.canSearch) ?? []
-  const searchRegistry = searchableRegistries.find((registry) => registry.isDefault) ?? searchableRegistries[0]
-  const reposQuery = useSearchRepositories(searchRegistry?.id ?? "", open ? debouncedQuery : "")
+  const [selectedRegistryId, setSelectedRegistryId] = useState("")
+  const registries = registriesQuery.data ?? []
+  const searchRegistry = registries.find((registry) => registry.id === selectedRegistryId)
+    ?? registries.find((registry) => registry.isDefault)
+    ?? registries[0]
+  const canSearch = Boolean(searchRegistry?.capabilities?.canSearch)
+  const reposQuery = useSearchRepositories(canSearch ? searchRegistry?.id ?? "" : "", open ? debouncedQuery : "")
 
   function navigate(href: string) {
     router.push(href)
@@ -39,19 +44,23 @@ export function CommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen} showCloseButton={false}>
       <CommandInput
-        placeholder={searchRegistry ? "Search repositories, registries, or actions…" : "Search registries or actions…"}
+        placeholder={canSearch ? "Search repositories, registries, or actions…" : "Search registries or actions…"}
         value={query}
         onValueChange={setQuery}
       />
-      <p className="px-3 py-2 text-xs text-muted-foreground">
-        {registriesQuery.isLoading
-          ? "Loading registries…"
-          : searchRegistry
-            ? `Repository search: ${searchRegistry.name}`
-            : "Repository search is unavailable. Browse repositories by namespace."}
-      </p>
+      <div className="space-y-1.5 px-3 py-2 text-xs text-muted-foreground">
+        {searchRegistry ? (
+          <div className="flex items-center gap-2">
+            <label htmlFor="command-search-registry" className="shrink-0">Repository search</label>
+            <select id="command-search-registry" value={searchRegistry.id} onChange={(event) => setSelectedRegistryId(event.target.value)} className="min-w-0 rounded-control border border-border bg-background px-2 py-1 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              {registries.map((registry) => <option key={registry.id} value={registry.id}>{registry.name}</option>)}
+            </select>
+          </div>
+        ) : null}
+        <p>{registriesQuery.isLoading ? "Loading registries…" : registriesQuery.isError ? "Unable to load registries." : !searchRegistry ? "Add a registry to search repositories." : canSearch ? "Showing up to 8 repository results from the selected registry." : "This registry does not support repository search. Browse by namespace instead."}</p>
+      </div>
       <CommandList>
-        <CommandEmpty>{searchRegistry && (query !== debouncedQuery || reposQuery.isFetching) ? "Searching…" : reposQuery.isError ? "Repository search failed. Try again." : "No results found."}</CommandEmpty>
+        <CommandEmpty>{canSearch && (query !== debouncedQuery || reposQuery.isFetching) ? "Searching…" : reposQuery.isError ? "Repository search failed. Try again." : "No results found."}</CommandEmpty>
 
         {/* Recent searches */}
         {history.length > 0 && !query ? (
@@ -95,7 +104,7 @@ export function CommandPalette() {
         ) : null}
 
         {/* Repository search is limited to a provider that supports it. */}
-        {query === debouncedQuery && reposQuery.data?.items.length ? (
+        {canSearch && query === debouncedQuery && reposQuery.data?.items.length ? (
           <>
             <CommandGroup heading={`Repositories · ${searchRegistry?.name}`}>
               {reposQuery.data.items.slice(0, 8).map((repo) => (
