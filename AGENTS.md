@@ -10,6 +10,7 @@ Consult these pointers when entering their domain:
 
 - [`PRODUCT.md`](PRODUCT.md) — UI styling, brand commitments, dark-only theme, and UX principles.
 - [`README.md`](README.md) — Product overview, environment variables, and Docker deployment.
+- [`doc/DESIGN.md`](doc/DESIGN.md) — Carbon Dark design system tokens, layout dimensions, and component rules.
 - `docs/agents/issue-tracker.md` — Local issue tracking and wayfinding operations in `.scratch/<feature>/`.
 - `docs/agents/triage-labels.md` — Canonical triage roles mapping (`needs-triage`, `ready-for-agent`, etc.).
 - `docs/agents/domain.md` — Domain vocabulary (`GLOSSARY.md`) and architecture decisions (`docs/adr/`).
@@ -84,6 +85,8 @@ Use `_root` in URLs as the sentinel for the empty root namespace.
 Use these route shapes:
 
 ```text
+/
+/login
 /repos
 /repos?registry=<id>
 /repos?registry=<id>&namespace=<ns>
@@ -96,6 +99,38 @@ Use these route shapes:
 ```
 
 Do not introduce `/repos/<registryId>` as a standalone registry overview route; registry filtering belongs in the query string.
+
+### API Endpoints Map
+
+All registry interactions stay behind the Next.js API BFF proxy:
+
+```text
+Auth & Health:
+  POST   /api/auth/login                       Authenticate session
+  POST   /api/auth/logout                      Clear session cookie
+  GET    /api/auth/me                          Session user details
+  GET    /api/health                           Service health status
+
+Telemetry:
+  GET    /api/v1/activities                    Recent telemetry activities
+
+Registries:
+  GET    /api/v1/registries                    List configured registries
+  POST   /api/v1/registries                    Add new registry
+  GET    /api/v1/registries/[id]               Get registry details
+  PUT    /api/v1/registries/[id]               Update registry
+  DELETE /api/v1/registries/[id]               Remove registry
+  POST   /api/v1/registries/[id]/ping          Test connection and credentials
+
+Catalog & Manifests:
+  GET    /api/v1/registries/[id]/namespaces    List registry namespaces
+  GET    /api/v1/registries/[id]/repositories  List repositories in namespace
+  GET    /api/v1/registries/[id]/repositories/[...name]  Repository metadata
+  DELETE /api/v1/registries/[id]/repositories/[...name]  Delete repository
+  GET    /api/v1/registries/[id]/manifests/[...path]     Fetch image manifest
+  DELETE /api/v1/registries/[id]/manifests/[...path]     Delete tag / manifest
+  GET    /api/v1/registries/[id]/blobs/[...path]         Proxy image layer blob
+```
 
 ### API Response Shape
 

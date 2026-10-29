@@ -1,28 +1,38 @@
 ---
-name: Registry Dashboard — Navy Workspace
-description: A calm navy workspace with layered surfaces and clear blue actions.
+name: Registry Dashboard — Carbon Dark Operations
+description: High-contrast Carbon Dark operations layout with deep matte surfaces and clear blue actions.
 colors:
-  primary: "#4b9bfa"
-  primary-hover: "#70b0fc"
-  primary-active: "#3989e7"
-  primary-foreground: "#081728"
-  background: "#121c29"
-  foreground: "#edf3fd"
-  card: "#1b2737"
-  popover: "#233247"
-  sidebar: "#0e1723"
-  muted-foreground: "#abbad0"
-  accent: "#263b55"
-  border: "#304158"
-  input: "#687e98"
-  control: "#152132"
-  sidebar-accent: "#203b5d"
-  panel-border: "#2a394d"
-  sidebar-border: "#263449"
-  success: "#49d6ad"
-  warning: "#edc56a"
-  destructive: "#f28d98"
-  danger-solid: "#ac3548"
+  primary: "#3b82f6"
+  primary-hover: "#60a5fa"
+  primary-active: "#2563eb"
+  primary-foreground: "#ffffff"
+  background: "#0d1015"
+  foreground: "#f1f5f9"
+  card: "#13171f"
+  card-foreground: "#f1f5f9"
+  popover: "#161b24"
+  popover-foreground: "#f1f5f9"
+  secondary: "#1a202c"
+  secondary-foreground: "#f1f5f9"
+  muted: "#171c26"
+  muted-foreground: "#94a3b8"
+  accent: "#1e2430"
+  accent-foreground: "#f1f5f9"
+  destructive: "#ef4444"
+  border: "#1e2430"
+  input: "#1e2430"
+  control: "#1a202c"
+  sidebar: "#0a0d12"
+  sidebar-foreground: "#f1f5f9"
+  sidebar-border: "#1a202c"
+  sidebar-accent: "#161b24"
+  sidebar-accent-foreground: "#f1f5f9"
+  sidebar-primary: "#3b82f6"
+  sidebar-ring: "#3b82f6"
+  panel-border: "#1e2430"
+  success: "#22c55e"
+  warning: "#f59e0b"
+  danger-solid: "#dc2626"
   white: "#ffffff"
 typography:
   display:
@@ -110,12 +120,12 @@ components:
     padding: "8px 14px"
   card:
     backgroundColor: "{colors.card}"
-    textColor: "{colors.foreground}"
+    textColor: "{colors.card-foreground}"
     rounded: "{rounded.panel}"
     padding: "24px"
   navigation-active:
     backgroundColor: "{colors.sidebar-accent}"
-    textColor: "{colors.foreground}"
+    textColor: "{colors.sidebar-accent-foreground}"
     rounded: "{rounded.control}"
     padding: "8px 12px"
   badge-secondary:
@@ -134,131 +144,130 @@ components:
     padding: "16px 12px"
 ---
 
-# Design System: Registry Dashboard
+# Design System: Registry Dashboard — Carbon Dark Operations
 
 ## Overview
 
-**Creative North Star: "Navy Workspace"**
+**Creative North Star: Carbon Dark Operations**
 
-A working repository index on a lifted navy canvas: aligned names, cool metadata, layered slate panels and clear blue actions make the inventory easy to scan. The feeling is calm, precise and composed. The interface is dark-only and English-only; user-provided names retain their original text.
+A high-contrast container registry operations dashboard inspired by field operations interfaces. A deep matte charcoal canvas (`#0d1015`), slate cards (`#13171f`), 1px borders (`#1e2430`), electric blue actions (`#3b82f6`), and vivid operational indicators keep dense catalog data easy to scan. The interface is dark-only and English-only. User-provided names retain their original text.
 
-Compact controls and clear grouping carry the interface. Tonal surfaces contain forms and inspectors; operational lists use alignment and separators. The existing product branding remains. No shipping raster asset was produced for this visual system.
+Compact controls and clear grouping carry the interface. Tonal surfaces contain forms and inspectors. Operational lists use alignment and separators. The existing product branding remains.
 
 **Key Characteristics:**
-- Navy and cool slate with a clear blue action accent.
-- Compact corners, legible metadata and aligned operational rows.
-- Quiet surfaces, restrained shadows and visible keyboard focus.
-- Honest loading, unknown, failure and empty states.
+- Carbon dark matte surfaces with electric blue action accents.
+- Compact corners, legible metadata, and aligned operational rows.
+- Quiet surfaces, restrained shadows, and visible keyboard focus.
+- Honest loading, unknown, failure, and empty states.
 
-Source: [global tokens](../src/app/globals.css), [shared components](../src/components/ui/), [shell](../src/components/layout/) and [surface contract](../.impeccable/surfaces/src-app-modern-dashboard-client-tsx.md). The [sidecar](../.impeccable/design.json) adds renderable examples and extensions. The user supplied a navy dashboard reference for color, surface depth and component finish; the registry and namespace workflows retain their existing structure.
+Source: [global tokens](../src/app/globals.css), [shared components](../src/components/ui/), [shell layout](../src/components/layout/), [ADR 0001](../docs/adr/0001-carbon-dark-operations-redesign.md), and [PRODUCT.md](../PRODUCT.md).
 
 ## Colors
 
-Cool navy neutrals support a saturated blue action accent. The canvas is lifted slightly above the supplied reference to keep long operational sessions readable. Frontmatter preserves the actual CSS values.
+Carbon neutrals support a saturated blue action accent. Frontmatter preserves the actual CSS variables from `src/app/globals.css`.
 
 ### Primary
 
-**Action Blue** (`primary`) supplies primary fills, links, active icons and focus rings. The hover and active tokens define its interaction sequence; `primary-foreground` provides dark blue button ink.
+**Electric Blue** (`primary`, `#3b82f6`) supplies primary fills, links, active icons, and focus rings. Hover (`#60a5fa`) and active (`#2563eb`) define interaction feedback. `primary-foreground` (`#ffffff`) supplies white button ink.
 
 ### Neutral
 
-**Navy Canvas** (`background`) is the page; **Deep Navy Rail** (`sidebar`) distinguishes navigation and the opaque topbar. **Slate Panel** (`card`) contains forms and inspectors. **Raised Slate** (`popover`) also supplies the identical secondary and muted backgrounds. **Slate Selection** (`accent`) marks row hover; `sidebar-accent` marks active navigation. `control` supplies the recessed field and secondary-button fill.
+**Carbon Canvas** (`background`, `#0d1015`) is the page canvas. **Deep Obsidian Rail** (`sidebar`, `#0a0d12`) distinguishes navigation and the opaque topbar. **Slate Card** (`card`, `#13171f`) contains forms, KPI strips, and inspectors. **Raised Surface** (`popover`, `#161b24`) supplies dropdowns and popover menus. **Active Accent** (`accent`, `#1e2430`) marks row hover and panel boundaries; `sidebar-accent` (`#161b24`) marks active navigation. `control` (`#1a202c`) supplies recessed field and secondary-button fill.
 
-**Cool White** (`foreground`) carries primary text. **Cool Mist** (`muted-foreground`) carries metadata. **Quiet Rule** (`border`) separates lists and controls; `input` is the stronger editable-field stroke. Panel and sidebar strokes supply subtle boundaries without framing every row.
+**Cool White** (`foreground`, `#f1f5f9`) carries primary text. **Muted Slate** (`muted-foreground`, `#94a3b8`) carries metadata. **Quiet Rule** (`border` and `panel-border`, `#1e2430`) separates lists and controls.
 
 ### Status
 
-**Teal** (`success`) means confirmed connection success; **Amber** (`warning`) means checking; **Coral** (`destructive`) marks failures, destructive text and invalid fields. **Deep Rose** (`danger-solid`) fills destructive buttons with white text. Status color accompanies a readable label.
+**Emerald** (`success`, `#22c55e`) marks confirmed connection health and live status. **Amber** (`warning`, `#f59e0b`) marks testing or in-progress states. **Red** (`destructive`, `#ef4444`) marks errors, destructive text, and invalid fields. **Deep Crimson** (`danger-solid`, `#dc2626`) fills destructive action buttons.
 
-**The One Action Accent Rule.** Use blue for actions, focus and selection; status colors communicate labeled operational states.
+**The One Action Accent Rule.** Use blue for actions, focus, and selection. Status colors communicate labeled operational states only.
 
 ## Typography
 
-**Display and Body Font:** Inter with system sans-serif fallbacks. **Mono Font:** JetBrains Mono for endpoints, digests, tag identifiers and compact technical strings.
+**Display and Body Font:** Inter with system sans-serif fallbacks. **Mono Font:** JetBrains Mono for endpoints, digests, tag identifiers, and compact technical strings.
 
-The type is direct and workmanlike. Headings use tight tracking and balanced wrapping. Body copy uses sentence case; navigation group labels use small uppercase text. Tabular figures support numeric alignment.
+The typography is direct and workmanlike. Headings use tight tracking and balanced wrapping. Body copy uses sentence case. Navigation group labels use small uppercase text. Tabular figures support numeric alignment.
 
 ### Hierarchy
 
-- **Display:** the overview uses the display token on wider screens and (30px / 36px) on mobile.
-- **Headline:** operational titles use the headline token, rising to (30px / 36px) at the small breakpoint.
-- **Title:** section headings use the title token; smaller section and card titles use (16px / 24px).
-- **Body:** rows and controls use the body token; overview supporting copy rises to (16px / 24px) on wider screens.
-- **Label:** metadata uses the label token; navigation uses (13px).
-- **Mono:** technical metadata uses the mono token; tag names may use (14px / 20px).
+- **Display:** (36px / 40px) with semibold weight for dashboard hero metrics and display headers.
+- **Headline:** (28px / 1.2) with semibold weight for page titles.
+- **Title:** (20px / 28px) with medium weight for section headers; card titles use (16px / 24px).
+- **Body:** (14px / 20px) for rows, descriptions, and controls.
+- **Label:** (12px / 16px) with medium weight for metadata labels and badges.
+- **Mono:** (12px / 16px) for digests, commands, tags, and endpoints.
 
-**The Readable Metadata Rule.** Keep ordinary metadata at least (12px); use weight, alignment and cool mist before shrinking text.
+**The Readable Metadata Rule.** Keep ordinary metadata at least (12px). Use weight, alignment, and muted slate before shrinking text.
 
 ## Layout
 
-The desktop shell uses a fixed rail (228px) and sticky topbar (64px). Operational pages center within a maximum (1200px); registry forms narrow to (896px). Main padding progresses from (16px) to (20px), then (28px) horizontally on large screens. Major groups use (24–28px) gaps; standard cards use (24px) padding.
+The desktop shell uses a fixed 256px rail (`lg:w-64`) and a sticky 64px topbar (`h-16`). Operational pages center within a maximum width of 1200px. Registry forms narrow to 896px. Main padding progresses from 16px on mobile to 20px on tablet and 28px horizontally on large screens.
 
-Below (1024px), the rail becomes a navigation sheet (280px). At (640px), stacked headers and controls can align horizontally; breadcrumbs appear from (768px). The overview summary changes from two columns to an inline row; activity changes from one column to two, then three.
+Below 1024px, the rail becomes a navigation sheet (280px). At 640px, stacked headers and controls align horizontally. Breadcrumbs appear on viewports 768px and wider.
 
-Overview repository rows align a flexible name, registry (192px), tag count (64px) and arrow (24px), with (12px) gaps. Mobile hides registry context and narrows the count to (48px), retaining the name, count and arrow. The overview repository index uses one slate panel with a quiet perimeter, inline totals and registry scope above it.
+The dashboard layout adopts a unified top KPI stat strip, an asymmetric two-column split (dense repository inventory on the left, distribution progress bars and recent pushed images inspection on the right), and grouped sidebar navigation.
 
 ## Elevation & Depth
 
-Depth primarily comes from tonal layers, strokes and spacing. Rows remain flat and change color on hover or keyboard focus. Panels use a small ambient shadow; selected tabs use local elevation; dialogs use stronger overlay separation.
+Depth comes from tonal layers, 1px borders, and subtle spacing. Rows remain flat and change background color on hover or keyboard focus. Panels use a subtle dark ambient shadow. Dialogs use a stronger overlay separation.
 
-- **Panel:** `0 8px 24px rgb(2 8 18 / 0.16)`.
-- **Selected tab:** `0 1px 4px rgba(0, 0, 0, 0.12)`.
-- **Dialog:** `0 18px 50px rgb(2 8 18 / 0.45)`.
+- **Panel shadow:** `0 8px 24px rgb(2 8 18 / 0.16)`.
+- **Selected thumb shadow:** `0 1px 4px rgba(0, 0, 0, 0.12)`.
+- **Dialog overlay shadow:** `0 18px 50px rgb(2 8 18 / 0.45)`.
 
-State transitions generally take (150–200ms). Buttons scale to (0.98) when pressed. Sheets retain their existing enter/exit animation. Global reduced-motion rules reduce transition and animation duration to (0.001ms) and disable smooth scrolling.
+State transitions take 150ms to 200ms. Buttons scale to 0.98 when pressed. Global reduced-motion rules reduce transition duration and disable smooth scrolling when requested by the user.
 
-**The Quiet Surface Rule.** Give data rows color feedback rather than elevation; reserve shadows for contained surfaces and overlays.
+**The Quiet Surface Rule.** Give data rows color feedback rather than elevation. Reserve shadows for contained surfaces and modal overlays.
 
 ## Shapes
 
-Controls and navigation use compact `control` corners; cards use the slightly softer `panel` radius. Shared dialogs use the modal radius (10px), elevated popover fill and a quiet boundary. Compact badges and status dots retain fully rounded silhouettes. Small inline links use the smaller radius for focus outlines.
+Controls and navigation use compact control corners (6px). Cards and panels use panel corners (8px). Shared dialogs use modal corners (10px). Compact badges and status dots retain fully rounded pill silhouettes (9999px).
 
-Thin boundaries distinguish fields, tables and operational rows. Cards use a subtle inset perimeter that does not change their layout dimensions. Avoid nested frames where spacing and type already explain grouping. Standard line icons are usually (16px), with smaller badge icons.
+Thin 1px borders (`#1e2430`) distinguish fields, tables, and operational rows. Avoid nested frames where spacing and typography explain grouping. Standard line icons use 16px with smaller badge icons at 14px.
 
 ## Components
 
 ### Buttons
 
-Compact and explicit. Primary uses blue with dark ink; outline uses a quiet border and recessed control fill. Secondary uses Raised Slate; ghost gains that fill on hover; link uses blue text and a hover underline. Destructive uses Deep Rose with white text. Default height is (36px), small (32px), large (44px); default padding is (8px 16px), reduced when an icon is present. Focus is a solid (3px) blue ring. Disabled controls reduce opacity to (50%).
+Compact and explicit. Primary uses blue (`#3b82f6`) with white text. Outline uses a quiet border (`#1e2430`) and recessed control fill (`#1a202c`). Secondary uses raised secondary fill (`#1a202c`). Ghost gains secondary fill on hover. Destructive uses Deep Crimson (`#dc2626`) with white text. Default height is 36px, small is 32px, large is 44px. Default padding is 8px 16px. Focus shows a solid 2px blue ring.
 
 ### Inputs / Fields
 
-Recessed control fill, stronger input stroke, compact corners, height (40px), padding (8px 14px). Focus turns the border blue and adds a solid (2px) ring. Invalid fields use Coral for border and ring. Placeholders use Cool Mist; disabled fields reduce opacity to (50%).
+Recessed control fill (`#1a202c`), 1px border (`#1e2430`), compact corners (6px), height 40px, padding 8px 14px. Focus turns the border blue and adds a solid ring. Invalid fields use red for border and ring. Placeholders use muted slate (`#94a3b8`). Disabled fields reduce opacity to 50%.
 
 ### Cards / Containers
 
-Panel corners, Slate Panel fill, padding and internal gap (24px), panel shadow and a quiet inset perimeter. Titles are semibold, descriptions use Cool Mist. Use for related form or inspection content; summaries and lists need no automatic card wrapper.
+Panel corners (8px), slate card fill (`#13171f`), 1px panel border (`#1e2430`), and 24px padding. Titles are semibold. Descriptions use muted slate. Used for forms, KPI metric tiles, and inspection widgets.
 
 ### Navigation
 
-Deep Navy Rail contains the brand, main destinations and registry shortcuts. Active items use Slate Selection, a blue-tinted inset boundary and blue icon. Ordinary items use Cool Mist, becoming cool white on a raised slate hover fill. Item padding is (8px 12px). Mobile reuses the same navigation and closes after navigation.
+Deep Obsidian Rail (`#0a0d12`) contains the brand header, main destinations, and individual registry shortcuts. Active items use sidebar accent (`#161b24`), an inset primary ring (`ring-primary/25`), and a blue icon. Inactive items use muted text and gain secondary fill on hover. Item padding is 6px 10px. Mobile navigation renders inside a slide-out sheet.
 
-### Chips / Status
+### Badges / Status Chips
 
-Secondary badges use Raised Slate, cool white text and pill padding (2px 10px). Outline badges use a quiet border; destructive badges use translucent Coral. Connection chips pair a colored dot with “Live,” “Testing” or “Needs attention”; unknown connection state supplies no claimed status.
+Secondary badges use popover fill (`#161b24`), cool white text, and pill padding (2px 10px). Outline badges use a quiet border. Connection chips pair a colored dot with live or attention labels. Unknown connection state supplies no claimed status.
 
 ### Tabs
 
-Default tabs use a translucent secondary track with (4px) padding and compact corners. Active tabs use selection fill, cool white text and selected-tab shadow. Line tabs use a blue bottom border. Triggers use (14px) text and a (2px) focus ring; disabled tabs reduce opacity to (50%).
+Default tabs use a secondary track with 4px padding and compact corners. Active tabs use selection fill, cool white text, and selected-tab shadow. Triggers use 14px text and a 2px focus ring.
 
 ### Repository Rows
 
-Aligned links with row rules, folder icon, name, registry context, tabular count and arrow. Overview rows use minimum height (64px) and padding (16px 12px). Hover/focus applies Slate Selection and blue emphasis to name, icon and arrow; keyboard focus adds an inset (2px) ring. Loading skeletons, empty copy, incomplete-data notes and unknown-total em dashes preserve the layout hierarchy.
+Aligned rows with 1px border rules, folder icon, repository name, registry badge, tabular tag count, and arrow indicator. Rows use minimum height 60px and padding 12px 16px. Hover applies accent background and blue emphasis. Loading skeletons preserve layout dimensions.
 
-## Do's and Don'ts
+## Guidelines
 
 ### Do:
 
-- **Do** use shared navy, slate and blue tokens across operational screens.
-- **Do** distinguish editable fields, clickable rows and primary actions.
-- **Do** preserve visible focus, mobile stacking and reduced-motion behavior.
-- **Do** label status and distinguish unknown or failed data from confirmed zero.
-- **Do** use English interface copy while preserving user-provided names.
+- Use shared Carbon Dark tokens across operational screens.
+- Distinguish editable fields, clickable rows, and primary actions.
+- Preserve visible focus, mobile responsiveness, and reduced-motion behavior.
+- Label status and distinguish unknown or failed data from confirmed zero values.
+- Keep interface copy in English while preserving user-provided repository and registry names.
 
 ### Don't:
 
-- **Don't** introduce local palettes or decorative gradients outside the shared tokens.
-- **Don't** introduce light surfaces, oversized pill controls or studio-rendered decoration.
-- **Don't** use status colors as decorative accents.
-- **Don't** turn every summary or data row into a floating card.
-- **Don't** invent registry health, counts or capabilities to fill visual space.
+- Introduce light surfaces, soft navy palettes, or decorative gradients.
+- Use status colors as decorative accents.
+- Turn every data row into a floating card.
+- Invent registry health, counts, or capabilities to fill visual space.

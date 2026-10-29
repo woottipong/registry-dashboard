@@ -6,6 +6,8 @@ Self-hosted web dashboard for browsing and managing container images across Dock
 
 - **Multi-Registry**: Manage multiple Docker Registry V2 endpoints and Docker Hub in one place.
 - **Repository & Tag Explorer**: Browse namespaces, repositories, tags, manifest details, digest hashes, and layer sizes.
+- **Command Palette & Global Search**: Fast repository search and keyboard-driven navigation (`⌘K` / `Ctrl+K`).
+- **Activity Telemetry**: Recent pull commands, event logging, and distribution statistics across registries.
 - **Secure BFF Architecture**: All registry API traffic flows through a server-side proxy (`/api/v1/*`), keeping credentials, tokens, and upstream URLs off the browser.
 - **At-Rest Encryption**: Credentials encrypted at rest using AES-256 via `SESSION_SECRET`.
 - **Destructive Operation Safeguards**: Tag deletion protected by session authentication, CSRF checks, and rate limiting.
@@ -111,8 +113,16 @@ server {
 | `DEFAULT_REGISTRY_URL` | Pre-configured registry URL on initial boot | No | — |
 | `DEFAULT_REGISTRY_NAME` | Display name for default registry | No | — |
 | `DEFAULT_REGISTRY_AUTH_TYPE` | `none` \| `basic` \| `bearer` | No | `none` |
+| `DEFAULT_REGISTRY_USERNAME` | Username for default registry basic auth | No | — |
+| `DEFAULT_REGISTRY_PASSWORD` | Password for default registry basic auth | No | — |
+| `NEXT_PUBLIC_APP_NAME` | Application display name | No | `Registry Dashboard` |
+| `NEXT_PUBLIC_APP_URL` | Public application URL | No | `http://localhost:3000` |
 
 ## Documentation
 
 - [`AGENTS.md`](./AGENTS.md) — Architecture, BFF route contracts, provider specifications, coding standards, and verification guidelines.
 - [`PRODUCT.md`](./PRODUCT.md) — Brand commitments, dark-only palette, and UX principles.
+- [`GLOSSARY.md`](./GLOSSARY.md) — Canonical domain vocabulary and terminology rules.
+- [`doc/DESIGN.md`](./doc/DESIGN.md) — Design system specifications, Carbon Dark tokens, and component guidelines.
+- [`docs/adr/`](./docs/adr/) — Architecture Decision Records, including [ADR-0001: Carbon Dark Operations Redesign](./docs/adr/0001-carbon-dark-operations-redesign.md).
+- [`docs/agents/`](./docs/agents/) — Contributor workflows for issue tracking, domain modeling, and triage labels.
