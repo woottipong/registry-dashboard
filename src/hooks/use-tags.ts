@@ -47,6 +47,51 @@ export function useTags(registryId: string, repoName: string, page = 1, perPage 
   })
 }
 
+export async function fetchTagsForDeletion(registryId: string, repoName: string): Promise<Tag[]> {
+  const encodedRepoPath = encodeRepoPath(repoName)
+  const tags: Tag[] = []
+  let expectedTotal: number | undefined
+  let page = 1
+
+  while (true) {
+    const params = new URLSearchParams({ page: String(page), perPage: "100" })
+    const response = await fetch(
+      `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags?${params}`,
+      { cache: "no-store" },
+    )
+    const payload = (await response.json()) as ApiResponse<Tag[]>
+    if (!response.ok || !payload.success || !Array.isArray(payload.data) || !payload.meta) {
+      throw new Error("Unable to check all tags. Please try again.")
+    }
+    const { total, totalPages } = payload.meta
+    if (expectedTotal !== undefined && total !== expectedTotal) {
+      throw new Error("Tags changed while checking. Please try again.")
+    }
+    expectedTotal = total
+    tags.push(...payload.data)
+    if (page >= totalPages) break
+    if (payload.data.length === 0) throw new Error("Unable to check all tags. Please try again.")
+    page += 1
+  }
+
+  if (tags.length !== expectedTotal || new Set(tags.map((tag) => tag.name)).size !== tags.length ||
+      tags.some((tag) => !tag.digest.startsWith("sha256:"))) {
+    throw new Error("Unable to check all tag digests. Please try again.")
+  }
+  return tags
+}
+
+export function useTagsForDeletion(registryId: string, repoName: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["tags-for-deletion", registryId, repoName],
+    queryFn: () => fetchTagsForDeletion(registryId, repoName),
+    enabled,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  })
+}
+
 export function useDeleteTags() {
   const queryClient = useQueryClient()
 

@@ -107,18 +107,6 @@ export async function deleteRepositoryHandler(
   registry: RegistryConnection,
   repositoryName: string,
 ): Promise<NextResponse<ApiResponse<null>>> {
-  if (repositoryName.endsWith("/tags") || repositoryName === "tags") {
-    const response: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: {
-        code: "INVALID_REQUEST",
-        message: "Cannot perform repository deletion on a tags sub-path",
-      },
-    }
-    return NextResponse.json(response, { status: 400 })
-  }
-
   try {
     const provider = createProvider(registry)
 

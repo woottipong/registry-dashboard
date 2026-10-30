@@ -28,6 +28,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     registries,
     isRegistryError,
     failedRegistryIds,
+    hasIncompleteData,
     hasUnknownTagCounts,
     retry,
   } = useDashboardData({ initialRegistries })
@@ -206,6 +207,11 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
           </Button>
         </div>
       )}
+      {hasIncompleteData && !isRegistryError && failedRegistryIds.length === 0 && (
+        <p role="status" className="mt-5 rounded-control border border-warning/30 bg-warning/10 px-4 py-2.5 text-xs text-foreground">
+          Some repositories are not included. Totals and rankings reflect the loaded results only.
+        </p>
+      )}
 
       {/* Top 4-card KPI Stat Strip */}
       <DashboardKpis
@@ -215,6 +221,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         providerCount={providerCount}
         isLoadingRegistries={isLoadingRegistries}
         isLoadingRepos={isLoadingRepos}
+        hasIncompleteData={hasIncompleteData || isRegistryError}
         hasUnknownTagCounts={hasUnknownTagCounts}
       />
 
@@ -233,6 +240,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
             isLoadingRegistries={isLoadingRegistries}
             isLoadingRepos={isLoadingRepos}
             totalTags={totalTags}
+            hasIncompleteTagCounts={hasUnknownTagCounts || hasIncompleteData || isRegistryError}
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSortChange={handleSortChange}

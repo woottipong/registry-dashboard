@@ -128,14 +128,11 @@ describe("repository-handlers", () => {
   })
 
   describe("deleteRepositoryHandler", () => {
-    it("rejects deletion requests ending in /tags with 400 Bad Request", async () => {
-      const res = await deleteRepositoryHandler(mockRegistry, "apps/web/tags")
-      const data = await res.json()
-
-      expect(res.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe("INVALID_REQUEST")
-      expect(mockDeleteManifest).not.toHaveBeenCalled()
+    it.each(["tags", "apps/tags"])("deletes a repository named %s", async (name) => {
+      mockListTags.mockResolvedValueOnce({ items: [{ name: "latest", digest: "sha256:abc" }] })
+      const res = await deleteRepositoryHandler(mockRegistry, name)
+      expect(res.status).toBe(200)
+      expect(mockDeleteManifest).toHaveBeenCalledWith(name, "sha256:abc")
     })
 
     it("returns 405 when provider does not support deletion", async () => {

@@ -11,6 +11,7 @@ export interface DashboardKpisProps {
   providerCount: number
   isLoadingRegistries: boolean
   isLoadingRepos: boolean
+  hasIncompleteData?: boolean
   hasUnknownTagCounts?: boolean
 }
 
@@ -21,6 +22,7 @@ export function DashboardKpis({
   providerCount,
   isLoadingRegistries,
   isLoadingRepos,
+  hasIncompleteData,
   hasUnknownTagCounts,
 }: DashboardKpisProps) {
   return (
@@ -65,7 +67,7 @@ export function DashboardKpis({
             <Skeleton className="h-8 w-14 rounded-control" />
           ) : (
             <span className="text-2xl font-semibold tabular-nums text-foreground sm:text-3xl font-mono">
-              {totalRepositories}
+              {hasIncompleteData ? (totalRepositories > 0 ? `${totalRepositories}+` : "—") : totalRepositories}
             </span>
           )}
         </div>
@@ -88,7 +90,7 @@ export function DashboardKpis({
             <Skeleton className="h-8 w-14 rounded-control" />
           ) : (
             <span className="text-2xl font-semibold tabular-nums text-foreground sm:text-3xl font-mono">
-              {hasUnknownTagCounts ? (totalTags > 0 ? `${totalTags}+` : "—") : totalTags}
+              {hasUnknownTagCounts || hasIncompleteData ? (totalTags > 0 ? `${totalTags}+` : "—") : totalTags}
             </span>
           )}
         </div>

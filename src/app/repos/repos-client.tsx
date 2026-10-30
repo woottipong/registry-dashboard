@@ -43,6 +43,7 @@ export function RepositoriesClient({
 
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("tags-desc")
+  const [searchPageState, setSearchPageState] = useState({ registry: "", query: "", page: 1 })
   const debouncedSearch = useDebounce(search)
 
   const registriesQuery = useRegistries({ initialData: initialRegistries })
@@ -59,6 +60,7 @@ export function RepositoriesClient({
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value)
+    setSearchPageState({ registry: "", query: "", page: 1 })
   }, [])
 
   const handleRegistryChange = useCallback(
@@ -71,6 +73,7 @@ export function RepositoriesClient({
       }
       params.delete("namespace")
       setSearch("")
+      setSearchPageState({ registry: "", query: "", page: 1 })
       router.push(`${pathname}?${params.toString()}`)
     },
     [pathname, router, searchParams],
@@ -104,16 +107,20 @@ export function RepositoriesClient({
 
   const filteredNamespaces = useMemo(() => {
     if (!debouncedSearch.trim()) return namespaceList
-    const term = debouncedSearch.toLowerCase()
+    const term = debouncedSearch.trim().toLowerCase()
     return namespaceList.filter((ns) =>
       ns.name.toLowerCase().includes(term) || (ns.name === "" && "(root)".includes(term)),
     )
   }, [debouncedSearch, namespaceList])
 
+  const searchPage = searchPageState.registry === selectedRegistry && searchPageState.query === debouncedSearch
+    ? searchPageState.page : 1
   const searchReposQuery = useSearchRepositories(
     selectedNamespace === null ? selectedRegistry : "",
     debouncedSearch,
+    searchPage,
   )
+  const searchTotalPages = searchReposQuery.data?.meta?.totalPages ?? 1
 
   const activeRepos = useMemo(() => {
     if (selectedNamespace === null) {
@@ -121,7 +128,7 @@ export function RepositoriesClient({
     }
     const repos = repositoriesQuery.data?.items ?? []
     if (!debouncedSearch.trim()) return repos
-    const term = debouncedSearch.toLowerCase()
+    const term = debouncedSearch.trim().toLowerCase()
     return repos.filter(
       (repo) =>
         repo.name.toLowerCase().includes(term) || repo.fullName.toLowerCase().includes(term),
@@ -250,20 +257,22 @@ export function RepositoriesClient({
 
               {/* Body */}
               <div className="p-4 sm:p-5">
-                {debouncedSearch ? (
+                {debouncedSearch.trim() ? (
                   <div className="space-y-6">
                     {/* Matching Repositories */}
                     {searchReposQuery.isLoading ? (
                       <RepoSkeleton />
+                    ) : searchReposQuery.isError ? (
+                      <ErrorState onRetry={() => searchReposQuery.refetch()} />
                     ) : activeRepos.length > 0 ? (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between pb-2 border-b border-border/60">
                           <div>
                             <h2 className="text-xs font-semibold text-foreground">Matching Repositories</h2>
-                            <p className="text-xs text-muted-foreground">{activeRepos.length} results found across all namespaces</p>
+                            <p className="text-xs text-muted-foreground">Showing matches on this page of registry search results</p>
                           </div>
                           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                            <SelectTrigger className="w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories">
+                            <SelectTrigger className="w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories on this page">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-control">
@@ -278,8 +287,20 @@ export function RepositoriesClient({
                       </div>
                     ) : null}
 
+                    {!searchReposQuery.isLoading && !searchReposQuery.isError && searchTotalPages > 1 ? (
+                      <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                        <Button variant="outline" size="sm" disabled={searchPage <= 1} onClick={() => setSearchPageState({ registry: selectedRegistry, query: debouncedSearch, page: searchPage - 1 })}>Previous</Button>
+                        <span>Page {searchPage} of {searchTotalPages}</span>
+                        <Button variant="outline" size="sm" disabled={searchPage >= searchTotalPages} onClick={() => setSearchPageState({ registry: selectedRegistry, query: debouncedSearch, page: searchPage + 1 })}>Next</Button>
+                      </div>
+                    ) : null}
+
                     {/* Matching Namespaces */}
-                    {filteredNamespaces.length > 0 ? (
+                    {namespacesQuery.isLoading ? (
+                      <NamespaceSkeleton />
+                    ) : namespacesQuery.isError ? (
+                      <ErrorState onRetry={() => namespacesQuery.refetch()} />
+                    ) : filteredNamespaces.length > 0 ? (
                       <div className="space-y-3">
                         <div className="pb-2 border-b border-border/60">
                           <h2 className="text-xs font-semibold text-foreground">Matching Namespaces</h2>
@@ -294,8 +315,8 @@ export function RepositoriesClient({
                       </div>
                     ) : null}
 
-                    {!searchReposQuery.isLoading && activeRepos.length === 0 && filteredNamespaces.length === 0 ? (
-                      <EmptyState message="No namespaces or repositories match your search." />
+                    {!searchReposQuery.isLoading && !searchReposQuery.isError && !namespacesQuery.isLoading && !namespacesQuery.isError && activeRepos.length === 0 && filteredNamespaces.length === 0 ? (
+                      <EmptyState message={searchTotalPages > 1 ? "No matches on this page. Try another page." : "No namespaces or repositories match your search."} />
                     ) : null}
                   </div>
                 ) : (

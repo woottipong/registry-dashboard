@@ -57,5 +57,20 @@ describe("DashboardKpis", () => {
 
     expect(screen.getByText("—")).toBeInTheDocument()
   })
+
+  it("marks partial totals and does not report unknown zeroes as confirmed", () => {
+    const { rerender } = render(
+      <DashboardKpis registryCount={1} totalRepositories={1000} totalTags={20} providerCount={1}
+        isLoadingRegistries={false} isLoadingRepos={false} hasIncompleteData />,
+    )
+    expect(screen.getByText("1000+")).toBeInTheDocument()
+    expect(screen.getByText("20+")).toBeInTheDocument()
+
+    rerender(
+      <DashboardKpis registryCount={1} totalRepositories={0} totalTags={0} providerCount={1}
+        isLoadingRegistries={false} isLoadingRepos={false} hasIncompleteData />,
+    )
+    expect(screen.getAllByText("—")).toHaveLength(2)
+  })
 })
 

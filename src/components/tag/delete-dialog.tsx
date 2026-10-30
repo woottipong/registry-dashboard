@@ -23,6 +23,7 @@ interface BulkDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
   isPending?: boolean
+  checkStatus?: "loading" | "error" | "ready"
 }
 
 export function BulkDeleteDialog({
@@ -32,6 +33,7 @@ export function BulkDeleteDialog({
   onOpenChange,
   onConfirm,
   isPending = false,
+  checkStatus = "ready",
 }: BulkDeleteDialogProps) {
   const count = tags.length
   const acknowledgmentId = useId()
@@ -101,8 +103,13 @@ export function BulkDeleteDialog({
           </label>
         </div>
 
+        {checkStatus !== "ready" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {checkStatus === "loading" ? "Checking all tags for shared manifests…" : "Could not verify all tags. Close and try again."}
+          </p>
+        )}
         <DialogFooter showCloseButton>
-          <Button variant="destructive" disabled={isPending || !acknowledged || count === 0} onClick={() => { setAcknowledgedSelection(""); onConfirm() }}>
+          <Button variant="destructive" disabled={isPending || checkStatus !== "ready" || !acknowledged || count === 0} onClick={() => { setAcknowledgedSelection(""); onConfirm() }}>
             {isPending ? "Deleting…" : `Delete ${count} ${count === 1 ? "tag" : "tags"}`}
           </Button>
         </DialogFooter>
@@ -118,6 +125,7 @@ interface DeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onConfirm: (tag: Tag) => void
   isPending?: boolean
+  checkStatus?: "loading" | "error" | "ready"
 }
 
 export function DeleteDialog({
@@ -127,6 +135,7 @@ export function DeleteDialog({
   onOpenChange,
   onConfirm,
   isPending = false,
+  checkStatus = "ready",
 }: DeleteDialogProps) {
   const [confirmation, setConfirmation] = useState("")
   const confirmationId = useId()
@@ -134,7 +143,7 @@ export function DeleteDialog({
   const isConfirmed = confirmation === tag?.name
 
   function handleConfirm() {
-    if (!tag || !isConfirmed) return
+    if (!tag || !isConfirmed || isPending || checkStatus !== "ready") return
     onConfirm(tag)
     setConfirmation("")
   }
@@ -202,10 +211,15 @@ export function DeleteDialog({
           </div>
         ) : null}
 
+        {checkStatus !== "ready" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {checkStatus === "loading" ? "Checking all tags for shared manifests…" : "Could not verify all tags. Close and try again."}
+          </p>
+        )}
         <DialogFooter showCloseButton>
           <Button
             variant="destructive"
-            disabled={!isConfirmed || isPending}
+            disabled={!isConfirmed || isPending || checkStatus !== "ready"}
             onClick={handleConfirm}
           >
             {isPending ? "Deleting…" : "Delete tag"}

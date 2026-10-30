@@ -262,6 +262,14 @@ describe("DockerHubProvider.searchRepositories()", () => {
     })
   })
 
+  it("forwards the requested search page and page size", async () => {
+    const fetchSpy = mockFetch({ count: 200, results: [], next: null })
+    globalThis.fetch = fetchSpy
+    const result = await new DockerHubProvider(CONNECTION_NO_CREDS).searchRepositories("nginx", { page: 2, perPage: 50 })
+    expect(String(vi.mocked(fetchSpy).mock.calls[0][0])).toContain("page=2&page_size=50")
+    expect(result).toMatchObject({ page: 2, perPage: 50, total: 200 })
+  })
+
   it("throws when search API fails", async () => {
     globalThis.fetch = mockFetch({ message: "Service unavailable" }, 503)
     const provider = new DockerHubProvider(CONNECTION_NO_CREDS)
@@ -285,6 +293,31 @@ describe("DockerHubProvider authentication", () => {
     const namespaces = await provider.listNamespaces()
 
     expect(namespaces[0].name).toBe("testuser") // authenticated username becomes namespace
+  })
+
+  it("authenticates again when a replacement password shares the old suffix", async () => {
+    globalThis.fetch = mockFetchSequence([{ token: makeJwt() }], [{ count: 1, results: [] }], [{ message: "invalid" }, 401])
+    const oldConnection = { ...CONNECTION_WITH_CREDS, credentials: { username: "testuser", password: "old-12345678" } }
+    const newConnection = { ...oldConnection, credentials: { username: "testuser", password: "new-12345678" } }
+    expect(await new DockerHubProvider(oldConnection).ping()).toBe(true)
+    expect(await new DockerHubProvider(newConnection).ping()).toBe(false)
+  })
+
+  it("keeps the token when optional verification fails", async () => {
+    const jwt = makeJwt()
+    let authorized = false
+    globalThis.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      const isLogin = String(url).includes("/users/login/")
+      const isVerify = String(url).endsWith("page_size=1")
+      if (!isLogin && !isVerify) authorized = new Headers(init?.headers).get("authorization") === `JWT ${jwt}`
+      return Promise.resolve({
+        ok: !isVerify, status: isVerify ? 403 : 200, statusText: isVerify ? "Forbidden" : "OK", headers: new Headers(),
+        text: () => Promise.resolve(JSON.stringify(isLogin ? { token: jwt } : { count: 1, results: [{ name: "private", namespace: "testuser", is_private: true }] })),
+      })
+    }) as typeof fetch
+    const result = await new DockerHubProvider(CONNECTION_WITH_CREDS).listRepositories()
+    expect(authorized).toBe(true)
+    expect(result.items[0].fullName).toBe("testuser/private")
   })
 
   it("skips authentication when no credentials provided", async () => {

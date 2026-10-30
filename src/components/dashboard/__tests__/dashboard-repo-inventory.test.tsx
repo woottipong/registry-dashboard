@@ -93,6 +93,15 @@ describe("DashboardRepoInventory", () => {
     expect(screen.queryByText("Size")).toBeNull()
   })
 
+  it("hides tag percentages when the total is incomplete", () => {
+    render(<DashboardRepoInventory repositories={sampleRepos} topRepositories={sampleRepos}
+      registriesWithStats={[]} activeTab="all" onTabChange={vi.fn()} tableSearch=""
+      onSearchChange={vi.fn()} isLoadingRegistries={false} isLoadingRepos={false}
+      totalTags={10} hasIncompleteTagCounts />)
+    expect(screen.getByText("5 tags")).toBeInTheDocument()
+    expect(screen.queryByText("50%")).not.toBeInTheDocument()
+  })
+
   it("shows empty state when no repositories match filter", () => {
     render(
       <DashboardRepoInventory

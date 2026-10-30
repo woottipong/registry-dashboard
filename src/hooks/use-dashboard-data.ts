@@ -110,8 +110,8 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       const repos = queryResult?.data?.items ?? []
       const repoCount = repos.length
       // A missing tag count means the total for this registry is unknown.
-      const tagCount = repos.some((r) => r.tagCount === undefined) ? null :
-        repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
+      const knownTagCount = repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
+      const tagCount = repos.some((r) => r.tagCount === undefined) ? null : knownTagCount
 
       // Only add to chart data if we have repositories
       if (repoCount > 0) {
@@ -133,7 +133,7 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       }
 
       totalRepos += repoCount
-      totalTagsCount += tagCount ?? 0  // Only add if tagCount is defined
+      totalTagsCount += knownTagCount
 
       return {
         ...registry,

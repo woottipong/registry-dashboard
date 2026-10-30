@@ -9,7 +9,7 @@ import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
+import { useDeleteTag, useDeleteTags, useTags, useTagsForDeletion } from "@/hooks/use-tags"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
@@ -50,6 +50,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   // Fetch data
   const registryQuery = useRegistry(registryId)
   const tagsQuery = useTags(registryId, repoName, page, PER_PAGE, debouncedSearch)
+  const deletionTagsQuery = useTagsForDeletion(registryId, repoName, tagToDelete !== null || tagsToDelete.length > 0)
   const deleteTag = useDeleteTag()
   const deleteTags = useDeleteTags()
 
@@ -78,23 +79,18 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const totalTags = meta?.total ?? memoizedTags.length
   const totalPages = meta?.totalPages ?? 1
 
-  // Memoize shared tags calculation
-  const sharedWithTag = useMemo(() => {
-    if (!tagToDelete?.digest) return []
-    return memoizedTags
-      .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
-      .map((t) => t.name)
-  }, [memoizedTags, tagToDelete])
-
-  // Tags that are NOT selected but will also be deleted because they share a digest with a selected tag
-  const bulkSideEffectTags = useMemo(() => {
-    if (selectedRowTags.length === 0) return []
-    const selectedDigests = new Set(selectedRowTags.map((t) => t.digest).filter(Boolean))
-    const selectedNames = new Set(selectedRowTags.map((t) => t.name))
-    return memoizedTags
-      .filter((t) => !selectedNames.has(t.name) && t.digest && selectedDigests.has(t.digest))
-      .map((t) => t.name)
-  }, [selectedRowTags, memoizedTags])
+  const deletionTags = deletionTagsQuery.data ?? []
+  const deletionSelection = tagToDelete ? [tagToDelete] : tagsToDelete
+  const selectionIsCurrent = deletionSelection.every((selected) =>
+    deletionTags.some((tag) => tag.name === selected.name && tag.digest === selected.digest),
+  )
+  const checkStatus = deletionTagsQuery.isFetching ? "loading" :
+    deletionTagsQuery.isError || !deletionTagsQuery.data || !selectionIsCurrent ? "error" : "ready"
+  const selectedDigests = new Set(deletionSelection.map((tag) => tag.digest))
+  const selectedNames = new Set(deletionSelection.map((tag) => tag.name))
+  const sharedTags = deletionTags
+    .filter((tag) => !selectedNames.has(tag.name) && selectedDigests.has(tag.digest))
+    .map((tag) => tag.name)
 
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
@@ -318,7 +314,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       {/* Delete Dialog */}
       <DeleteDialog
         tag={tagToDelete}
-        sharedWith={sharedWithTag}
+        sharedWith={sharedTags}
+        checkStatus={checkStatus}
         open={tagToDelete !== null}
         onOpenChange={(open) => { if (!open) setTagToDelete(null) }}
         onConfirm={handleDeleteConfirm}
@@ -329,7 +326,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       {tagsToDelete.length > 0 && (
         <BulkDeleteDialog
           tags={tagsToDelete}
-          sideEffectTags={bulkSideEffectTags}
+          sideEffectTags={sharedTags}
+          checkStatus={checkStatus}
           open
           onOpenChange={(open: boolean) => { if (!open) setTagsToDelete([]) }}
           onConfirm={handleBulkDeleteConfirm}

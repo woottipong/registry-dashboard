@@ -27,6 +27,7 @@ export interface DashboardRepoInventoryProps {
   isLoadingRegistries: boolean
   isLoadingRepos: boolean
   totalTags: number
+  hasIncompleteTagCounts?: boolean
   sortBy?: "name" | "tags"
   sortOrder?: "asc" | "desc"
   onSortChange?: (column: "name" | "tags") => void
@@ -43,6 +44,7 @@ export function DashboardRepoInventory({
   isLoadingRegistries,
   isLoadingRepos,
   totalTags,
+  hasIncompleteTagCounts,
   sortBy = "tags",
   sortOrder = "desc",
   onSortChange,
@@ -274,7 +276,7 @@ export function DashboardRepoInventory({
                           <span className="font-semibold text-foreground">
                             {repo.tagCount !== undefined ? `${repo.tagCount} tags` : "—"}
                           </span>
-                          {totalTags > 0 && repo.tagCount ? (
+                          {!hasIncompleteTagCounts && totalTags > 0 && repo.tagCount ? (
                             <span className="text-xs text-muted-foreground">
                               {Math.round((repo.tagCount / totalTags) * 100)}%
                             </span>

@@ -47,4 +47,15 @@ describe("useDashboardData", () => {
     expect(result.current.hasIncompleteData).toBe(true)
     expect(result.current.dashboardData.registriesWithStats[0].tagCount).toBeNull()
   })
+
+  it("keeps known tag counts when another repository has an unknown count", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: [{ name: "web", fullName: "web", tagCount: 10 }, { name: "api", fullName: "api" }] }),
+    }))
+    const { result } = setup()
+    await waitFor(() => expect(result.current.isLoadingRepos).toBe(false))
+    expect(result.current.dashboardData.totalTags).toBe(10)
+    expect(result.current.hasUnknownTagCounts).toBe(true)
+  })
 })

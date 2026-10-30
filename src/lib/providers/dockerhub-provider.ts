@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { RegistryHttpClient } from "@/lib/registry-client"
 import * as z from "zod"
 import type { ImageConfig, ImageManifest, ManifestBlobReference } from "@/types/manifest"
@@ -103,10 +104,8 @@ export class DockerHubProvider implements RegistryProvider {
   }
 
   private getAuthCacheKey(): string {
-    const passwordHash = this.connection.credentials?.password
-      ? this.connection.credentials.password.slice(-8)
-      : "nopass"
-    return `${this.connection.id ?? this.connection.url}:${this.connection.credentials?.username ?? "anon"}:${passwordHash}`
+    const { id, url, authType, credentials } = this.connection
+    return createHash("sha256").update(JSON.stringify([id, url, authType, credentials?.username, credentials?.password, credentials?.token])).digest("hex")
   }
 
   private invalidateToken(): void {
@@ -234,10 +233,12 @@ export class DockerHubProvider implements RegistryProvider {
     }
   }
 
-  async searchRepositories(query: string): Promise<PaginatedResult<Repository>> {
+  async searchRepositories(query: string, options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
     await this.ensureAuthenticated()
 
     try {
+      const page = options.page ?? 1
+      const perPage = Math.min(options.perPage ?? this.config.defaultPageSize, 100)
       const headers: HeadersInit = {}
       if (this.hubJwtToken) {
         headers.Authorization = `JWT ${this.hubJwtToken}`
@@ -245,15 +246,15 @@ export class DockerHubProvider implements RegistryProvider {
 
       const response = dockerHubRepoResponseSchema.parse(
         await this.registryClient.request<DockerHubRepoResponse>(
-          `${this.config.baseUrl}/${this.config.apiVersion}/search/repositories/?query=${encodeURIComponent(query)}&page_size=${this.config.defaultPageSize}`,
+          `${this.config.baseUrl}/${this.config.apiVersion}/search/repositories/?query=${encodeURIComponent(query)}&page=${page}&page_size=${perPage}`,
           { headers },
         ),
       )
 
       return {
         items: response.results.map(repo => this.mapRepositoryResponse(repo)),
-        page: 1,
-        perPage: this.config.defaultPageSize,
+        page,
+        perPage,
         total: response.count,
         nextCursor: response.next,
       }
@@ -554,7 +555,7 @@ export class DockerHubProvider implements RegistryProvider {
       )
     } catch (error) {
       console.warn("[DockerHubProvider] Authentication verification failed:", error)
-      this.invalidateToken()
+      if (this.isUnauthorizedError(error)) throw error
     }
   }
 }

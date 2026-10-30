@@ -27,8 +27,8 @@ export const queryKeys = {
             namespace: string,
         ) => ["repositories", registryId, page, perPage, search, namespace] as const,
 
-        search: (registryId: string, query: string) =>
-            ["repositories", "search", registryId, query] as const,
+        search: (registryId: string, query: string, page = 1, perPage = 100) =>
+            ["repositories", "search", registryId, query, page, perPage] as const,
 
         /** Prefix key — handy for `invalidateQueries` after delete */
         prefix: (registryId: string) => ["repositories", registryId] as const,

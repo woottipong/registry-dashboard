@@ -88,6 +88,15 @@ describe("BulkDeleteDialog", () => {
     expect(button).not.toBeDisabled()
   })
 
+  it("blocks bulk deletion until the shared-tag check succeeds", () => {
+    const { rerender } = render(<BulkDeleteDialog {...defaultProps} checkStatus="loading" />)
+    fireEvent.click(screen.getByRole("checkbox", { name: /I understand/i }))
+    expect(screen.getByRole("button", { name: /delete 2 tags/i })).toBeDisabled()
+    rerender(<BulkDeleteDialog {...defaultProps} checkStatus="error" />)
+    expect(screen.getByRole("button", { name: /delete 2 tags/i })).toBeDisabled()
+    expect(defaultProps.onConfirm).not.toHaveBeenCalled()
+  })
+
   it("requires fresh acknowledgement when the selection changes", () => {
     const { rerender } = render(<BulkDeleteDialog {...defaultProps} />)
     fireEvent.click(screen.getByRole("checkbox", { name: /I understand/i }))
@@ -178,6 +187,16 @@ describe("DeleteDialog", () => {
     fireEvent.change(input, { target: { value: "v1.0.0" } })
     fireEvent.keyDown(input, { key: "Enter" })
     expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1)
+  })
+
+  it("blocks button and Enter while shared tags cannot be checked", () => {
+    render(<DeleteDialog {...defaultProps} checkStatus="error" />)
+    const input = screen.getByPlaceholderText("v1.0.0")
+    fireEvent.change(input, { target: { value: "v1.0.0" } })
+    expect(screen.getByRole("button", { name: "Delete tag" })).toBeDisabled()
+    fireEvent.keyDown(input, { key: "Enter" })
+    expect(defaultProps.onConfirm).not.toHaveBeenCalled()
+    expect(screen.getByText(/could not verify all tags/i)).toBeInTheDocument()
   })
 
   it("does not submit on Enter when confirmation is invalid", () => {
