@@ -4,9 +4,6 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 import {
   ArrowRightIcon,
-  CheckIcon,
-  LayersIcon,
-  LockIcon,
   PlusIcon,
   SearchIcon,
   ServerIcon,
@@ -64,21 +61,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
   const [authFilter, setAuthFilter] = useState("all")
   const [registryToDelete, setRegistryToDelete] = useState<RegistryConnection | null>(null)
 
-  const defaultRegistry = useMemo(
-    () => registries.find((registry) => registry.isDefault) ?? null,
-    [registries],
-  )
-
   const providerCounts = useMemo(() => {
     const generic = registries.filter((r) => r.provider === "generic").length
     const dockerhub = registries.filter((r) => r.provider === "dockerhub").length
     return { generic, dockerhub }
   }, [registries])
-
-  const securedCount = useMemo(
-    () => registries.filter((r) => r.authType !== "none").length,
-    [registries],
-  )
 
   const filteredRegistries = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -156,84 +143,19 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
         </div>
       </header>
 
-      {/* Doorlog 4-Card KPI Stat Strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        {/* Card 1: Total Endpoints */}
-        <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">Endpoints</span>
-            <ServerIcon className="size-3.5 text-primary" />
-          </div>
-          <div className="mt-2">
-            <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
-              {isLoading ? "…" : registries.length}
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              {registries.length === 1 ? "1 connection active" : `${registries.length} connections active`}
-            </p>
-          </div>
-        </div>
-
-        {/* Card 2: Default Target */}
-        <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">Default Target</span>
-            <CheckIcon className="size-3.5 text-primary" />
-          </div>
-          <div className="mt-2">
-            <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate font-mono">
-              {defaultRegistry ? defaultRegistry.name : "None"}
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              Primary push/pull endpoint
-            </p>
-          </div>
-        </div>
-
-        {/* Card 3: Provider Drivers */}
-        <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">Providers</span>
-            <LayersIcon className="size-3.5 text-primary" />
-          </div>
-          <div className="mt-2">
-            <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
-              {new Set(registries.map((r) => r.provider)).size} Active
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              V2 & Docker Hub support
-            </p>
-          </div>
-        </div>
-
-        {/* Card 4: Access Security */}
-        <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">Security</span>
-            <LockIcon className="size-3.5 text-primary" />
-          </div>
-          <div className="mt-2">
-            <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
-              {securedCount} Secured
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              Encrypted session store
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Main Registries Panel */}
       <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden">
         {/* Header Toolbar */}
         <div className="flex flex-col gap-3 border-b border-border/70 p-3.5 sm:flex-row sm:items-center sm:justify-between">
           {/* Provider Filter Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0" role="tablist" aria-label="Registry providers">
             <button
               type="button"
+              role="tab"
+              aria-selected={providerFilter === "all"}
               onClick={() => setProviderFilter("all")}
               className={cn(
-                "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+                "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 providerFilter === "all"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -255,9 +177,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             {providerCounts.generic > 0 && (
               <button
                 type="button"
+                role="tab"
+                aria-selected={providerFilter === "generic"}
                 onClick={() => setProviderFilter("generic")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+                  "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   providerFilter === "generic"
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -280,9 +204,11 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
             {providerCounts.dockerhub > 0 && (
               <button
                 type="button"
+                role="tab"
+                aria-selected={providerFilter === "dockerhub"}
                 onClick={() => setProviderFilter("dockerhub")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+                  "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   providerFilter === "dockerhub"
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -329,7 +255,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer transition-colors"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center rounded-control text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   aria-label="Clear search"
                 >
                   <XIcon className="size-3" />
@@ -410,7 +336,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 text-xs font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
+            className="h-6 text-xs font-medium px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
             onClick={handleAddRegistry}
           >
             <PlusIcon className="mr-1 size-3" />

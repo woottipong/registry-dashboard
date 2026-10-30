@@ -2,12 +2,15 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useWatch } from "react-hook-form"
 import * as z from "zod"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon,
   GlobeIcon,
   KeyRoundIcon,
   Loader2Icon,
@@ -29,20 +32,62 @@ import {
 } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 import { useAddRegistry, usePingRegistry, useUpdateRegistry } from "@/hooks/use-registries"
 import { cn } from "@/lib/utils"
 import type { RegistryAuthType, RegistryConnection, RegistryProviderType } from "@/types/registry"
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  url: z.string().url("URL is invalid"),
-  provider: z.enum(["generic", "dockerhub"]),
-  authType: z.enum(["none", "basic", "bearer"]),
-  username: z.string().optional(),
-  password: z.string().optional(),
-  token: z.string().optional(),
-  namespace: z.string().optional(),
-})
+const schema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    url: z
+      .string()
+      .min(1, "Endpoint URL is required")
+      .refine(
+        (val) => {
+          try {
+            const parsed = new URL(val)
+            return parsed.protocol === "http:" || parsed.protocol === "https:"
+          } catch {
+            return false
+          }
+        },
+        { message: "URL must be a valid http:// or https:// address" },
+      ),
+    provider: z.enum(["generic", "dockerhub"]),
+    authType: z.enum(["none", "basic", "bearer"]),
+    username: z.string().optional(),
+    password: z.string().optional(),
+    token: z.string().optional(),
+    namespace: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.authType === "basic") {
+      if (!data.username || data.username.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Username is required for basic auth",
+          path: ["username"],
+        })
+      }
+      if (!data.password || data.password.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Password or PAT is required for basic auth",
+          path: ["password"],
+        })
+      }
+    }
+    if (data.authType === "bearer") {
+      if (!data.token || data.token.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bearer token is required",
+          path: ["token"],
+        })
+      }
+    }
+  })
 
 type FormState = z.infer<typeof schema>
 
@@ -53,6 +98,8 @@ interface RegistryFormProps {
 
 export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showToken, setShowToken] = useState(false)
   const addRegistry = useAddRegistry()
   const updateRegistry = useUpdateRegistry()
   const pingRegistry = usePingRegistry(initialValue?.id ?? "")
@@ -203,7 +250,8 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
           <div className="rounded-panel bg-card border border-panel-border shadow-panel overflow-hidden">
-            <div className="p-6 sm:p-7 space-y-6">
+            <fieldset disabled={loading} className="p-6 sm:p-7 space-y-6 disabled:opacity-85">
+              <legend className="sr-only">Registry configuration details</legend>
               {/* Section 1: Connection */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2.5">
@@ -269,7 +317,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                               <SelectValue placeholder="Select a provider" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl">
+                          <SelectContent className="rounded-control">
                             <SelectItem value="generic">Generic (Docker V2 API)</SelectItem>
                             <SelectItem value="dockerhub">Docker Hub</SelectItem>
                           </SelectContent>
@@ -304,11 +352,8 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                 </div>
               </div>
 
-              {/* Subtle Divider */}
-              <div className="h-2" />
-
               {/* Section 2: Authentication */}
-              <div className="space-y-4">
+              <div className="border-t border-border/40 pt-6 space-y-4">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <KeyRoundIcon className="size-4" />
@@ -331,6 +376,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                       <FormItem>
                         <FormControl>
                           <RadioGroup
+                            aria-label="Authentication type"
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             className="grid gap-3 sm:grid-cols-3"
@@ -339,13 +385,14 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                               const isSelected = field.value === option.value
                               const Icon = option.icon
                               return (
-                                <label
+                                <div
                                   key={option.value}
-                                  htmlFor={`auth-${option.value}`}
+                                  onClick={() => field.onChange(option.value)}
                                   className={cn(
                                     "relative flex cursor-pointer flex-col justify-between rounded-control border p-3.5 transition-all select-none",
+                                    "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:border-ring",
                                     isSelected
-                                      ? "border-primary/50 shadow-xs ring-1 ring-primary/20 bg-primary/[0.08]"
+                                      ? "border-primary/50 shadow-xs ring-1 ring-primary/20 bg-primary/10"
                                       : "border-border/60 bg-muted/20 hover:border-primary/30 hover:bg-muted/40",
                                   )}
                                 >
@@ -354,11 +401,16 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                                       <RadioGroupItem
                                         value={option.value}
                                         id={`auth-${option.value}`}
+                                        aria-label={option.label}
+                                        aria-describedby={`auth-${option.value}-note`}
                                         className="size-4 shrink-0"
                                       />
-                                      <span className="text-xs font-semibold text-foreground tracking-tight">
+                                      <Label
+                                        htmlFor={`auth-${option.value}`}
+                                        className="text-xs font-semibold text-foreground tracking-tight cursor-pointer"
+                                      >
                                         {option.label}
-                                      </span>
+                                      </Label>
                                     </div>
                                     <Icon
                                       className={cn(
@@ -367,8 +419,13 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                                       )}
                                     />
                                   </div>
-                                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{option.note}</p>
-                                </label>
+                                  <p
+                                    id={`auth-${option.value}-note`}
+                                    className="mt-2 text-xs leading-relaxed text-muted-foreground"
+                                  >
+                                    {option.note}
+                                  </p>
+                                </div>
                               )
                             })}
                           </RadioGroup>
@@ -404,12 +461,26 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <FormItem>
                             <FormLabel className="text-xs font-medium">{"Password / PAT"}</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder={"••••••••"}
-                                className="h-9 rounded-control text-sm"
-                                {...field}
-                              />
+                              <div className="relative">
+                                <Input
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder={"••••••••"}
+                                  className="h-9 rounded-control text-sm pr-9"
+                                  {...field}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword((prev) => !prev)}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer rounded-control transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
+                                  aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                  {showPassword ? (
+                                    <EyeOffIcon className="size-3.5" />
+                                  ) : (
+                                    <EyeIcon className="size-3.5" />
+                                  )}
+                                </button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -427,12 +498,26 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                           <FormItem>
                             <FormLabel className="text-xs font-medium">{"Bearer Token"}</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder={"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}
-                                className="h-9 rounded-control font-mono text-xs"
-                                {...field}
-                              />
+                              <div className="relative">
+                                <Input
+                                  type={showToken ? "text" : "password"}
+                                  placeholder={"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}
+                                  className="h-9 rounded-control font-mono text-xs pr-9"
+                                  {...field}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowToken((prev) => !prev)}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 size-6 flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer rounded-control transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
+                                  aria-label={showToken ? "Hide token" : "Show token"}
+                                >
+                                  {showToken ? (
+                                    <EyeOffIcon className="size-3.5" />
+                                  ) : (
+                                    <EyeIcon className="size-3.5" />
+                                  )}
+                                </button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -442,7 +527,7 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   ) : null}
                 </div>
               </div>
-            </div>
+            </fieldset>
 
             {/* Integrated Action Dock */}
             <div className="px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-secondary/20 border-t border-panel-border">
@@ -455,16 +540,18 @@ export function RegistryForm({ mode, initialValue }: RegistryFormProps) {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="rounded-control text-xs font-medium h-8 px-4"
-                  onClick={() => router.back()}
+                  className="rounded-control text-xs font-medium h-9 sm:h-8 px-4 flex-1 sm:flex-initial"
                   disabled={loading}
+                  asChild
                 >
-                  {"Cancel"}
+                  <Link href="/registries">
+                    {"Cancel"}
+                  </Link>
                 </Button>
                 <Button
                   type="submit"
                   size="sm"
-                  className="rounded-control shadow-xs text-xs font-medium h-8 px-4 gap-1.5"
+                  className="rounded-control shadow-xs text-xs font-medium h-9 sm:h-8 px-4 gap-1.5 flex-1 sm:flex-initial"
                   disabled={loading}
                 >
                   {loading ? (
