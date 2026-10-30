@@ -41,5 +41,21 @@ describe("DashboardKpis", () => {
     // Verify skeletons are rendered
     expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThanOrEqual(4)
   })
+
+  it("distinguishes unknown tag counts from confirmed zero", () => {
+    render(
+      <DashboardKpis
+        registryCount={1}
+        totalRepositories={5}
+        totalTags={0}
+        providerCount={1}
+        isLoadingRegistries={false}
+        isLoadingRepos={false}
+        hasUnknownTagCounts={true}
+      />
+    )
+
+    expect(screen.getByText("—")).toBeInTheDocument()
+  })
 })
 

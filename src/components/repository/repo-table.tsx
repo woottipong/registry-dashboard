@@ -16,6 +16,7 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import { queryKeys } from "@/lib/constants/query-keys"
 import { STALE_TIME_TAGS } from "@/lib/query-client"
+import { encodeRepoPath } from "@/lib/utils"
 import type { Repository } from "@/types/registry"
 
 interface RepoTableProps {
@@ -47,10 +48,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       queryKey: queryKeys.tags.prefix(registryId, repo.fullName),
       staleTime: STALE_TIME_TAGS,
       queryFn: async () => {
-        const encodedRepoPath = repo.fullName
-          .split("/")
-          .map((segment) => encodeURIComponent(segment))
-          .join("/")
+        const encodedRepoPath = encodeRepoPath(repo.fullName)
         const response = await fetch(
           `/api/v1/registries/${registryId}/repositories/${encodedRepoPath}/tags`,
           { cache: "no-store" },
@@ -67,8 +65,8 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
   return (
     <div className="overflow-x-auto">
       <Table className="w-full text-left text-xs">
-        <TableHeader className="border-b border-border/70 bg-secondary/25">
-          <TableRow className="border-b border-border/70 hover:bg-transparent text-muted-foreground">
+        <TableHeader className="border-b border-border/70 bg-secondary/40">
+          <TableRow className="border-b border-border/70 hover:bg-transparent text-muted-foreground font-medium">
             <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-xs" aria-label="Index">#</TableHead>
             <TableHead className="py-2.5 px-3 font-medium">Repository</TableHead>
             <TableHead className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</TableHead>
@@ -89,11 +87,11 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                 onClick={() => router.push(`/repos/${registryId}/${repo.fullName}`)}
                 onMouseEnter={() => setHoveredRepo(repo)}
                 onMouseLeave={() => setHoveredRepo(null)}
-                className="group cursor-pointer hover:bg-secondary/40 text-foreground/90 transition-colors duration-100"
+                className="group cursor-pointer even:bg-secondary/15 hover:bg-secondary/40 text-foreground transition-colors duration-100"
               >
                 {/* # Rank */}
                 <TableCell className="w-9 py-2.5 pl-3.5 pr-1 text-center font-mono">
-                  <span className="text-xs font-mono text-muted-foreground/70">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {idx + 1}
                   </span>
                 </TableCell>

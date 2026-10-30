@@ -116,7 +116,7 @@ export function ModernRegistriesPage({ initialRegistries }: ModernRegistriesPage
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
+    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 pt-2 pb-10">
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

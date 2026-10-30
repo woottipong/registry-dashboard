@@ -94,7 +94,7 @@ export function NamespaceList({
                     </span>
                   ))}
                   {remainingCount > 0 ? (
-                    <span className="font-mono text-xs text-muted-foreground/70">
+                    <span className="font-mono text-xs text-muted-foreground">
                       +{remainingCount} more
                     </span>
                   ) : null}

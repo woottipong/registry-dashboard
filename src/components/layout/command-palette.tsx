@@ -86,14 +86,14 @@ export function CommandPalette() {
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 border border-transparent",
                     )}
                   >
-                    <span className={cn("size-1.5 rounded-full shrink-0", isSelected ? "bg-emerald-400" : "bg-muted-foreground/40")} />
+                    <span className={cn("size-1.5 rounded-full shrink-0", isSelected ? "bg-primary" : "bg-muted-foreground/40")} />
                     <span className="truncate max-w-[160px]">{registry.name}</span>
                   </button>
                 )
               })}
             </div>
 
-            <span className="text-xs font-mono text-muted-foreground/50 shrink-0 hidden sm:inline">
+            <span className="text-xs font-mono text-muted-foreground/80 shrink-0 hidden sm:inline">
               {canSearch ? "Catalog search enabled" : "Namespace browse only"}
             </span>
           </div>
@@ -277,8 +277,8 @@ export function CommandPalette() {
           </span>
         </div>
         {searchRegistry ? (
-          <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground/70">
-            <span className="size-1.5 rounded-full bg-emerald-400" />
+          <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground/85">
+            <span className="size-1.5 rounded-full bg-primary" />
             <span>{searchRegistry.name}</span>
           </div>
         ) : null}

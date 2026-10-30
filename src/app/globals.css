@@ -81,30 +81,30 @@
   /* Carbon Dark: deep matte charcoal canvas, sharp 1px borders, electric blue actions, vivid status dots. */
   --background: #0d1015;
   --foreground: #f1f5f9;
-  --card: #13171f;
+  --card: #151b24;
   --card-foreground: #f1f5f9;
-  --panel-border: #1e2430;
-  --popover: #161b24;
+  --panel-border: #202736;
+  --popover: #18202d;
   --popover-foreground: #f1f5f9;
 
   --primary: #3b82f6;
   --primary-hover: #60a5fa;
   --primary-active: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #1a202c;
+  --secondary: #1d2535;
   --secondary-foreground: #f1f5f9;
-  --muted: #171c26;
+  --muted: #19212f;
   --muted-foreground: #94a3b8;
-  --accent: #1e2430;
+  --accent: #222b3d;
   --accent-foreground: #f1f5f9;
   --destructive: #ef4444;
   --danger-solid: #dc2626;
   --success: #22c55e;
   --warning: #f59e0b;
   --destructive-foreground: #ffffff;
-  --border: #1e2430;
-  --input: #334155;
-  --control: #161b24;
+  --border: #202736;
+  --input: #283347;
+  --control: #1a2232;
   --ring: #3b82f6;
 
   --chart-1: #3b82f6;
@@ -113,13 +113,13 @@
   --chart-4: #a855f7;
   --chart-5: #ef4444;
 
-  --sidebar: #090c10;
-  --sidebar-foreground: #e2e8f0;
+  --sidebar: #0a0d12;
+  --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #161b24;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #181d26;
+  --sidebar-border: #1a202c;
   --sidebar-ring: #3b82f6;
 
   --c-link: #3b82f6;

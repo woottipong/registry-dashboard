@@ -153,7 +153,7 @@ export function RepositoriesClient({
   }, [repositoriesQuery.data, namespaceList])
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
+    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 pt-2 pb-10">
       {!selectedRegistry ? (
         <NoRegistryState />
       ) : (

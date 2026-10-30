@@ -37,100 +37,113 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       {/* Brand header aligned with the topbar */}
-      <div className="flex h-16 items-center justify-between border-b border-border/70 px-4">
+      <div className="flex h-16 items-center border-b border-border/70 px-4">
         <Link
           href="/"
           onNavigate={onNavigate}
-          className="group flex items-center gap-3 rounded-control transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex items-center gap-3 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <div className="flex size-10 shrink-0 items-center justify-center transition-transform duration-150 group-hover:scale-105">
-            <Image
-              src="/logo.svg"
-              alt="Registry"
-              width={38}
-              height={38}
-              priority
-              className="shrink-0 drop-shadow-[0_2px_10px_rgba(14,165,233,0.4)]"
-            />
-          </div>
+          <Image
+            src="/logo.svg"
+            alt="Registry"
+            width={30}
+            height={30}
+            priority
+            className="shrink-0"
+          />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-[15px] font-bold tracking-tight text-foreground leading-tight">
+              <span className="truncate text-sm font-semibold tracking-tight text-foreground">
                 Registry
               </span>
-              <span className="rounded-control bg-secondary/80 border border-border/60 px-1.5 py-0.5 font-mono text-xs text-muted-foreground font-medium">
+              <span className="rounded bg-secondary/80 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground leading-none">
                 v0.1.0
               </span>
             </div>
-            <span className="truncate text-xs text-muted-foreground leading-none mt-1">
+            <span className="truncate text-xs text-muted-foreground/80 leading-none mt-1">
               Dashboard
             </span>
           </div>
         </Link>
       </div>
 
-      {/* Navigation Rail with calibrated vertical rhythm */}
-      <div className="flex flex-1 flex-col gap-5 px-3 py-4 overflow-y-auto">
-        {/* EXPLORE */}
-        <div className="flex flex-col gap-1">
-          <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-            {"Explore"}
-          </p>
-          <nav className="flex flex-col gap-0.5">
-            <Link
-              href="/"
-              onNavigate={onNavigate}
+      {/* Navigation Rail */}
+      <div className="flex flex-1 flex-col px-3 py-5 overflow-y-auto">
+        {/* Primary Destinations */}
+        <nav className="flex flex-col gap-1">
+          <Link
+            href="/"
+            onNavigate={onNavigate}
+            className={cn(
+              "group flex h-9.5 items-center gap-3 rounded-control px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isActive("/", true)
+                ? "bg-secondary/80 text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
+            )}
+          >
+            <LayoutDashboardIcon
               className={cn(
-                "group flex items-center justify-between rounded-control px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isActive("/", true)
-                  ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+                "size-[18px] shrink-0 transition-colors",
+                isActive("/", true) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
               )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <LayoutDashboardIcon
-                  className={cn(
-                    "size-4 shrink-0 transition-colors",
-                    isActive("/", true) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-                  )}
-                />
-                <span className="truncate">{"Overview"}</span>
-              </div>
-            </Link>
+            />
+            <span className="truncate">{"Overview"}</span>
+          </Link>
 
-            <Link
-              href="/repos"
-              onNavigate={onNavigate}
+          <Link
+            href="/repos"
+            onNavigate={onNavigate}
+            className={cn(
+              "group flex h-9.5 items-center gap-3 rounded-control px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isActive("/repos", false)
+                ? "bg-secondary/80 text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
+            )}
+          >
+            <FolderOpenIcon
               className={cn(
-                "group flex items-center justify-between rounded-control px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isActive("/repos", false)
-                  ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+                "size-[18px] shrink-0 transition-colors",
+                isActive("/repos", false) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
               )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <FolderOpenIcon
-                  className={cn(
-                    "size-4 shrink-0 transition-colors",
-                    isActive("/repos", false) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-                  )}
-                />
-                <span className="truncate">{"Repositories"}</span>
-              </div>
-            </Link>
-          </nav>
-        </div>
+            />
+            <span className="truncate">{"Repositories"}</span>
+          </Link>
 
-        {/* INFRASTRUCTURE */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between px-2.5 pb-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-              {"Infrastructure"}
-            </p>
+          <Link
+            href="/registries"
+            onNavigate={onNavigate}
+            className={cn(
+              "group flex h-9.5 items-center justify-between rounded-control px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isActive("/registries", true)
+                ? "bg-secondary/80 text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
+            )}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <ServerIcon
+                className={cn(
+                  "size-[18px] shrink-0 transition-colors",
+                  isActive("/registries", true) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                )}
+              />
+              <span className="truncate">{"Registries"}</span>
+            </div>
+            {isMounted && registries && registries.length > 0 && (
+              <span className="rounded-control bg-secondary/80 px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground">
+                {registries.length}
+              </span>
+            )}
+          </Link>
+        </nav>
+
+        {/* Connected Registries Quick Switch */}
+        <div className="mt-8 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+            <span>{"Connected Registries"}</span>
             <Link
               href="/registries/new"
               onNavigate={onNavigate}
-              className="flex size-5 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+              className="flex size-5 items-center justify-center rounded-control text-muted-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
               title={"Add registry"}
               aria-label={"Add registry"}
             >
@@ -138,38 +151,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             </Link>
           </div>
 
-          <nav className="flex flex-col gap-0.5">
-            <Link
-              href="/registries"
-              onNavigate={onNavigate}
-              className={cn(
-                "group flex items-center justify-between rounded-control px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isActive("/registries", true)
-                  ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <ServerIcon
-                  className={cn(
-                    "size-4 shrink-0 transition-colors",
-                    isActive("/registries", true) ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-                  )}
-                />
-                <span className="truncate">{"Registries"}</span>
-              </div>
-              {isMounted && registries && registries.length > 0 && (
-                <span className="rounded-control bg-secondary px-1.5 py-0.5 text-xs font-mono text-muted-foreground">
-                  {registries.length}
-                </span>
-              )}
-            </Link>
-
-            {/* Individual registry endpoints */}
+          <div className="flex flex-col gap-0.5">
             {!isMounted || isLoading ? (
-              <div className="flex flex-col gap-1.5 px-2.5 pt-1">
-                <Skeleton className="h-6 w-full rounded-control" />
-                <Skeleton className="h-6 w-3/4 rounded-control" />
+              <div className="flex flex-col gap-1.5 px-3 pt-1">
+                <Skeleton className="h-7 w-full rounded-control" />
+                <Skeleton className="h-7 w-3/4 rounded-control" />
               </div>
             ) : registries && registries.length > 0 ? (
               registries.map((registry: RegistryConnection) => {
@@ -181,37 +167,31 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                     href={`/repos?registry=${registry.id}`}
                     onNavigate={onNavigate}
                     className={cn(
-                      "group flex items-center justify-between rounded-control pl-5 pr-2.5 py-1.5 text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "group flex h-8 items-center justify-between rounded-control px-3 text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       active
-                        ? "text-sidebar-accent-foreground font-semibold bg-sidebar-accent ring-1 ring-inset ring-primary/25"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/40",
+                        ? "bg-secondary/70 font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-secondary/30 hover:text-foreground",
                     )}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="size-1.5 rounded-full bg-success shrink-0" />
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className={cn(
+                          "size-1.5 rounded-full shrink-0 transition-colors",
+                          active ? "bg-primary" : "bg-success",
+                        )}
+                      />
                       <span className="truncate">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.5 text-xs font-mono text-muted-foreground font-medium">
-                        default
+                      <span className="shrink-0 text-xs font-mono text-muted-foreground/80">
+                        {"default"}
                       </span>
                     )}
                   </Link>
                 )
               })
             ) : null}
-          </nav>
-        </div>
-      </div>
-
-      {/* Minimal status indicator */}
-      <div className="border-t border-border/70 px-4 py-3">
-        <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-400" />
-            <span>Operational</span>
-          </span>
-          <span className="text-muted-foreground/60">Docker V2</span>
+          </div>
         </div>
       </div>
     </div>

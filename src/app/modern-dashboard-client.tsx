@@ -28,6 +28,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
     registries,
     isRegistryError,
     failedRegistryIds,
+    hasUnknownTagCounts,
     retry,
   } = useDashboardData({ initialRegistries })
 
@@ -169,7 +170,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl pb-12 pt-2">
+    <section className="mx-auto w-full max-w-[1200px] pb-12 pt-2">
       {/* Page Header (Doorlog style: Title, Subtitle, and Top Right Action Buttons) */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/70 pb-5">
         <div>
@@ -214,6 +215,7 @@ export function ModernDashboardClient({ initialRegistries }: ModernDashboardClie
         providerCount={providerCount}
         isLoadingRegistries={isLoadingRegistries}
         isLoadingRepos={isLoadingRepos}
+        hasUnknownTagCounts={hasUnknownTagCounts}
       />
 
       {/* Main Two-Column Layout (Doorlog Asymmetric Split: ~70% Left, ~30% Right) */}

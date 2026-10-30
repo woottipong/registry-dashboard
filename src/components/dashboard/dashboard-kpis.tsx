@@ -11,6 +11,7 @@ export interface DashboardKpisProps {
   providerCount: number
   isLoadingRegistries: boolean
   isLoadingRepos: boolean
+  hasUnknownTagCounts?: boolean
 }
 
 export function DashboardKpis({
@@ -20,6 +21,7 @@ export function DashboardKpis({
   providerCount,
   isLoadingRegistries,
   isLoadingRepos,
+  hasUnknownTagCounts,
 }: DashboardKpisProps) {
   return (
     <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
@@ -86,7 +88,7 @@ export function DashboardKpis({
             <Skeleton className="h-8 w-14 rounded-control" />
           ) : (
             <span className="text-2xl font-semibold tabular-nums text-foreground sm:text-3xl font-mono">
-              {totalTags}
+              {hasUnknownTagCounts ? (totalTags > 0 ? `${totalTags}+` : "—") : totalTags}
             </span>
           )}
         </div>

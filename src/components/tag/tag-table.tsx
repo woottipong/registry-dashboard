@@ -296,7 +296,7 @@ export function TagTable({
     <div>
       <div className="overflow-hidden">
         <Table>
-          <TableHeader className="bg-secondary/25">
+          <TableHeader className="bg-secondary/40">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b border-border/70 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
@@ -329,7 +329,7 @@ export function TagTable({
               {table.getRowModel().rows.map((row) => (
                 <motion.tr
                   key={row.original.name}
-                  className="border-b border-border/50 text-xs transition-colors hover:bg-secondary/40 data-[state=selected]:bg-primary/10 data-[state=selected]:ring-1 data-[state=selected]:ring-inset data-[state=selected]:ring-primary/40"
+                  className="border-b border-border/50 text-xs transition-colors even:bg-secondary/15 hover:bg-secondary/40 data-[state=selected]:bg-primary/10 data-[state=selected]:ring-1 data-[state=selected]:ring-inset data-[state=selected]:ring-primary/40"
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
                   layout
