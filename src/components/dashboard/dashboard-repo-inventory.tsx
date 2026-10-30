@@ -221,7 +221,7 @@ export function DashboardRepoInventory({
                           1
                         </span>
                       ) : (
-                        <span className="text-xs font-mono text-muted-foreground/70">
+                        <span className="text-xs font-mono text-muted-foreground">
                           {idx + 1}
                         </span>
                       )}

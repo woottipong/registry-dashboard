@@ -57,10 +57,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 Registry
               </span>
               <span className="rounded bg-secondary/80 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground leading-none">
-                v0.1.0
+                {process.env.NEXT_PUBLIC_APP_VERSION}
               </span>
             </div>
-            <span className="truncate text-xs text-muted-foreground/80 leading-none mt-1">
+            <span className="truncate text-xs text-muted-foreground leading-none mt-1">
               Dashboard
             </span>
           </div>
@@ -138,7 +138,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
         {/* Connected Registries Quick Switch */}
         <div className="mt-8 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+          <div className="flex items-center justify-between px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <span>{"Connected Registries"}</span>
             <Link
               href="/registries/new"
@@ -183,7 +183,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       <span className="truncate">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 text-xs font-mono text-muted-foreground/80">
+                      <span className="shrink-0 text-xs font-mono text-muted-foreground">
                         {"default"}
                       </span>
                     )}

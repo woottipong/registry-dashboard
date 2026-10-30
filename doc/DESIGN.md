@@ -6,30 +6,30 @@ colors:
   primary-hover: "#60a5fa"
   primary-active: "#2563eb"
   primary-foreground: "#ffffff"
-  background: "#0d1015"
+  background: "#121720"
   foreground: "#f1f5f9"
-  card: "#151b24"
+  card: "#1b2430"
   card-foreground: "#f1f5f9"
-  popover: "#18202d"
+  popover: "#222d3d"
   popover-foreground: "#f1f5f9"
-  secondary: "#1d2535"
+  secondary: "#252f40"
   secondary-foreground: "#f1f5f9"
-  muted: "#19212f"
-  muted-foreground: "#94a3b8"
-  accent: "#222b3d"
+  muted: "#202936"
+  muted-foreground: "#a8b6c9"
+  accent: "#2b384b"
   accent-foreground: "#f1f5f9"
   destructive: "#ef4444"
-  border: "#202736"
-  input: "#283347"
-  control: "#1a2232"
-  sidebar: "#0a0d12"
+  border: "#303c4d"
+  input: "#3a4a60"
+  control: "#222d3e"
+  sidebar: "#10151d"
   sidebar-foreground: "#f1f5f9"
-  sidebar-border: "#1a202c"
-  sidebar-accent: "#161b24"
+  sidebar-border: "#293443"
+  sidebar-accent: "#202a38"
   sidebar-accent-foreground: "#f1f5f9"
   sidebar-primary: "#3b82f6"
   sidebar-ring: "#3b82f6"
-  panel-border: "#202736"
+  panel-border: "#303c4d"
   success: "#22c55e"
   warning: "#f59e0b"
   danger-solid: "#dc2626"
@@ -150,7 +150,7 @@ components:
 
 **Creative North Star: Carbon Dark Operations**
 
-A high-contrast container registry operations dashboard inspired by field operations interfaces. A deep matte charcoal canvas (`#0d1015`), slate cards (`#13171f`), 1px borders (`#1e2430`), electric blue actions (`#3b82f6`), and vivid operational indicators keep dense catalog data easy to scan. The interface is dark-only and English-only. User-provided names retain their original text.
+A high-contrast container registry operations dashboard inspired by field operations interfaces. A deep matte charcoal canvas (`#121720`), slate cards (`#1b2430`), 1px borders (`#303c4d`), electric blue actions (`#3b82f6`), and vivid operational indicators keep dense catalog data easy to scan. The interface is dark-only and English-only. User-provided names retain their original text.
 
 Compact controls and clear grouping carry the interface. Tonal surfaces contain forms and inspectors. Operational lists use alignment and separators. The existing product branding remains.
 
@@ -172,9 +172,9 @@ Carbon neutrals support a saturated blue action accent. Frontmatter preserves th
 
 ### Neutral
 
-**Carbon Canvas** (`background`, `#0d1015`) is the page canvas. **Deep Obsidian Rail** (`sidebar`, `#0a0d12`) distinguishes navigation and the opaque topbar. **Slate Card** (`card`, `#13171f`) contains forms, KPI strips, and inspectors. **Raised Surface** (`popover`, `#161b24`) supplies dropdowns and popover menus. **Active Accent** (`accent`, `#1e2430`) marks row hover and panel boundaries; `sidebar-accent` (`#161b24`) marks active navigation. `control` (`#1a202c`) supplies recessed field and secondary-button fill.
+**Carbon Canvas** (`background`, `#121720`) is the page canvas. **Deep Obsidian Rail** (`sidebar`, `#10151d`) distinguishes navigation and the opaque topbar. **Slate Card** (`card`, `#1b2430`) contains forms, KPI strips, and inspectors. **Raised Surface** (`popover`, `#222d3d`) supplies dropdowns and popover menus. **Active Accent** (`accent`, `#2b384b`) marks row hover and panel boundaries; `sidebar-accent` (`#202a38`) marks active navigation. `control` (`#222d3e`) supplies recessed field and secondary-button fill.
 
-**Cool White** (`foreground`, `#f1f5f9`) carries primary text. **Muted Slate** (`muted-foreground`, `#94a3b8`) carries metadata. **Quiet Rule** (`border` and `panel-border`, `#1e2430`) separates lists and controls.
+**Cool White** (`foreground`, `#f1f5f9`) carries primary text. **Muted Slate** (`muted-foreground`, `#a8b6c9`) carries metadata. **Quiet Rule** (`border` and `panel-border`, `#303c4d`) separates lists and controls.
 
 ### Status
 
@@ -223,29 +223,29 @@ State transitions take 150ms to 200ms. Buttons scale to 0.98 when pressed. Globa
 
 Controls and navigation use compact control corners (6px). Cards and panels use panel corners (8px). Shared dialogs use modal corners (10px). Compact badges and status dots retain fully rounded pill silhouettes (9999px).
 
-Thin 1px borders (`#1e2430`) distinguish fields, tables, and operational rows. Avoid nested frames where spacing and typography explain grouping. Standard line icons use 16px with smaller badge icons at 14px.
+Thin 1px borders (`#303c4d`) distinguish fields, tables, and operational rows. Avoid nested frames where spacing and typography explain grouping. Standard line icons use 16px with smaller badge icons at 14px.
 
 ## Components
 
 ### Buttons
 
-Compact and explicit. Primary uses blue (`#3b82f6`) with white text. Outline uses a quiet border (`#1e2430`) and recessed control fill (`#1a202c`). Secondary uses raised secondary fill (`#1a202c`). Ghost gains secondary fill on hover. Destructive uses Deep Crimson (`#dc2626`) with white text. Default height is 36px, small is 32px, large is 44px. Default padding is 8px 16px. Focus shows a solid 2px blue ring.
+Compact and explicit. Primary uses blue (`#3b82f6`) with white text. Outline uses a quiet border (`#303c4d`) and recessed control fill (`#222d3e`). Secondary uses raised secondary fill (`#252f40`). Ghost gains secondary fill on hover. Destructive uses Deep Crimson (`#dc2626`) with white text. Default height is 36px, small is 32px, large is 44px. Default padding is 8px 16px. Focus shows a solid 2px blue ring.
 
 ### Inputs / Fields
 
-Recessed control fill (`#1a202c`), 1px border (`#1e2430`), compact corners (6px), height 40px, padding 8px 14px. Focus turns the border blue and adds a solid ring. Invalid fields use red for border and ring. Placeholders use muted slate (`#94a3b8`). Disabled fields reduce opacity to 50%.
+Recessed control fill (`#222d3e`), 1px border (`#3a4a60`), compact corners (6px), height 40px, padding 8px 14px. Focus turns the border blue and adds a solid ring. Invalid fields use red for border and ring. Placeholders use muted slate (`#a8b6c9`). Disabled fields reduce opacity to 50%.
 
 ### Cards / Containers
 
-Panel corners (8px), slate card fill (`#13171f`), 1px panel border (`#1e2430`), and 24px padding. Titles are semibold. Descriptions use muted slate. Used for forms, KPI metric tiles, and inspection widgets.
+Panel corners (8px), slate card fill (`#1b2430`), 1px panel border (`#303c4d`), and 24px padding. Titles are semibold. Descriptions use muted slate. Used for forms, KPI metric tiles, and inspection widgets.
 
 ### Navigation
 
-Deep Obsidian Rail (`#0a0d12`) contains the brand header, main destinations, and individual registry shortcuts. Active items use sidebar accent (`#161b24`), an inset primary ring (`ring-primary/25`), and a blue icon. Inactive items use muted text and gain secondary fill on hover. Item padding is 6px 10px. Mobile navigation renders inside a slide-out sheet.
+Deep Obsidian Rail (`#10151d`) contains the brand header, main destinations, and individual registry shortcuts. Active items use sidebar accent (`#202a38`), an inset primary ring (`ring-primary/25`), and a blue icon. Inactive items use muted text and gain secondary fill on hover. Item padding is 6px 10px. Mobile navigation renders inside a slide-out sheet.
 
 ### Badges / Status Chips
 
-Secondary badges use popover fill (`#161b24`), cool white text, and pill padding (2px 10px). Outline badges use a quiet border. Connection chips pair a colored dot with live or attention labels. Unknown connection state supplies no claimed status.
+Secondary badges use popover fill (`#222d3d`), cool white text, and pill padding (2px 10px). Outline badges use a quiet border. Connection chips pair a colored dot with live or attention labels. Unknown connection state supplies no claimed status.
 
 ### Tabs
 
