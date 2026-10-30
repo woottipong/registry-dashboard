@@ -49,7 +49,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Fetch data
   const registryQuery = useRegistry(registryId)
-  const tagsQuery = useTags(registryId, repoName, page, PER_PAGE)
+  const tagsQuery = useTags(registryId, repoName, page, PER_PAGE, debouncedSearch)
   const deleteTag = useDeleteTag()
   const deleteTags = useDeleteTags()
 
@@ -169,9 +169,11 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             user: 'user',
           })
 
-          snapshot.forEach((t, i) => {
-            setTimeout(() => toast.success(`Tag "${t.name}" deleted`), i * 180)
-          })
+          if (snapshot.length === 1) {
+            toast.success(`Tag "${snapshot[0].name}" deleted`)
+          } else {
+            toast.success(`Deleted ${snapshot.length} tags`)
+          }
         },
         onError: (error: Error) => {
           toast.error(error.message)
@@ -232,6 +234,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Clear search"
                 className="absolute right-1 top-1 h-7 w-7 rounded-control p-0"
                 onClick={handleClearSearch}
               >
@@ -243,9 +246,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       </div>
 
       <div className="rounded-panel border border-panel-border bg-card p-4 sm:p-5 shadow-panel overflow-hidden">
-        <div className="pb-3.5 border-b border-border/70 mb-3">
+        <div className="pb-3 border-b border-border/70 mb-3">
           <h2 className="text-sm font-semibold tracking-tight text-foreground">Tag Inventory</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
         </div>
         <div>
           {tagsQuery.isError ? (

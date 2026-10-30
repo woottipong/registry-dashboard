@@ -331,6 +331,41 @@ describe("GenericProvider", () => {
       expect(result.items).toHaveLength(1)
       expect(result.items[0].name).toBe("v3")
     })
+
+    it("filters tag names by search before paginating", async () => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const u = String(url)
+
+        if (u.includes("/v2/nginx/tags/list")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ name: "nginx", tags: ["alpine-1", "alpine-2", "debian-1"] })),
+          })
+        }
+
+        const tagName = u.split("/").pop() ?? "v1"
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ "Docker-Content-Digest": `sha256:${tagName}` }),
+          text: () => Promise.resolve(JSON.stringify({
+            schemaVersion: 2,
+            mediaType: "application/vnd.docker.distribution.manifest.v2+json",
+            config: { mediaType: "application/vnd.docker.container.image.v1+json", size: 100, digest: "sha256:cfg" },
+            layers: [{ mediaType: "application/vnd.docker.image.rootfs.diff.tar.gzip", size: 200, digest: "sha256:l1" }],
+          })),
+        })
+      }) as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      const result = await provider.listTags("nginx", { search: "alpine", page: 1, perPage: 10 })
+
+      expect(result.total).toBe(2)
+      expect(result.items).toHaveLength(2)
+      expect(result.items.map((t) => t.name)).toEqual(["alpine-1", "alpine-2"])
+    })
   })
 
   describe("getManifest()", () => {

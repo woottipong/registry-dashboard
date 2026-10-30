@@ -61,6 +61,24 @@ describe("repository-handlers", () => {
       expect(res.headers.get("Cache-Control")).toContain("s-maxage=30")
     })
 
+    it("passes search query parameter to provider", async () => {
+      mockListTags.mockResolvedValueOnce({
+        items: [],
+        page: 1,
+        perPage: 25,
+        total: 0,
+      })
+
+      const searchParams = new URLSearchParams({ page: "1", perPage: "25", search: "prod" })
+      await listTagsHandler(mockRegistry, "apps/web", searchParams)
+
+      expect(mockListTags).toHaveBeenCalledWith("apps/web", {
+        page: 1,
+        perPage: 25,
+        search: "prod",
+      })
+    })
+
     it("returns 422 on invalid query parameters", async () => {
       const searchParams = new URLSearchParams({ page: "-1", perPage: "invalid" })
       const res = await listTagsHandler(mockRegistry, "apps/web", searchParams)

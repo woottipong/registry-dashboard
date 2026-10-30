@@ -132,7 +132,7 @@ export function DashboardRecentPushes({
                     >
                       {item.repository}
                     </Link>
-                    <span className="inline-flex items-center gap-1 rounded-control bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.2 font-mono text-xs font-medium shrink-0">
+                    <span className="inline-flex items-center gap-1 rounded-control bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 font-mono text-xs font-medium shrink-0">
                       <TagIcon className="size-2.5" />
                       <span className="truncate max-w-[80px]">{item.tag}</span>
                     </span>

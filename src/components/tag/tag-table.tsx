@@ -11,7 +11,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon } from "lucide-react"
+import { ArrowUpDownIcon, CopyIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table"
 import { TagActions } from "@/components/tag/tag-actions"
 import { formatBytes, formatDate, truncateDigest } from "@/lib/format"
+import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
 import type { Tag } from "@/types/registry"
 
@@ -120,9 +121,18 @@ export function TagTable({
         meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) =>
           row.original.digest ? (
-            <span className="font-mono text-xs text-muted-foreground">
-              {truncateDigest(row.original.digest)}
-            </span>
+            <div className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+              <span>{truncateDigest(row.original.digest)}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-5 text-muted-foreground hover:text-foreground"
+                aria-label={`Copy digest for ${row.original.name}`}
+                onClick={() => void copyToClipboard(row.original.digest, "Digest copied to clipboard")}
+              >
+                <CopyIcon className="size-3" />
+              </Button>
+            </div>
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
@@ -144,8 +154,7 @@ export function TagTable({
         ),
         cell: ({ row }) =>
           row.original.size > 0 ? (
-            <span className="inline-flex items-center gap-1 font-mono text-xs text-foreground font-medium">
-              <span className="size-1 rounded-full bg-success" />
+            <span className="font-mono text-xs text-foreground font-medium">
               {formatBytes(row.original.size)}
             </span>
           ) : (
@@ -186,7 +195,7 @@ export function TagTable({
       },
       {
         id: "actions",
-        header: "",
+        header: () => <span className="sr-only">Actions</span>,
         cell: ({ row }) => (
           <TagActions
             registryId={registryId}

@@ -14,9 +14,10 @@ export async function listTagsHandler(
   repositoryName: string,
   searchParams: URLSearchParams,
 ): Promise<NextResponse<ApiResponse<Tag[] | null>>> {
-  const queryResult = listQuerySchema.pick({ page: true, perPage: true }).safeParse({
+  const queryResult = listQuerySchema.pick({ page: true, perPage: true, search: true }).safeParse({
     page: searchParams.get("page") ?? undefined,
     perPage: searchParams.get("perPage") ?? undefined,
+    search: searchParams.get("search") ?? undefined,
   })
 
   if (!queryResult.success) {
@@ -28,11 +29,11 @@ export async function listTagsHandler(
     return NextResponse.json(response, { status: 422 })
   }
 
-  const { page, perPage } = queryResult.data
+  const { page, perPage, search } = queryResult.data
   const provider = createProvider(registry)
 
   try {
-    const result = await provider.listTags(repositoryName, { page, perPage })
+    const result = await provider.listTags(repositoryName, { page, perPage, search })
 
     const meta: PaginationMeta = {
       page: result.page,

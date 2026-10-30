@@ -36,8 +36,8 @@ export const queryKeys = {
 
     // ── Tags ────────────────────────────────────────────────────
     tags: {
-        byRepo: (registryId: string, repoName: string, page = 1, perPage = 50) =>
-            ["tags", registryId, repoName, page, perPage] as const,
+        byRepo: (registryId: string, repoName: string, page = 1, perPage = 50, search = "") =>
+            ["tags", registryId, repoName, page, perPage, search] as const,
 
         /** Prefix key — handy for `invalidateQueries` / `cancelQueries` */
         prefix: (registryId: string, repoName: string) =>

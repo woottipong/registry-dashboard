@@ -5,12 +5,9 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ChevronLeftIcon,
-  DatabaseIcon,
   FolderIcon,
-  LayersIcon,
   PlusIcon,
   SearchIcon,
-  ServerIcon,
 } from "lucide-react"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { NamespaceList, NamespaceSkeleton, RepoSkeleton } from "@/components/repository/namespace-list"
@@ -155,11 +152,6 @@ export function RepositoriesClient({
     return namespaceList.reduce((sum, ns) => sum + ns.repositoryCount, 0)
   }, [repositoriesQuery.data, namespaceList])
 
-  const totalTagsCount = useMemo(() => {
-    const items = repositoriesQuery.data?.items ?? []
-    return items.reduce((sum, r) => sum + (r.tagCount ?? 0), 0)
-  }, [repositoriesQuery.data])
-
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
       {!selectedRegistry ? (
@@ -195,73 +187,6 @@ export function RepositoriesClient({
             </Button>
           </header>
 
-          {/* Doorlog 4-Card KPI Stat Strip */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-            {/* Card 1: Active Registry */}
-            <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium uppercase tracking-wider">Active Registry</span>
-                <ServerIcon className="size-3.5 text-primary" />
-              </div>
-              <div className="mt-2">
-                <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
-                  {selectedRegistryData?.name ?? "Registry"}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono truncate">
-                  {selectedRegistryData?.provider === "dockerhub" ? "Docker Hub" : "Docker Registry V2"}
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Namespaces */}
-            <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium uppercase tracking-wider">Namespaces</span>
-                <LayersIcon className="size-3.5 text-primary" />
-              </div>
-              <div className="mt-2">
-                <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
-                  {namespacesQuery.isLoading ? "…" : namespaceList.length}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  Catalog partitions
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Total Repositories */}
-            <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium uppercase tracking-wider">Repositories</span>
-                <FolderIcon className="size-3.5 text-primary" />
-              </div>
-              <div className="mt-2">
-                <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground font-mono">
-                  {repositoriesQuery.isLoading && selectedNamespace === null ? "…" : totalRepositoriesCount}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {selectedNamespace !== null ? "in active namespace" : "across all namespaces"}
-                </p>
-              </div>
-            </div>
-
-            {/* Card 4: Catalog Scope / Tags */}
-            <div className="rounded-panel border border-panel-border bg-card p-3.5 sm:p-4 shadow-panel flex flex-col justify-between">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="text-xs font-medium uppercase tracking-wider">Catalog Scope</span>
-                <DatabaseIcon className="size-3.5 text-primary" />
-              </div>
-              <div className="mt-2">
-                <p className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate font-mono">
-                  {selectedNamespace !== null ? (selectedNamespaceValue || "_root") : "Global Catalog"}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {totalTagsCount > 0 ? `${totalTagsCount} tags indexed` : "Namespace-first load"}
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* MAIN CONTENT AREA */}
           {selectedNamespace === null ? (
             /* VIEW 1: NAMESPACE INDEX */
@@ -287,7 +212,7 @@ export function RepositoriesClient({
                     >
                       <span className="truncate max-w-[140px]">{reg.name}</span>
                       {reg.id === selectedRegistry && totalRepositoriesCount > 0 && (
-                        <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-xs font-mono">
+                        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-xs font-mono">
                           {totalRepositoriesCount}
                         </span>
                       )}
@@ -394,12 +319,12 @@ export function RepositoriesClient({
               </div>
 
               {/* Footer Banner */}
-              <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
-                <span className="truncate text-xs">
-                  {`Available namespaces in ${selectedRegistryData?.name ?? "Registry"}. Click any partition to browse repositories and tags.`}
+              <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2 text-xs text-muted-foreground">
+                <span className="truncate text-xs font-mono">
+                  {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"} in {selectedRegistryData?.name ?? "Registry"}
                 </span>
                 <span className="font-mono text-xs text-muted-foreground shrink-0 hidden sm:inline">
-                  {totalRepositoriesCount} repositories cataloged
+                  {totalRepositoriesCount} {totalRepositoriesCount === 1 ? "repository" : "repositories"}
                 </span>
               </div>
             </div>
@@ -501,14 +426,14 @@ export function RepositoriesClient({
                     ? "Fetching repository tags and manifests from registry…"
                     : repositoriesQuery.isError
                       ? "Unable to retrieve repository manifest list."
-                      : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"} in ${selectedNamespaceValue || "root"} · Click any row to inspect tags and manifests.`}
+                      : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"} in ${selectedNamespaceValue || "root"}`}
                 </span>
 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleBackToNamespaces}
-                  className="h-6 text-xs font-mono px-2 hover:text-primary transition-colors cursor-pointer shrink-0"
+                  className="h-8 text-xs font-medium px-2.5 hover:text-primary transition-colors cursor-pointer shrink-0"
                 >
                   <ChevronLeftIcon className="mr-1 size-3" />
                   <span>All namespaces</span>

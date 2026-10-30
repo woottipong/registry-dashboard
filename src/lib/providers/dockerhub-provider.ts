@@ -282,6 +282,8 @@ export class DockerHubProvider implements RegistryProvider {
 
     const page = options.page ?? 1
     const perPage = options.perPage ?? 25
+    const searchQuery = (options.search ?? options.query ?? "").trim()
+    const nameParam = searchQuery ? `&name=${encodeURIComponent(searchQuery)}` : ""
 
     const headers: HeadersInit = {}
     if (this.hubJwtToken) {
@@ -291,7 +293,7 @@ export class DockerHubProvider implements RegistryProvider {
     try {
       const response = dockerHubTagResponseSchema.parse(
         await this.registryClient.request<DockerHubTagResponse>(
-          `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}`,
+          `https://hub.docker.com/v2/repositories/${repo}/tags/?page=${page}&page_size=${perPage}${nameParam}`,
           { headers },
         ),
       )

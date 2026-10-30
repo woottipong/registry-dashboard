@@ -72,7 +72,7 @@ export function DashboardRepoInventory({
             <span>All</span>
             <span
               className={cn(
-                "rounded-full px-1.5 py-0.2 text-xs font-mono",
+                "rounded-full px-1.5 py-0.5 text-xs font-mono",
                 activeTab === "all"
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : "bg-secondary text-muted-foreground border border-border/50",
@@ -97,7 +97,7 @@ export function DashboardRepoInventory({
               <span className="truncate max-w-[120px]">{reg.name}</span>
               <span
                 className={cn(
-                  "rounded-full px-1.5 py-0.2 text-xs font-mono",
+                  "rounded-full px-1.5 py-0.5 text-xs font-mono",
                   activeTab === reg.id
                     ? "bg-primary-foreground/20 text-primary-foreground"
                     : "bg-secondary text-muted-foreground border border-border/50",
@@ -262,7 +262,7 @@ export function DashboardRepoInventory({
 
                     {/* Namespace */}
                     <td className="py-2.5 px-3 hidden sm:table-cell">
-                      <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground">
+                      <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                         {repo.namespace && repo.namespace !== "_root" ? repo.namespace : "(root)"}
                       </span>
                     </td>

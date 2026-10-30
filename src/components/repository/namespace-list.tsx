@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { ArrowRightIcon, ChevronRightIcon, FolderIcon } from "lucide-react"
+import { ChevronRightIcon, FolderIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { parseRepositoryName } from "@/lib/format"
 import type { Namespace, Repository } from "@/types/registry"
@@ -59,7 +59,7 @@ export function NamespaceList({
             className="group flex flex-col justify-between gap-3 w-full cursor-pointer rounded-control border border-border/70 bg-secondary/25 p-4 text-left transition-all duration-150 hover:bg-secondary/50 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
           >
             {/* Top row: Icon + Name + Badge + Arrow */}
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-control bg-secondary text-muted-foreground group-hover:text-primary transition-colors">
                   <FolderIcon className="size-3.5" />
@@ -68,28 +68,26 @@ export function NamespaceList({
                   <p className="truncate text-xs font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors font-mono">
                     {label}{isRoot ? "" : "/"}
                   </p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {isRoot ? "Root namespace partition" : "Namespace partition"}
-                  </p>
                 </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
                 <span className="inline-flex items-center rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 font-mono text-xs font-medium text-foreground">
-                  {namespace.repositoryCount} <span className="text-muted-foreground ml-1">repos</span>
+                  <span>{namespace.repositoryCount}</span>
+                  <span className="text-muted-foreground ml-1">{namespace.repositoryCount === 1 ? "repo" : "repos"}</span>
                 </span>
                 <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
               </div>
             </div>
 
-            {/* Middle & Volume Distribution */}
+            {/* Middle (sample repos if any) & Share Volume Bar */}
             <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
               {sampleRepos.length > 0 ? (
                 <div className="flex flex-wrap gap-1 min-h-[22px] items-center">
                   {sampleRepos.map((r) => (
                     <span
                       key={r.fullName}
-                      className="inline-flex items-center rounded-control bg-background/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground group-hover:text-foreground truncate max-w-[130px]"
+                      className="inline-flex items-center rounded-control bg-background/60 border border-border/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground group-hover:text-foreground truncate max-w-[130px]"
                       title={r.name}
                     >
                       {r.name}
@@ -101,28 +99,15 @@ export function NamespaceList({
                     </span>
                   ) : null}
                 </div>
-              ) : (
-                <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                  <span className="font-mono text-xs">Partition volume</span>
-                  <span className="font-mono text-xs text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1">
-                    <span>Inspect</span>
-                    <ArrowRightIcon className="size-2.5" />
-                  </span>
-                </div>
-              )}
+              ) : null}
 
               {/* Share volume bar */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
                   <span>{sharePercentage}% of registry</span>
-                  <span>{namespace.repositoryCount} {namespace.repositoryCount === 1 ? "repo" : "repos"}</span>
                 </div>
                 <div
-                  role="progressbar"
-                  aria-valuenow={sharePercentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`Repository share for ${label}`}
+                  aria-hidden="true"
                   className="h-1.5 w-full rounded-full bg-secondary overflow-hidden"
                 >
                   <div

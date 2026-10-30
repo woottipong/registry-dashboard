@@ -28,7 +28,7 @@ export default function ReposError({ error, reset }: ReposErrorProps) {
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-24 text-center">
-      <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-10">
+      <div className="rounded-panel border border-destructive/30 bg-destructive/10 p-10">
         <AlertTriangleIcon className="mx-auto size-10 text-destructive" />
         <h2 className="mt-4 text-xl font-semibold">Failed to load repository</h2>
         <p className="mt-2 text-sm text-muted-foreground">{getContextualMessage()}</p>

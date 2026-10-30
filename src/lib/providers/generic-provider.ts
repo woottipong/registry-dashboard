@@ -255,7 +255,11 @@ export class GenericProvider implements RegistryProvider {
     const response = tagListResponseSchema.parse(
       await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`),
     )
-    const tagNames = response.tags ?? []
+    const rawTagNames = response.tags ?? []
+    const searchQuery = (options.search ?? options.query ?? "").trim().toLowerCase()
+    const tagNames = searchQuery
+      ? rawTagNames.filter((t) => t.toLowerCase().includes(searchQuery))
+      : rawTagNames
     const page = options.page ?? 1
     const perPage = options.perPage ?? 50
     const start = (page - 1) * perPage

@@ -58,7 +58,7 @@ export function BulkDeleteDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-2xl border-0 bg-secondary/50 p-4">
+        <div className="rounded-panel border-0 bg-secondary/50 p-4">
           <p className="mb-2 text-xs font-medium text-muted-foreground">
             Tags to delete
           </p>
@@ -77,7 +77,7 @@ export function BulkDeleteDialog({
         </div>
 
         {sideEffectTags.length > 0 && (
-          <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+          <div className="rounded-panel border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <strong>Also deletes unselected tags</strong> — these tags share a digest with your
             selection and will be removed too:{" "}
             {sideEffectTags.map((name, i) => (
@@ -160,7 +160,7 @@ export function DeleteDialog({
 
         {tag ? (
           <div className="space-y-4">
-            <div className="rounded-2xl border-0 bg-secondary/50 p-4 text-sm">
+            <div className="rounded-panel border-0 bg-secondary/50 p-4 text-sm">
               <div className="font-mono font-medium">{tag.name}</div>
               {tag.digest ? (
                 <div className="mt-1 font-mono text-xs text-muted-foreground">
@@ -170,7 +170,7 @@ export function DeleteDialog({
             </div>
 
             {sharedWith.length > 0 && (
-              <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
+              <div className="rounded-panel border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
                 <strong>Shared digest warning</strong> — the following tags point to the same
                 manifest and will also be deleted:{" "}
                 {sharedWith.map((t) => (
@@ -193,7 +193,7 @@ export function DeleteDialog({
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 placeholder={tag.name}
-                className="font-mono rounded-xl h-10"
+                className="font-mono rounded-control h-10"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && isConfirmed) handleConfirm()
                 }}

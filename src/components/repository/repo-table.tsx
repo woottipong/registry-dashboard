@@ -69,7 +69,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
       <Table className="w-full text-left text-xs">
         <TableHeader className="border-b border-border/70 bg-secondary/25">
           <TableRow className="border-b border-border/70 hover:bg-transparent text-muted-foreground">
-            <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-xs">#</TableHead>
+            <TableHead className="w-9 py-2.5 pl-3.5 pr-1 font-mono text-center text-xs" aria-label="Index">#</TableHead>
             <TableHead className="py-2.5 px-3 font-medium">Repository</TableHead>
             <TableHead className="py-2.5 px-3 font-medium hidden sm:table-cell">Namespace</TableHead>
             <TableHead className="py-2.5 px-3 font-medium min-w-[130px]">Tags & Volume</TableHead>
@@ -112,12 +112,12 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
                           {repo.name}
                         </Link>
                         {repo.isOfficial ? (
-                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-xs text-muted-foreground border border-border/50">
+                          <span className="rounded-control bg-secondary px-1.5 py-0.5 font-mono text-xs text-muted-foreground border border-border/50">
                             Official
                           </span>
                         ) : null}
                         {repo.isPrivate ? (
-                          <span className="rounded-control bg-secondary px-1.5 py-0.2 font-mono text-xs text-muted-foreground border border-border/50">
+                          <span className="rounded-control bg-secondary px-1.5 py-0.5 font-mono text-xs text-muted-foreground border border-border/50">
                             Private
                           </span>
                         ) : null}
@@ -131,7 +131,7 @@ export function RepoTable({ registryId, repositories }: RepoTableProps) {
 
                 {/* Namespace */}
                 <TableCell className="py-2.5 px-3 hidden sm:table-cell">
-                  <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.2 font-mono text-xs text-muted-foreground">
+                  <span className="rounded-control bg-secondary/60 border border-border/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                     {repo.namespace && repo.namespace !== "_root" ? repo.namespace : "(root)"}
                   </span>
                 </TableCell>

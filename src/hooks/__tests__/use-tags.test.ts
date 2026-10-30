@@ -105,6 +105,25 @@ describe("useTags", () => {
     expect(url).toContain("perPage=25")
   })
 
+  it("includes search param when non-empty", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ success: true, data: [] }),
+    })
+    globalThis.fetch = fetchSpy as typeof fetch
+
+    const queryClient = makeQueryClient()
+    renderHook(() => useTags(REGISTRY_ID, "app/web", 1, 50, "v1.2"), {
+      wrapper: makeWrapper(queryClient),
+    })
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled())
+
+    const [url] = fetchSpy.mock.calls[0] as [string]
+    expect(url).toContain("search=v1.2")
+  })
+
   it("URL-encodes slashes in repo name segments", async () => {
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,

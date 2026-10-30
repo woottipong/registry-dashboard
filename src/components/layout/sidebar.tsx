@@ -192,7 +192,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       <span className="truncate">{registry.name}</span>
                     </div>
                     {registry.isDefault && (
-                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.2 text-xs font-mono text-muted-foreground font-medium">
+                      <span className="shrink-0 rounded-control bg-secondary/90 border border-border/60 px-1.5 py-0.5 text-xs font-mono text-muted-foreground font-medium">
                         default
                       </span>
                     )}

@@ -34,7 +34,7 @@ export function PullCommand({ commands, className }: PullCommandProps) {
       {commands.map(({ label, command }, index) => (
         <div key={label} className="space-y-1.5">
           <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <div className="flex items-center gap-3 rounded-2xl bg-secondary/50 px-4 py-2.5">
+          <div className="flex items-center gap-3 rounded-control bg-secondary/50 px-4 py-2.5">
             <code className="flex-1 overflow-x-auto font-mono text-xs text-foreground selection:bg-primary/20">{command}</code>
             <Button
               variant="secondary"

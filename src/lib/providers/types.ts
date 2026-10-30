@@ -13,6 +13,7 @@ export interface ListOptions {
   perPage?: number
   last?: string
   query?: string
+  search?: string
 }
 
 export interface PaginatedResult<T> {

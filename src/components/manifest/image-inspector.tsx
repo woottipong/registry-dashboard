@@ -14,7 +14,7 @@ import {
   RefreshCwIcon,
   SettingsIcon,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { copyToClipboard } from "@/lib/clipboard"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { Button } from "@/components/ui/button"
@@ -62,9 +62,9 @@ ImageInspectorWithBoundary.displayName = 'ImageInspectorWithBoundary'
 export { ImageInspectorWithBoundary as ImageInspector }
 
 function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }: ImageInspectorProps) {
-  const router = useRouter()
   const isHydrated = useHydrated()
-  const { data, isLoading, isError, error } = useManifest(registryId, repoName, tag)
+  const parentRepoUrl = `/repos/${registryId}/${repoName}`
+  const { data, isLoading, isError, error, refetch } = useManifest(registryId, repoName, tag)
 
   // Memoize expensive computations
   const pullCommand = useMemo(() =>
@@ -93,10 +93,6 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
     void copyToClipboard(pullCommand, "Pull command copied to clipboard")
   }, [pullCommand])
 
-  const handleBack = useCallback(() => {
-    router.back()
-  }, [router])
-
   if (isLoading) {
     return (
       <ImageInspectorLoading detailed={isHydrated} />
@@ -111,14 +107,16 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         description={error?.message ?? "Unable to fetch image manifest."}
         action={
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => window.location.reload()}>
+            <Button variant="outline" onClick={() => void refetch()}>
               <RefreshCwIcon data-icon="inline-start" />
               Retry
             </Button>
-            <Button variant="ghost" onClick={handleBack}>Back</Button>
+            <Button variant="ghost" asChild>
+              <Link href={parentRepoUrl}>Back</Link>
+            </Button>
           </div>
         }
-        className="rounded-lg bg-background/70"
+        className="rounded-panel bg-background/70"
       />
     )
   }
@@ -131,13 +129,15 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
         {/* Breadcrumb / Tag Pills */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <Button
+            asChild
             variant="ghost"
             size="sm"
-            onClick={handleBack}
             className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground -ml-1 gap-1"
           >
-            <ChevronLeftIcon className="size-3.5" />
-            <span>Tags</span>
+            <Link href={parentRepoUrl}>
+              <ChevronLeftIcon className="size-3.5" />
+              <span>Tags</span>
+            </Link>
           </Button>
           <span className="text-muted-foreground/40">/</span>
           {registryName ? (
@@ -193,8 +193,7 @@ function ImageInspector({ registryId, repoName, tag, registryName, registryUrl }
             </div>
             <div className="min-w-0">
               <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Total Size</div>
-              <div className="text-xs font-mono font-medium text-foreground flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <div className="text-xs font-mono font-medium text-foreground">
                 {formatBytes(manifest.totalSize)}
               </div>
             </div>
@@ -311,7 +310,7 @@ function ImageInspectorLoading({ detailed }: { detailed: boolean }) {
           ) : (
             <>
               <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-64 w-full rounded-xl" />
+              <Skeleton className="h-64 w-full rounded-panel" />
             </>
           )}
         </div>
