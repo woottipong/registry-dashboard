@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server"
-import { createProvider } from "@/lib/providers"
-import { logApiError } from "@/lib/error-handling"
 import { getRegistry } from "@/lib/registry-store"
-import { listQuerySchema } from "@/lib/validators/query-schemas"
-import type { ApiResponse, PaginationMeta } from "@/types/api"
-import type { Tag } from "@/types/registry"
+import {
+  deleteRepositoryHandler,
+  getRepositoryDetailHandler,
+  listTagsHandler,
+} from "@/lib/server/repository-handlers"
+import type { ApiResponse } from "@/types/api"
 
 interface RouteContext {
   params: Promise<{ id: string; name: string[] }>
 }
 
-// Route handles three patterns:
-//   GET /repositories/{...repoName}/tags  → list tags (last segment is "tags")
-//   DELETE /repositories/{...repoName}    → delete repository (all tags)
-//   GET /repositories/{...repoName}       → repo detail (future)
 export async function GET(request: Request, context: RouteContext) {
   const { id, name } = await context.params
 
@@ -22,6 +19,15 @@ export async function GET(request: Request, context: RouteContext) {
       success: false,
       data: null,
       error: { code: "INVALID_REQUEST", message: "Registry ID is required" },
+    }
+    return NextResponse.json(response, { status: 400 })
+  }
+
+  if (!name || name.length === 0) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "INVALID_REQUEST", message: "Repository name is required" },
     }
     return NextResponse.json(response, { status: 400 })
   }
@@ -36,79 +42,50 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json(response, { status: 404 })
   }
 
-  // Check if this is a tags request
+  // If last segment is "tags", delegate to tag listing for backward compatibility
   const lastSegment = name[name.length - 1]
-  if (lastSegment !== "tags") {
-    const response: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: { code: "NOT_FOUND", message: "Route not found" },
+  if (lastSegment === "tags") {
+    const repositoryName = name.slice(0, -1).join("/")
+    if (!repositoryName) {
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: { code: "INVALID_REQUEST", message: "Repository name cannot be empty" },
+      }
+      return NextResponse.json(response, { status: 400 })
     }
-    return NextResponse.json(response, { status: 404 })
+
+    const { searchParams } = new URL(request.url)
+    return listTagsHandler(registry, repositoryName, searchParams)
   }
 
-  const repositoryName = name.slice(0, -1).join("/")
-  const { searchParams } = new URL(request.url)
-  const queryResult = listQuerySchema.pick({ page: true, perPage: true }).safeParse({
-    page: searchParams.get("page") ?? undefined,
-    perPage: searchParams.get("perPage") ?? undefined,
-  })
-  if (!queryResult.success) {
-    const response: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: { code: "VALIDATION_ERROR", message: "Invalid query parameters" },
-    }
-    return NextResponse.json(response, { status: 422 })
-  }
-  const { page, perPage } = queryResult.data
-
-  const provider = createProvider(registry)
-
-  try {
-    const result = await provider.listTags(repositoryName, { page, perPage })
-
-    const meta: PaginationMeta = {
-      page: result.page,
-      perPage: result.perPage,
-      total: result.total ?? result.items.length,
-      totalPages: result.total ? Math.ceil(result.total / result.perPage) : 1,
-      nextCursor: result.nextCursor,
-    }
-
-    const response: ApiResponse<Tag[]> = {
-      success: true,
-      data: result.items,
-      error: null,
-      meta,
-    }
-
-    return NextResponse.json(response, {
-      headers: {
-        "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
-      },
-    })
-  } catch (error) {
-    logApiError("GET /api/v1/registries/:id/repositories/:name", error, {
-      registryId: id,
-      repositoryName,
-    })
-    const response: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: {
-        code: "TAGS_FETCH_FAILED",
-        message: `Unable to fetch tags for ${repositoryName}`,
-      },
-    }
-    return NextResponse.json(response, { status: 502 })
-  }
+  // Dedicated repository metadata endpoint
+  const repositoryName = name.join("/")
+  return getRepositoryDetailHandler(registry, repositoryName)
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
   const { id, name } = await context.params
-  const registry = getRegistry(id)
 
+  if (!id) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "INVALID_REQUEST", message: "Registry ID is required" },
+    }
+    return NextResponse.json(response, { status: 400 })
+  }
+
+  if (!name || name.length === 0) {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: { code: "INVALID_REQUEST", message: "Repository name is required" },
+    }
+    return NextResponse.json(response, { status: 400 })
+  }
+
+  const registry = getRegistry(id)
   if (!registry) {
     const response: ApiResponse<null> = {
       success: false,
@@ -119,58 +96,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   const repositoryName = name.join("/")
-
-  try {
-    const provider = createProvider(registry!)
-
-    // Check if provider supports deletion
-    const capabilities = provider.capabilities()
-    if (!capabilities.canDelete) {
-      const response: ApiResponse<null> = {
-        success: false,
-        data: null,
-        error: {
-          code: "DELETE_NOT_SUPPORTED",
-          message: "This registry provider does not support repository deletion",
-        },
-      }
-      return NextResponse.json(response, { status: 405 })
-    }
-
-    // Get all tags first
-    const tagsResult = await provider.listTags(repositoryName, { page: 1, perPage: 1000 })
-
-    // Deduplicate digests — multiple tags can share one manifest (same sha256)
-    // Only delete each unique digest once; skip empty/unresolved digests
-    const uniqueDigests = [...new Set(
-      tagsResult.items
-        .map((t) => t.digest)
-        .filter((d) => d?.startsWith("sha256:"))
-    )]
-
-    for (const digest of uniqueDigests) {
-      await provider.deleteManifest(repositoryName, digest)
-    }
-
-    const response: ApiResponse<null> = {
-      success: true,
-      data: null,
-      error: null,
-    }
-    return NextResponse.json(response)
-  } catch (error) {
-    logApiError("DELETE /api/v1/registries/:id/repositories/:name", error, {
-      registryId: id,
-      repositoryName,
-    })
-    const response: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: {
-        code: "REPOSITORY_DELETE_FAILED",
-        message: `Unable to delete repository ${repositoryName}`,
-      },
-    }
-    return NextResponse.json(response, { status: 502 })
-  }
+  return deleteRepositoryHandler(registry, repositoryName)
 }

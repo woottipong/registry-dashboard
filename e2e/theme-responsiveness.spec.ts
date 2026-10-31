@@ -7,66 +7,6 @@ test.describe("Theme and Responsiveness", () => {
     await addRegistry(page, TEST_REGISTRY_DOCKERHUB)
   })
 
-  test("should toggle between light and dark themes", async ({ page }) => {
-    await navigateToApp(page)
-
-    // Find theme toggle button
-    const themeToggle = page.getByRole("button", { name: /Toggle theme|Switch theme/i })
-
-    if (await themeToggle.isVisible()) {
-      // Get initial theme
-      const initialTheme = await page.getAttribute("html", "data-theme") || "light"
-
-      // Toggle theme
-      await themeToggle.click()
-
-      // Theme should change
-      const newTheme = await page.getAttribute("html", "data-theme")
-      expect(newTheme).not.toBe(initialTheme)
-
-      // Toggle back
-      await themeToggle.click()
-      const revertedTheme = await page.getAttribute("html", "data-theme")
-      expect(revertedTheme).toBe(initialTheme)
-    }
-  })
-
-  test("should persist theme preference", async ({ page }) => {
-    await navigateToApp(page)
-
-    const themeToggle = page.getByRole("button", { name: /Toggle theme|Switch theme/i })
-
-    if (await themeToggle.isVisible()) {
-      // Toggle to dark theme
-      await themeToggle.click()
-
-      // Refresh page
-      await page.reload()
-
-      // Should maintain dark theme
-      const theme = await page.getAttribute("html", "data-theme")
-      expect(theme).toBe("dark")
-    }
-  })
-
-  test("should respect system theme preference", async ({ page }) => {
-    // Test system theme detection
-    await page.emulateMedia({ colorScheme: "dark" })
-    await page.reload()
-
-    // Should automatically switch to dark theme
-    const darkTheme = await page.getAttribute("html", "data-theme")
-    expect(darkTheme).toBe("dark")
-
-    // Switch to light
-    await page.emulateMedia({ colorScheme: "light" })
-    await page.reload()
-
-    // Should switch to light theme
-    const lightTheme = await page.getAttribute("html", "data-theme")
-    expect(lightTheme).toBe("light")
-  })
-
   test("should display correctly on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
 

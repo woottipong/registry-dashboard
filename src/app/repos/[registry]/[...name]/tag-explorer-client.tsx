@@ -7,15 +7,15 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, TagIcon, Trash2Icon, XIc
 import { toast } from "sonner"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useDeleteTag, useDeleteTags, useTags } from "@/hooks/use-tags"
+import { useDeleteTag, useDeleteTags, useTags, useTagsForDeletion } from "@/hooks/use-tags"
 import { BulkDeleteDialog, DeleteDialog } from "@/components/tag/delete-dialog"
 import { TagTable } from "@/components/tag/tag-table"
 import { ImageInspector } from "@/components/manifest/image-inspector"
 import { useRegistry } from "@/hooks/use-registries"
 import { useActivity } from "@/contexts/activity-context"
+import { parseRepositoryName } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
 interface TagExplorerClientProps {
@@ -49,7 +49,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
 
   // Fetch data
   const registryQuery = useRegistry(registryId)
-  const tagsQuery = useTags(registryId, repoName, page, PER_PAGE)
+  const tagsQuery = useTags(registryId, repoName, page, PER_PAGE, debouncedSearch)
+  const deletionTagsQuery = useTagsForDeletion(registryId, repoName, tagToDelete !== null || tagsToDelete.length > 0)
   const deleteTag = useDeleteTag()
   const deleteTags = useDeleteTags()
 
@@ -78,29 +79,23 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   const totalTags = meta?.total ?? memoizedTags.length
   const totalPages = meta?.totalPages ?? 1
 
-  // Memoize shared tags calculation
-  const sharedWithTag = useMemo(() => {
-    if (!tagToDelete?.digest) return []
-    return memoizedTags
-      .filter((t) => t.digest === tagToDelete.digest && t.name !== tagToDelete.name)
-      .map((t) => t.name)
-  }, [memoizedTags, tagToDelete])
-
-  // Tags that are NOT selected but will also be deleted because they share a digest with a selected tag
-  const bulkSideEffectTags = useMemo(() => {
-    if (selectedRowTags.length === 0) return []
-    const selectedDigests = new Set(selectedRowTags.map((t) => t.digest).filter(Boolean))
-    const selectedNames = new Set(selectedRowTags.map((t) => t.name))
-    return memoizedTags
-      .filter((t) => !selectedNames.has(t.name) && t.digest && selectedDigests.has(t.digest))
-      .map((t) => t.name)
-  }, [selectedRowTags, memoizedTags])
+  const deletionTags = deletionTagsQuery.data ?? []
+  const deletionSelection = tagToDelete ? [tagToDelete] : tagsToDelete
+  const selectionIsCurrent = deletionSelection.every((selected) =>
+    deletionTags.some((tag) => tag.name === selected.name && tag.digest === selected.digest),
+  )
+  const checkStatus = deletionTagsQuery.isFetching ? "loading" :
+    deletionTagsQuery.isError || !deletionTagsQuery.data || !selectionIsCurrent ? "error" : "ready"
+  const selectedDigests = new Set(deletionSelection.map((tag) => tag.digest))
+  const selectedNames = new Set(deletionSelection.map((tag) => tag.name))
+  const sharedTags = deletionTags
+    .filter((tag) => !selectedNames.has(tag.name) && selectedDigests.has(tag.digest))
+    .map((tag) => tag.name)
 
   // Tag count display uses real total from meta
   const tagCountDisplay = `${totalTags} ${totalTags === 1 ? "tag" : "tags"}`
   const repositoryNamespace = useMemo(() => {
-    const segments = repoName.split("/")
-    return segments.length > 1 ? segments.slice(0, -1).join("/") : ""
+    return parseRepositoryName(repoName).namespace
   }, [repoName])
 
   // Memoize event handlers
@@ -170,9 +165,11 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             user: 'user',
           })
 
-          snapshot.forEach((t, i) => {
-            setTimeout(() => toast.success(`Tag "${t.name}" deleted`), i * 180)
-          })
+          if (snapshot.length === 1) {
+            toast.success(`Tag "${snapshot[0].name}" deleted`)
+          } else {
+            toast.success(`Deleted ${snapshot.length} tags`)
+          }
         },
         onError: (error: Error) => {
           toast.error(error.message)
@@ -196,38 +193,45 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-4 pb-2">
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 pt-2 pb-10">
+      <div className="flex flex-col gap-4 border-b border-border/70 pb-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit">
-            <ChevronLeftIcon data-icon="inline-start" />
+          <Button variant="ghost" size="sm" onClick={handleBackToRepositories} className="w-fit rounded-control h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1">
+            <ChevronLeftIcon className="size-3.5" />
             Repositories
           </Button>
-          {registryQuery.data ? <Badge variant="outline">{registryQuery.data.name}</Badge> : null}
-          <Badge variant="secondary">{tagCountDisplay}</Badge>
+          {registryQuery.data ? (
+            <span className="rounded-control bg-secondary px-2 py-0.5 text-xs font-mono text-muted-foreground">
+              {registryQuery.data.name}
+            </span>
+          ) : null}
+          <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 text-xs font-mono text-foreground font-medium">
+            {tagCountDisplay}
+          </span>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{repoName}</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{repoName}</h1>
+            <p className="max-w-2xl text-xs text-muted-foreground sm:text-sm">
               Review tags, inspect images, and remove unused digests.
             </p>
           </div>
 
-          <div className="relative w-full lg:max-w-md">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full lg:max-w-xs">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={handleSearchChange}
-              className="pl-9 pr-9"
-              placeholder="Filter tags"
+              className="pl-8 pr-8 rounded-control h-9 text-xs bg-secondary/50 border border-border/70 focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Filter tags…"
             />
             {search ? (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-8 w-8 p-0"
+                aria-label="Clear search"
+                className="absolute right-1 top-1 h-7 w-7 rounded-control p-0"
                 onClick={handleClearSearch}
               >
                 <XIcon className="size-3.5" />
@@ -237,26 +241,25 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border/70 bg-card/80">
-        <div className="px-5 pt-5">
-          <h2 className="text-base font-semibold tracking-tight">Tag Inventory</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Inspect, copy, and curate tags in this repository.</p>
+      <div className="rounded-panel border border-panel-border bg-card p-4 sm:p-5 shadow-panel overflow-hidden">
+        <div className="pb-3 border-b border-border/70 mb-3">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">Tag Inventory</h2>
         </div>
-        <div className="px-5 pb-4 pt-5">
+        <div>
           {tagsQuery.isError ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
               title="Failed to load tags"
               description={tagsQuery.error?.message ?? "Unable to fetch tags."}
-              className="rounded-lg bg-background/70"
+              className="rounded-panel border border-panel-border bg-card p-8 text-center"
             />
           ) : filteredTags.length === 0 && !tagsQuery.isLoading ? (
             <AppEmptyState
               icon={<TagIcon className="size-5" />}
               title={search ? "No matching tags" : "No tags yet"}
               description={search ? "Try a different search." : "Tags will appear here after images are pushed."}
-              action={search ? <Button onClick={handleClearSearch}>Clear search</Button> : undefined}
-              className="rounded-lg bg-background/70"
+              action={search ? <Button variant="outline" className="rounded-control shadow-xs" onClick={handleClearSearch}>Clear search</Button> : undefined}
+              className="rounded-panel border border-panel-border bg-card p-8 text-center"
             />
           ) : (
             <>
@@ -281,6 +284,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="rounded-control shadow-xs"
                       disabled={page <= 1 || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       aria-label="Previous page"
@@ -291,6 +295,7 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="rounded-control shadow-xs"
                       disabled={page >= totalPages || tagsQuery.isFetching}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       aria-label="Next page"
@@ -309,7 +314,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       {/* Delete Dialog */}
       <DeleteDialog
         tag={tagToDelete}
-        sharedWith={sharedWithTag}
+        sharedWith={sharedTags}
+        checkStatus={checkStatus}
         open={tagToDelete !== null}
         onOpenChange={(open) => { if (!open) setTagToDelete(null) }}
         onConfirm={handleDeleteConfirm}
@@ -320,7 +326,8 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
       {tagsToDelete.length > 0 && (
         <BulkDeleteDialog
           tags={tagsToDelete}
-          sideEffectTags={bulkSideEffectTags}
+          sideEffectTags={sharedTags}
+          checkStatus={checkStatus}
           open
           onOpenChange={(open: boolean) => { if (!open) setTagsToDelete([]) }}
           onConfirm={handleBulkDeleteConfirm}
@@ -338,15 +345,15 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
             transition={{ type: "spring", damping: 22, stiffness: 320 }}
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
           >
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-2.5 shadow-xl shadow-black/20 ring-1 ring-black/5">
-              <span className="text-sm font-medium tabular-nums">
+            <div className="flex items-center gap-3 rounded-panel bg-popover px-4 py-2 text-popover-foreground shadow-overlay ring-1 ring-panel-border">
+              <span className="text-xs font-medium tabular-nums text-foreground">
                 {selectedRowTags.length} {selectedRowTags.length === 1 ? "tag" : "tags"} selected
               </span>
               <div className="h-4 w-px bg-border" />
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-3 text-muted-foreground hover:text-foreground"
+                className="h-7 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-control"
                 onClick={() => setRowSelection({})}
               >
                 Clear
@@ -354,10 +361,10 @@ function TagExplorerClient({ registryId, repoName }: TagExplorerClientProps) {
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-7 px-4"
+                className="h-7 px-3.5 text-xs rounded-control"
                 onClick={() => handleBulkDeleteClick(selectedRowTags)}
               >
-                <Trash2Icon className="size-3.5" />
+                <Trash2Icon className="size-3" />
                 Delete
               </Button>
             </div>

@@ -1,11 +1,10 @@
 "use client"
 
 import { Suspense, useState } from "react"
-import { MenuIcon, LogOutIcon, UserIcon } from "lucide-react"
+import { MenuIcon, LogOutIcon, UserIcon, SearchIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { logout } from "@/lib/logout"
 import {
   DropdownMenu,
@@ -18,9 +17,10 @@ import {
 
 interface TopbarProps {
   onOpenSidebar: () => void
+  onOpenSearch: () => void
 }
 
-export function Topbar({ onOpenSidebar }: TopbarProps) {
+export function Topbar({ onOpenSidebar, onOpenSearch }: TopbarProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
@@ -42,17 +42,17 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/88 backdrop-blur-md">
-      <div className="flex h-14 items-center justify-between px-5 lg:px-8">
-        <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 h-16 border-b border-sidebar-border bg-sidebar">
+      <div className="flex h-full items-center justify-between px-4 lg:px-8">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 rounded-lg lg:hidden"
+            className="size-8 rounded-control lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open menu"
           >
-            <MenuIcon className="size-4.5" />
+            <MenuIcon className="size-4" />
           </Button>
 
           <div className="min-w-0">
@@ -63,21 +63,24 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
-
+          <Button variant="ghost" size="sm" onClick={onOpenSearch} aria-label="Open search" className="h-9 rounded-control px-2.5">
+            <SearchIcon className="size-4" />
+            <span className="hidden sm:inline">Search</span>
+            <span className="hidden text-xs text-muted-foreground md:inline">⌘K / Ctrl K</span>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                size="icon-sm"
+                variant="ghost"
+                size="icon"
                 aria-label="User menu"
-                className="hidden rounded-lg border-border/70 bg-background sm:flex"
+                className="size-9 rounded-control"
               >
                 <UserIcon className="size-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-normal">
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5 shadow-lg">
+              <DropdownMenuLabel className="font-normal px-2 py-1.5">
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium leading-none">Admin User</p>
                   <p className="text-xs leading-none text-muted-foreground">
@@ -86,8 +89,8 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-                <LogOutIcon data-icon="inline-start" />
+              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut} className="rounded-lg">
+                <LogOutIcon data-icon="inline-start" className="size-4" />
                 <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

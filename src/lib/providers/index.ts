@@ -23,6 +23,11 @@ export function createProvider(connection: RegistryConnection): RegistryProvider
   return new GenericProvider({ ...connection, provider: "generic" })
 }
 
+export function clearProviderCaches(): void {
+  GenericProvider.clearCaches()
+  DockerHubProvider.clearCaches()
+}
+
 export { DockerHubProvider } from "@/lib/providers/dockerhub-provider"
 export { GenericProvider } from "@/lib/providers/generic-provider"
 export { UnsupportedError } from "@/lib/providers/types"

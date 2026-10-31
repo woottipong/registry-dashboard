@@ -14,11 +14,11 @@ export function LayerList({ layers }: LayerListProps) {
 
   return (
     <div className="space-y-1">
-      <div className="mb-3 grid grid-cols-[2rem_1fr_6rem_10rem] gap-3 px-3 text-xs font-medium text-muted-foreground">
+      <div className="mb-3 grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-3 px-3 sm:grid-cols-[2rem_minmax(0,1fr)_6rem_10rem] text-xs font-medium text-muted-foreground">
         <span>#</span>
         <span>Digest</span>
         <span className="text-right">Size</span>
-        <span>Media Type</span>
+        <span className="hidden sm:block">Media Type</span>
       </div>
 
       {layers.map((layer, index) => {
@@ -27,25 +27,25 @@ export function LayerList({ layers }: LayerListProps) {
         return (
           <div
             key={`${layer.digest}-${index}`}
-            className="relative overflow-hidden rounded-md border border-border/70 bg-card px-3 py-2"
+            className="relative overflow-hidden rounded-control bg-secondary/20 px-3 py-3"
           >
             <div
-              className="absolute inset-y-0 left-0 bg-primary/8"
+              className="absolute inset-y-0 left-0 rounded-l-control bg-primary/10 border-r border-primary/25 transition-all duration-300"
               style={{ width: `${widthPct}%` }}
             />
-            <div className="relative grid grid-cols-[2rem_1fr_6rem_10rem] items-center gap-3 text-xs">
+            <div className="relative grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 text-xs sm:grid-cols-[2rem_minmax(0,1fr)_6rem_10rem]">
               <span className="font-mono text-muted-foreground">{index + 1}</span>
-              <span className="font-mono text-muted-foreground">
+              <span className="min-w-0 truncate font-mono text-muted-foreground" title={layer.digest}>
                 {truncateDigest(layer.digest, 12)}
               </span>
               <span className="text-right tabular-nums">{formatBytes(layer.size)}</span>
-              <span className="truncate text-muted-foreground">{layer.mediaType}</span>
+              <span className="col-span-2 col-start-2 break-all text-muted-foreground sm:col-auto sm:truncate">{layer.mediaType}</span>
             </div>
           </div>
         )
       })}
 
-      <div className="flex justify-end border-t pt-2 text-sm font-medium">
+      <div className="flex justify-end pt-4 text-sm font-medium">
         Total: {formatBytes(totalSize)}
       </div>
     </div>

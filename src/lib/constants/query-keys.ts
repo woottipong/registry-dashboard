@@ -27,8 +27,8 @@ export const queryKeys = {
             namespace: string,
         ) => ["repositories", registryId, page, perPage, search, namespace] as const,
 
-        search: (registryId: string, query: string) =>
-            ["repositories", "search", registryId, query] as const,
+        search: (registryId: string, query: string, page = 1, perPage = 100) =>
+            ["repositories", "search", registryId, query, page, perPage] as const,
 
         /** Prefix key — handy for `invalidateQueries` after delete */
         prefix: (registryId: string) => ["repositories", registryId] as const,
@@ -36,8 +36,8 @@ export const queryKeys = {
 
     // ── Tags ────────────────────────────────────────────────────
     tags: {
-        byRepo: (registryId: string, repoName: string, page = 1, perPage = 50) =>
-            ["tags", registryId, repoName, page, perPage] as const,
+        byRepo: (registryId: string, repoName: string, page = 1, perPage = 50, search = "") =>
+            ["tags", registryId, repoName, page, perPage, search] as const,
 
         /** Prefix key — handy for `invalidateQueries` / `cancelQueries` */
         prefix: (registryId: string, repoName: string) =>

@@ -49,6 +49,8 @@ describe("TagTable", () => {
       />,
     )
 
+    expect(screen.getByRole("checkbox", { name: "Select tag latest" })).toBeInTheDocument()
+    expect(screen.getByRole("checkbox", { name: "Select tag stable" })).toBeInTheDocument()
     const checkboxes = screen.getAllByRole("checkbox")
     fireEvent.click(checkboxes[2])
 

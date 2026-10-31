@@ -13,6 +13,7 @@ export interface ListOptions {
   perPage?: number
   last?: string
   query?: string
+  search?: string
 }
 
 export interface PaginatedResult<T> {
@@ -32,7 +33,7 @@ export interface RegistryProvider {
   getManifest(repo: string, ref: string): Promise<ImageManifest>
   getConfig(repo: string, digest: string): Promise<ImageConfig>
   deleteManifest(repo: string, digest: string): Promise<void>
-  searchRepositories(query: string): Promise<PaginatedResult<Repository>>
+  searchRepositories(query: string, options?: ListOptions): Promise<PaginatedResult<Repository>>
   authenticate(): Promise<void>
   capabilities(): ProviderCapabilities
 }

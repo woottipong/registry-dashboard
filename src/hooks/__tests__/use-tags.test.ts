@@ -2,7 +2,7 @@ import React from "react"
 import { describe, it, expect, afterEach, vi } from "vitest"
 import { renderHook, waitFor, act } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useTags, useDeleteTag, useDeleteTags } from "@/hooks/use-tags"
+import { useTags, useDeleteTag, useDeleteTags, fetchTagsForDeletion } from "@/hooks/use-tags"
 import type { Tag } from "@/types/registry"
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -103,6 +103,25 @@ describe("useTags", () => {
     expect(url).toContain("/api/v1/registries/reg-1/repositories/app/web/tags")
     expect(url).toContain("page=2")
     expect(url).toContain("perPage=25")
+  })
+
+  it("includes search param when non-empty", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ success: true, data: [] }),
+    })
+    globalThis.fetch = fetchSpy as typeof fetch
+
+    const queryClient = makeQueryClient()
+    renderHook(() => useTags(REGISTRY_ID, "app/web", 1, 50, "v1.2"), {
+      wrapper: makeWrapper(queryClient),
+    })
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled())
+
+    const [url] = fetchSpy.mock.calls[0] as [string]
+    expect(url).toContain("search=v1.2")
   })
 
   it("URL-encodes slashes in repo name segments", async () => {
@@ -474,5 +493,32 @@ describe("useDeleteTags", () => {
 
     // Only sha256:aaa passes the filter → 1 DELETE call
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
+
+describe("fetchTagsForDeletion", () => {
+  it("loads every page without a search filter to find shared manifests", async () => {
+    const digest = "sha256:shared"
+    const fetchSpy = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: [makeTag("latest", digest)], meta: { total: 2, totalPages: 2 } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: [makeTag("stable", digest)], meta: { total: 2, totalPages: 2 } }) })
+    globalThis.fetch = fetchSpy as typeof fetch
+
+    await expect(fetchTagsForDeletion(REGISTRY_ID, REPO_NAME)).resolves.toEqual([
+      makeTag("latest", digest), makeTag("stable", digest),
+    ])
+    expect(fetchSpy.mock.calls[1][0]).toContain("page=2")
+    expect(fetchSpy.mock.calls[0][0]).not.toContain("search=")
+  })
+
+  it("fails when a page or a digest cannot be verified", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true, json: async () => ({ success: true, data: [makeTag("latest", "")], meta: { total: 1, totalPages: 1 } }),
+    }) as typeof fetch
+    await expect(fetchTagsForDeletion(REGISTRY_ID, REPO_NAME)).rejects.toThrow(/digests/)
+
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false }) }) as typeof fetch
+    await expect(fetchTagsForDeletion(REGISTRY_ID, REPO_NAME)).rejects.toThrow(/check all tags/)
   })
 })

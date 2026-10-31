@@ -1,9 +1,10 @@
+import { createHash } from "node:crypto"
 import { RegistryHttpClient } from "@/lib/registry-client"
 import * as z from "zod"
+import { parseRepositoryName } from "@/lib/format"
 import type { ImageConfig, ImageIndex, ImageManifest } from "@/types/manifest"
 import type { Namespace, RegistryConnection, Repository, Tag } from "@/types/registry"
 import type { ListOptions, PaginatedResult, RegistryProvider } from "@/lib/providers/types"
-import { UnsupportedError } from "@/lib/providers/types"
 
 const INDEX_MEDIA_TYPES = new Set([
   "application/vnd.oci.image.index.v1+json",
@@ -41,12 +42,53 @@ function getMaxCatalogPages(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 100
 }
 
+interface CacheEntry<T> {
+  data: T
+  expiresAt: number
+}
+
 export class GenericProvider implements RegistryProvider {
   readonly type = "generic" as const
   private readonly client: RegistryHttpClient
-  private readonly digestCache = new Map<string, { digest: string; expiresAt: number }>()
 
-  private static readonly DIGEST_CACHE_TTL_MS = 5 * 60 * 1000
+  // Shared process-level caches across per-request provider instances
+  private static readonly catalogCache = new Map<string, CacheEntry<string[]>>()
+  private static readonly tagCountCache = new Map<string, CacheEntry<number>>()
+  private static readonly inFlightCatalog = new Map<string, Promise<string[]>>()
+
+  private static readonly CATALOG_CACHE_TTL_MS = 60 * 1000
+  private static readonly TAG_COUNT_CACHE_TTL_MS = 60 * 1000
+  private static readonly MAX_CACHE_ENTRIES = 500
+
+  static clearCaches(): void {
+    GenericProvider.catalogCache.clear()
+    GenericProvider.tagCountCache.clear()
+    GenericProvider.inFlightCatalog.clear()
+  }
+
+  private static setBoundedCache<T>(map: Map<string, CacheEntry<T>>, key: string, entry: CacheEntry<T>): void {
+    if (map.size >= GenericProvider.MAX_CACHE_ENTRIES) {
+      const now = Date.now()
+      for (const [k, v] of map.entries()) {
+        if (v.expiresAt <= now) {
+          map.delete(k)
+        }
+      }
+      if (map.size >= GenericProvider.MAX_CACHE_ENTRIES) {
+        let countToDelete = Math.ceil(GenericProvider.MAX_CACHE_ENTRIES * 0.2)
+        for (const k of map.keys()) {
+          map.delete(k)
+          if (--countToDelete <= 0) break
+        }
+      }
+    }
+    map.set(key, entry)
+  }
+
+  private getCachePrefix(): string {
+    const { id, url, authType, credentials } = this.connection
+    return createHash("sha256").update(JSON.stringify([id, url, authType, credentials?.username, credentials?.password, credentials?.token])).digest("hex")
+  }
 
   constructor(private readonly connection: RegistryConnection) {
     this.client = new RegistryHttpClient(connection)
@@ -71,10 +113,8 @@ export class GenericProvider implements RegistryProvider {
 
     const countMap = new Map<string, number>()
     for (const repoName of allRepoNames) {
-      const ns = repoName.includes("/")
-        ? repoName.split("/").slice(0, -1).join("/")
-        : ""
-      countMap.set(ns, (countMap.get(ns) ?? 0) + 1)
+      const { namespace } = parseRepositoryName(repoName)
+      countMap.set(namespace, (countMap.get(namespace) ?? 0) + 1)
     }
 
     return Array.from(countMap.entries())
@@ -93,10 +133,8 @@ export class GenericProvider implements RegistryProvider {
     // Empty string namespace means repos with no path separator (root-level repos)
     const filteredNames = options.namespace !== undefined
       ? allRepoNames.filter(repoName => {
-          const repoNamespace = repoName.includes("/")
-            ? repoName.split("/").slice(0, -1).join("/")
-            : ""
-          return repoNamespace === options.namespace
+          const { namespace } = parseRepositoryName(repoName)
+          return namespace === options.namespace
         })
       : allRepoNames
 
@@ -104,32 +142,7 @@ export class GenericProvider implements RegistryProvider {
     const start = (page - 1) * perPage
     const pageNames = filteredNames.slice(start, start + perPage)
 
-    // Fetch tag counts in parallel ONLY for the current page's repos
-    const repositories = (
-      await Promise.all(
-        pageNames.map(async (repoName) => {
-          try {
-            const tagsResponse = tagListResponseSchema.parse(
-              await this.client.request<TagListResponse>(`/v2/${repoName}/tags/list`),
-            )
-            const tags = tagsResponse.tags ?? []
-
-            // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
-            if (tags.length === 0) return null
-
-            const ns = repoName.includes("/") ? repoName.split("/").slice(0, -1).join("/") : ""
-            return {
-              name: repoName.split("/").pop() ?? repoName,
-              fullName: repoName,
-              namespace: ns,
-              tagCount: tags.length,
-            }
-          } catch {
-            return null
-          }
-        }),
-      )
-    ).filter((repo): repo is NonNullable<typeof repo> => repo !== null)
+    const repositories = await this.hydrateRepositories(pageNames)
 
     return {
       items: repositories,
@@ -140,37 +153,105 @@ export class GenericProvider implements RegistryProvider {
     }
   }
 
+  private async hydrateRepositories(pageNames: string[]): Promise<Repository[]> {
+    const prefix = this.getCachePrefix()
+    const repositories: (Repository | null)[] = await Promise.all(
+      pageNames.map(async (repoName) => {
+        try {
+          const cacheKey = `${prefix}:${repoName}`
+          const now = Date.now()
+          const cached = GenericProvider.tagCountCache.get(cacheKey)
+
+          let tagCount: number
+          if (cached && cached.expiresAt > now) {
+            tagCount = cached.data
+          } else {
+            const tags = await this.fetchAllTagNames(repoName)
+            tagCount = tags.length
+            GenericProvider.setBoundedCache(GenericProvider.tagCountCache, cacheKey, {
+              data: tagCount,
+              expiresAt: now + GenericProvider.TAG_COUNT_CACHE_TTL_MS,
+            })
+          }
+
+          // Skip repos with no tags — registry:2 keeps catalog entries even after all manifests are deleted
+          if (tagCount === 0) return null
+
+          const { namespace, name } = parseRepositoryName(repoName)
+          return {
+            name,
+            fullName: repoName,
+            namespace,
+            tagCount,
+          }
+        } catch {
+          const { namespace, name } = parseRepositoryName(repoName)
+          return { name, fullName: repoName, namespace }
+        }
+      }),
+    )
+
+    return repositories.filter((repo): repo is Repository => repo !== null)
+  }
+
   private async fetchAllCatalogNames(): Promise<string[]> {
-    const allNames: string[] = []
-    // Fetch in large batches to minimise round-trips
-    const batchSize = 1000
-    const maxCatalogPages = getMaxCatalogPages()
-    let url: string | null = `/v2/_catalog?n=${batchSize}`
-    let pageCount = 0
-
-    while (url) {
-      if (pageCount >= maxCatalogPages) {
-        console.warn(`[GenericProvider] Catalog page cap reached for ${this.connection.url}`, {
-          maxPages: maxCatalogPages,
-        })
-        break
-      }
-
-      const { body, linkHeader } = await this.client.requestWithHeaders<CatalogResponse>(url)
-      const parsedBody = catalogResponseSchema.parse(body)
-      allNames.push(...(parsedBody.repositories ?? []))
-      url = parseLinkNext(linkHeader)
-      pageCount += 1
+    const cacheKey = this.getCachePrefix()
+    const now = Date.now()
+    const cached = GenericProvider.catalogCache.get(cacheKey)
+    if (cached && cached.expiresAt > now) {
+      return cached.data
     }
 
-    return allNames
+    const inFlight = GenericProvider.inFlightCatalog.get(cacheKey)
+    if (inFlight) {
+      return inFlight
+    }
+
+    const fetchPromise = (async () => {
+      try {
+        const allNames: string[] = []
+        // Fetch in large batches to minimise round-trips
+        const batchSize = 1000
+        const maxCatalogPages = getMaxCatalogPages()
+        let url: string | null = `/v2/_catalog?n=${batchSize}`
+        let pageCount = 0
+
+        while (url) {
+          if (pageCount >= maxCatalogPages) {
+            console.warn(`[GenericProvider] Catalog page cap reached for ${this.connection.url}`, {
+              maxPages: maxCatalogPages,
+            })
+            break
+          }
+
+          const { body, linkHeader } = await this.client.requestWithHeaders<CatalogResponse>(url)
+          const parsedBody = catalogResponseSchema.parse(body)
+          allNames.push(...(parsedBody.repositories ?? []))
+          url = parseLinkNext(linkHeader)
+          pageCount += 1
+        }
+
+        GenericProvider.setBoundedCache(GenericProvider.catalogCache, cacheKey, {
+          data: allNames,
+          expiresAt: Date.now() + GenericProvider.CATALOG_CACHE_TTL_MS,
+        })
+
+        return allNames
+      } finally {
+        GenericProvider.inFlightCatalog.delete(cacheKey)
+      }
+    })()
+
+    GenericProvider.inFlightCatalog.set(cacheKey, fetchPromise)
+    return fetchPromise
   }
 
   async listTags(repo: string, options: ListOptions = {}): Promise<PaginatedResult<Tag>> {
-    const response = tagListResponseSchema.parse(
-      await this.client.request<TagListResponse>(`/v2/${repo}/tags/list`),
-    )
-    const tagNames = response.tags ?? []
+    const rawTagNames = await this.fetchAllTagNames(repo)
+    const searchQuery = (options.search ?? options.query ?? "").trim().toLowerCase()
+    const tagNames = searchQuery
+      ? rawTagNames.filter((t) => t.toLowerCase().includes(searchQuery))
+      : rawTagNames
     const page = options.page ?? 1
     const perPage = options.perPage ?? 50
     const start = (page - 1) * perPage
@@ -187,6 +268,27 @@ export class GenericProvider implements RegistryProvider {
       total: tagNames.length,
       nextCursor: null,
     }
+  }
+
+  private async fetchAllTagNames(repo: string): Promise<string[]> {
+    const rawTagNames: string[] = []
+    const seenNames = new Set<string>()
+    const visited = new Set<string>()
+    let url: string | null = `/v2/${repo}/tags/list`
+    while (url) {
+      if (visited.has(url) || visited.size >= getMaxCatalogPages()) {
+        throw new Error("Tag listing pagination did not complete")
+      }
+      visited.add(url)
+      const { body, linkHeader } = await this.client.requestWithHeaders<TagListResponse>(url)
+      for (const name of tagListResponseSchema.parse(body).tags ?? []) {
+        if (seenNames.has(name)) throw new Error("Tag listing contains duplicate names")
+        seenNames.add(name)
+        rawTagNames.push(name)
+      }
+      url = parseTagNext(linkHeader, repo)
+    }
+    return rawTagNames
   }
 
   private async resolveTag(repo: string, tagName: string): Promise<Tag> {
@@ -318,13 +420,6 @@ export class GenericProvider implements RegistryProvider {
   }
 
   private async resolveDigest(repo: string, ref: string): Promise<string | null> {
-    const cacheKey = `${repo}:${ref}`
-    const now = Date.now()
-    const cached = this.digestCache.get(cacheKey)
-    if (cached && cached.expiresAt > now) {
-      return cached.digest
-    }
-
     try {
       const base = this.connection.url.replace(/\/$/, "")
       const url = `${base}/v2/${repo}/manifests/${ref}`
@@ -337,15 +432,7 @@ export class GenericProvider implements RegistryProvider {
       }
 
       const response = await fetch(url, { method: "HEAD", headers })
-      const digest = response.headers.get("Docker-Content-Digest")
-      if (digest?.startsWith("sha256:")) {
-        this.digestCache.set(cacheKey, {
-          digest,
-          expiresAt: now + GenericProvider.DIGEST_CACHE_TTL_MS,
-        })
-        return digest
-      }
-      return digest
+      return response.headers.get("Docker-Content-Digest")
     } catch {
       return null
     }
@@ -357,11 +444,33 @@ export class GenericProvider implements RegistryProvider {
 
   async deleteManifest(repo: string, digest: string): Promise<void> {
     await this.client.request<void>(`/v2/${repo}/manifests/${digest}`, { method: "DELETE" })
+
+    const prefix = this.getCachePrefix()
+    GenericProvider.tagCountCache.delete(`${prefix}:${repo}`)
+    GenericProvider.catalogCache.delete(prefix)
   }
 
-   
-  async searchRepositories(_query: string): Promise<PaginatedResult<Repository>> {
-    throw new UnsupportedError("Search is not supported for generic registry providers")
+  async searchRepositories(query: string, options: ListOptions = {}): Promise<PaginatedResult<Repository>> {
+    const allRepoNames = await this.fetchAllCatalogNames()
+    const queryLower = query.trim().toLowerCase()
+
+    const matchingNames = allRepoNames.filter((repoName) =>
+      repoName.toLowerCase().includes(queryLower),
+    )
+
+    const page = options.page ?? 1
+    const perPage = options.perPage ?? 50
+    const start = (page - 1) * perPage
+    const pageNames = matchingNames.slice(start, start + perPage)
+    const repositories = await this.hydrateRepositories(pageNames)
+
+    return {
+      items: repositories,
+      page,
+      perPage,
+      total: matchingNames.length,
+      nextCursor: null,
+    }
   }
 
   async authenticate(): Promise<void> {
@@ -372,10 +481,53 @@ export class GenericProvider implements RegistryProvider {
     return {
       canListCatalog: true,
       canDelete: true,
-      canSearch: false,
+      canSearch: true,
       hasRateLimit: false,
     }
   }
+}
+
+function splitLinkHeader(value: string, separator: string): string[] {
+  const parts: string[] = []
+  let start = 0
+  let quoted = false
+  let inUrl = false
+  let escaped = false
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i]
+    if (escaped) { escaped = false; continue }
+    if (quoted && char === "\\") { escaped = true; continue }
+    if (!inUrl && char === '"') quoted = !quoted
+    else if (!quoted && char === "<") inUrl = true
+    else if (!quoted && char === ">") inUrl = false
+    else if (!quoted && !inUrl && char === separator) {
+      parts.push(value.slice(start, i))
+      start = i + 1
+    }
+  }
+  if (quoted || inUrl) throw new Error("Invalid tag listing pagination link")
+  parts.push(value.slice(start))
+  return parts
+}
+
+function parseTagNext(linkHeader: string | null, repo: string): string | null {
+  if (!linkHeader) return null
+  let next: string | null = null
+  for (const link of splitLinkHeader(linkHeader, ",")) {
+    const [target, ...parameters] = splitLinkHeader(link, ";")
+    const match = target.match(/^\s*<([^>]+)>\s*$/)
+    const relations = parameters.filter((parameter) => /^\s*rel\s*=/i.test(parameter))
+    const rel = relations[0]?.match(/^\s*rel\s*=\s*(?:"([^"]+)"|([^\s]+))\s*$/i)
+    if (!match || relations.length !== 1 || !rel || (rel[1] ?? rel[2]).includes("\\")) {
+      throw new Error("Invalid tag listing pagination link")
+    }
+    if (!(rel[1] ?? rel[2]).toLowerCase().split(/\s+/).includes("next")) continue
+    if (next) throw new Error("Invalid tag listing pagination link")
+    const parsed = new URL(match[1], `http://placeholder/v2/${repo}/tags/list`)
+    if (parsed.pathname !== `/v2/${repo}/tags/list`) throw new Error("Invalid tag listing pagination link")
+    next = `${parsed.pathname}${parsed.search}`
+  }
+  return next
 }
 
 // Parse the `next` URL from a Docker Registry `Link` response header

@@ -4,19 +4,16 @@ Canonical agent and contributor guide for `registry_ui`.
 
 This file is the source of truth for architecture, route shapes, provider model, workflow, commands, and security guardrails. Keep it concise and update it when conventions change.
 
-## Read First
-
-1. Read `AGENTS.md` once at the start of a new task.
-2. Use `README.md` for product overview, Docker usage, and deployment/runtime notes.
-3. Use `CONTRIBUTING.md` for contributor workflow.
-4. Follow existing project structure and naming before introducing anything new.
-
 ## Documentation Map
 
-- `AGENTS.md` — architecture, route shapes, provider model, commands, coding conventions, and security guardrails.
-- `README.md` — product overview, Docker usage, and deployment/runtime notes.
-- `CONTRIBUTING.md` — contributor workflow and PR expectations.
-- `.breakdown/STATUS.md` — current milestone and backlog status when task scope touches ongoing project planning.
+Consult these pointers when entering their domain:
+
+- [`PRODUCT.md`](PRODUCT.md) — UI styling, brand commitments, dark-only theme, and UX principles.
+- [`README.md`](README.md) — Product overview, environment variables, and Docker deployment.
+- [`doc/DESIGN.md`](doc/DESIGN.md) — Carbon Dark design system tokens, layout dimensions, and component rules.
+- `docs/agents/issue-tracker.md` — Local issue tracking and wayfinding operations in `.scratch/<feature>/`.
+- `docs/agents/triage-labels.md` — Canonical triage roles mapping (`needs-triage`, `ready-for-agent`, etc.).
+- `docs/agents/domain.md` — Domain vocabulary (`GLOSSARY.md`) and architecture decisions (`docs/adr/`).
 
 ## Core Rules
 
@@ -66,6 +63,14 @@ Provider implementations live under `src/lib/providers/`.
 - Always check provider capabilities before delete/search operations.
 - For Docker Hub, remember Hub API and Registry API are different systems.
 
+#### Adding a New Registry Provider
+
+1. Create `src/lib/providers/<name>-provider.ts` implementing `RegistryProvider`.
+2. Add detection and instantiation logic in `src/lib/providers/index.ts`.
+3. Update `RegistryProviderType` in `src/types/registry.ts`.
+4. Add preset options in the registry connection form.
+5. Write unit tests in `src/lib/providers/__tests__/<name>-provider.test.ts`.
+
 ### Namespace-First Loading
 
 Repository browsing loads namespaces first, then repositories for the selected namespace.
@@ -80,6 +85,8 @@ Use `_root` in URLs as the sentinel for the empty root namespace.
 Use these route shapes:
 
 ```text
+/
+/login
 /repos
 /repos?registry=<id>
 /repos?registry=<id>&namespace=<ns>
@@ -92,6 +99,38 @@ Use these route shapes:
 ```
 
 Do not introduce `/repos/<registryId>` as a standalone registry overview route; registry filtering belongs in the query string.
+
+### API Endpoints Map
+
+All registry interactions stay behind the Next.js API BFF proxy:
+
+```text
+Auth & Health:
+  POST   /api/auth/login                       Authenticate session
+  POST   /api/auth/logout                      Clear session cookie
+  GET    /api/auth/me                          Session user details
+  GET    /api/health                           Service health status
+
+Telemetry:
+  GET    /api/v1/activities                    Recent telemetry activities
+
+Registries:
+  GET    /api/v1/registries                    List configured registries
+  POST   /api/v1/registries                    Add new registry
+  GET    /api/v1/registries/[id]               Get registry details
+  PUT    /api/v1/registries/[id]               Update registry
+  DELETE /api/v1/registries/[id]               Remove registry
+  POST   /api/v1/registries/[id]/ping          Test connection and credentials
+
+Catalog & Manifests:
+  GET    /api/v1/registries/[id]/namespaces    List registry namespaces
+  GET    /api/v1/registries/[id]/repositories  List repositories in namespace
+  GET    /api/v1/registries/[id]/repositories/[...name]  Repository metadata
+  DELETE /api/v1/registries/[id]/repositories/[...name]  Delete repository
+  GET    /api/v1/registries/[id]/manifests/[...path]     Fetch image manifest
+  DELETE /api/v1/registries/[id]/manifests/[...path]     Delete tag / manifest
+  GET    /api/v1/registries/[id]/blobs/[...path]         Proxy image layer blob
+```
 
 ### API Response Shape
 
@@ -126,7 +165,9 @@ Simple rule:
 - `fix now` -> usually no issue required
 - `fix later` or `must not forget` -> open an issue
 
-Create issue markdown in `issues/` first, then open the GitHub issue from that file when asked.
+Issue storage:
+- **Local tasks/specs**: Save under `.scratch/<feature-slug>/issues/` (see `docs/agents/issue-tracker.md`).
+- **PR specs / GitHub issues**: Save in `issues/<spec-name>.md` when staging for GitHub or external review.
 
 ## Branch And PR Workflow
 
@@ -157,13 +198,22 @@ When acting on review feedback:
 All verification must run **inside the Docker dev container**, not on the host machine.
 The `ui` service container name is `registry-dashboard-ui-dev`.
 
-Default verification for code changes:
+### Tiered Verification Strategy
 
-```bash
-docker compose -f docker-compose.dev.yml exec ui bun run typecheck
-docker compose -f docker-compose.dev.yml exec ui bun run lint
-docker compose -f docker-compose.dev.yml exec ui bun run test
-```
+- **Fast-check (for UI, styling, copy, CSS, layout tweaks)**:
+  Run typecheck and lint only (~6–8 seconds):
+  ```bash
+  docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+  docker compose -f docker-compose.dev.yml exec ui bun run lint
+  ```
+
+- **Full Verification (for Logic, API, Providers, Crypto, Stores, or final check before commit/PR)**:
+  Run the full suite including all unit tests:
+  ```bash
+  docker compose -f docker-compose.dev.yml exec ui bun run typecheck
+  docker compose -f docker-compose.dev.yml exec ui bun run lint
+  docker compose -f docker-compose.dev.yml exec ui bun run test
+  ```
 
 If the container is not running, start it first:
 
@@ -260,6 +310,8 @@ docker compose -f docker-compose.dev.yml exec ui bun run lint
 docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
 docker compose -f docker-compose.dev.yml exec ui bun run test
 docker compose -f docker-compose.dev.yml exec ui bun run test:watch
+docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
+docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 
 # Install a new package (writes to node_modules volume inside Docker)
 docker compose -f docker-compose.dev.yml exec ui bun add <package>
@@ -269,9 +321,24 @@ docker compose -f docker-compose.dev.yml exec ui bun add -d <package>
 Do **not** run `bun install`, `bun run lint`, or `bun run test` directly on the host.
 The `node_modules` volume lives inside Docker — the host has no `node_modules` directory.
 
+## Agent skills
+
+### Issue tracker
+
+Local markdown files in `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical triage label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`GLOSSARY.md` at root and `docs/adr/`). See `docs/agents/domain.md`.
+
 ## Final Check
 
 Before handing work back:
 - confirm what changed
 - confirm what was verified
 - mention any remaining warnings, risks, or follow-ups
+

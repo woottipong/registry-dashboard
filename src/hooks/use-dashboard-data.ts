@@ -6,11 +6,17 @@ import { STALE_TIME_REPOSITORIES } from "@/lib/query-client"
 import { DASHBOARD_CONFIG, DASHBOARD_QUERY_KEYS } from "@/lib/constants/dashboard"
 import type { ProviderCapabilities, RegistryAuthType, RegistryConnection, RegistryCredentials, RegistryProviderType, Repository } from "@/types/registry"
 
+export interface DashboardRepoItem extends Repository {
+  registryId: string
+  registryName: string
+  provider: RegistryProviderType
+}
+
 interface DashboardData {
   totalRepositories: number
   totalTags: number
-  totalSizeBytes: number
   chartData: Array<{ name: string; registryId: string; tagCount: number }>
+  repositories: DashboardRepoItem[]
   registriesWithStats: Array<{
     id: string
     name: string
@@ -24,8 +30,7 @@ interface DashboardData {
     createdAt: string
     updatedAt?: string
     repoCount: number
-    tagCount: number
-    sizeBytes: number
+    tagCount: number | null
   }>
 }
 
@@ -75,7 +80,10 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
   )
 
   const isLoadingRegistries = registriesQuery.isLoading
-  const isLoadingRepos = repoQueries.some((q) => q.isLoading)
+  const isLoadingRepos = repoQueries.some((q) => q.isLoading) || (!allEagerDone && deferredRegistries.length > 0)
+  const failedRegistryIds = memoizedRegistries.filter((_, index) => repoQueries[index]?.isError).map((registry) => registry.id)
+  const hasIncompleteData = repoQueries.some((query) => query.isError || Boolean(query.data?.meta?.nextCursor) || (query.data?.meta?.totalPages ?? 1) > 1)
+  const hasUnknownTagCounts = repoQueries.some((query) => query.data?.items.some((repo) => repo.tagCount === undefined))
 
   // Optimize stats calculation with better memoization
   const dashboardData = useMemo((): DashboardData => {
@@ -84,16 +92,16 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       return {
         totalRepositories: 0,
         totalTags: 0,
-        totalSizeBytes: 0,
         chartData: [],
+        repositories: [],
         registriesWithStats: []
       }
     }
 
     const allRepos: { name: string; registryId: string; tagCount: number }[] = []
+    const allRepoItems: DashboardRepoItem[] = []
     let totalRepos = 0
     let totalTagsCount = 0
-    let totalSize = 0
 
     const regStats = memoizedRegistries.map((registry, index) => {
       const queryResult = repoQueries[index]
@@ -101,15 +109,19 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       // If query is still loading, use cached or partial data
       const repos = queryResult?.data?.items ?? []
       const repoCount = repos.length
-      // For providers that don't provide tag counts (like Docker Hub),
-      // we'll leave tagCount undefined until we can fetch it separately
-      const tagCount = repos.some(r => r.tagCount !== undefined) ?
-        repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0) : undefined
-      const sizeBytes = repos.reduce((sum: number, r: Repository) => sum + (r.sizeBytes ?? 0), 0)
+      // A missing tag count means the total for this registry is unknown.
+      const knownTagCount = repos.reduce((sum: number, r: Repository) => sum + (r.tagCount ?? 0), 0)
+      const tagCount = repos.some((r) => r.tagCount === undefined) ? null : knownTagCount
 
       // Only add to chart data if we have repositories
       if (repoCount > 0) {
         repos.forEach((r: Repository) => {
+          allRepoItems.push({
+            ...r,
+            registryId: registry.id,
+            registryName: registry.name,
+            provider: registry.provider,
+          })
           if ((r.tagCount ?? 0) > 0) {
             allRepos.push({
               name: r.fullName,
@@ -121,14 +133,12 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
       }
 
       totalRepos += repoCount
-      totalTagsCount += tagCount ?? 0  // Only add if tagCount is defined
-      totalSize += sizeBytes
+      totalTagsCount += knownTagCount
 
       return {
         ...registry,
         repoCount,
-        tagCount: tagCount ?? 0,  // Ensure tagCount is always a number
-        sizeBytes
+        tagCount,
       }
     })
 
@@ -140,8 +150,8 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     return {
       totalRepositories: totalRepos,
       totalTags: totalTagsCount,
-      totalSizeBytes: totalSize,
       chartData: sortedChartData,
+      repositories: allRepoItems,
       registriesWithStats: regStats
     }
   }, [memoizedRegistries, repoQueries])
@@ -151,5 +161,13 @@ export function useDashboardData({ initialRegistries }: UseDashboardDataOptions 
     isLoadingRegistries,
     isLoadingRepos,
     registries: memoizedRegistries,
+    isRegistryError: registriesQuery.isError,
+    failedRegistryIds,
+    hasIncompleteData,
+    hasUnknownTagCounts,
+    retry: () => {
+      if (registriesQuery.isError) void registriesQuery.refetch()
+      repoQueries.filter((query) => query.isError).forEach((query) => { void query.refetch() })
+    },
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { formatBytes, formatDate, truncateDigest, generatePullCommand } from "@/lib/format"
+import { formatBytes, formatDate, truncateDigest, generatePullCommand, parseRepositoryName } from "@/lib/format"
 
 describe("formatBytes", () => {
   it("returns '0 B' for zero", () => {
@@ -111,5 +111,23 @@ describe("generatePullCommand", () => {
 
   it("throws when repository is empty", () => {
     expect(() => generatePullCommand({ repository: "" })).toThrow()
+  })
+})
+
+describe("parseRepositoryName", () => {
+  it("parses single segment repository with empty namespace", () => {
+    expect(parseRepositoryName("nginx")).toEqual({ namespace: "", name: "nginx" })
+  })
+
+  it("parses standard namespace/repo format", () => {
+    expect(parseRepositoryName("library/ubuntu")).toEqual({ namespace: "library", name: "ubuntu" })
+  })
+
+  it("parses deeply nested namespaces", () => {
+    expect(parseRepositoryName("myorg/team/project/app")).toEqual({ namespace: "myorg/team/project", name: "app" })
+  })
+
+  it("handles empty string gracefully", () => {
+    expect(parseRepositoryName("")).toEqual({ namespace: "", name: "" })
   })
 })

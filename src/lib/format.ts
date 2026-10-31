@@ -115,3 +115,28 @@ export function generatePullCommand({
 
   return `docker pull ${imagePath}:${tag ?? "latest"}`
 }
+
+export interface ParsedRepositoryName {
+  namespace: string
+  name: string
+}
+
+/**
+ * Parses a repository full name into namespace and name components.
+ * An empty string namespace denotes a root-level repository (e.g. "nginx").
+ */
+export function parseRepositoryName(fullName: string): ParsedRepositoryName {
+  if (!fullName) {
+    return { namespace: "", name: "" }
+  }
+
+  const parts = fullName.split("/")
+  if (parts.length <= 1) {
+    return { namespace: "", name: parts[0] ?? fullName }
+  }
+
+  return {
+    namespace: parts.slice(0, -1).join("/"),
+    name: parts[parts.length - 1] ?? fullName,
+  }
+}

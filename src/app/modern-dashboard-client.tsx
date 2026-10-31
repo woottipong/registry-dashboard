@@ -1,19 +1,18 @@
 "use client"
 
+import { useMemo, useState } from "react"
 import Link from "next/link"
-import type { ReactNode } from "react"
-import {
-  ArrowRightIcon,
-  DatabaseIcon,
-  FolderIcon,
-  PlusIcon,
-  TagIcon,
-} from "lucide-react"
-import { EmptyState } from "@/components/empty-state"
-import { Badge } from "@/components/ui/badge"
+import { DatabaseIcon, PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
+import { useMounted } from "@/hooks/use-mounted"
+import { useActivity } from "@/contexts/activity-context"
+import { generatePullCommand, registryHostFromUrl } from "@/lib/format"
+import { copyToClipboard } from "@/lib/clipboard"
+import { DashboardKpis } from "@/components/dashboard/dashboard-kpis"
+import { DashboardRepoInventory } from "@/components/dashboard/dashboard-repo-inventory"
+import { DashboardRegistryDistribution } from "@/components/dashboard/dashboard-registry-distribution"
+import { DashboardRecentPushes, type RecentPushedItem } from "@/components/dashboard/dashboard-recent-pushes"
 import type { RegistryConnection } from "@/types/registry"
 
 interface ModernDashboardClientProps {
@@ -21,390 +20,250 @@ interface ModernDashboardClientProps {
 }
 
 export function ModernDashboardClient({ initialRegistries }: ModernDashboardClientProps) {
-  const { dashboardData, isLoadingRegistries, isLoadingRepos, registries } = useDashboardData({
-    initialRegistries,
-  })
+  const isMounted = useMounted()
+  const {
+    dashboardData,
+    isLoadingRegistries,
+    isLoadingRepos,
+    registries,
+    isRegistryError,
+    failedRegistryIds,
+    hasIncompleteData,
+    hasUnknownTagCounts,
+    retry,
+  } = useDashboardData({ initialRegistries })
 
-  const { totalRepositories, totalTags, registriesWithStats, chartData } = dashboardData
+  const { activities } = useActivity()
+
+  const { totalRepositories, totalTags, registriesWithStats, repositories } = dashboardData
   const providerCount = new Set(registriesWithStats.map((registry) => registry.provider)).size
-  const maxRegistryRepos = Math.max(...registriesWithStats.map((registry) => registry.repoCount), 1)
-  const maxRegistryTags = Math.max(...registriesWithStats.map((registry) => registry.tagCount), 1)
-  const maxRepoTags = Math.max(...chartData.map((repo) => repo.tagCount), 1)
 
-  if (!isLoadingRegistries && registries.length === 0) {
+  // Active filter tab: "all" or specific registry ID
+  const [activeTab, setActiveTab] = useState<string>("all")
+  // Search text within table
+  const [tableSearch, setTableSearch] = useState<string>("")
+  // Sort criteria for repository inventory
+  const [sortBy, setSortBy] = useState<"name" | "tags">("tags")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  // Track which item's pull command was just copied (ID or repo name)
+  const [copiedCommandId, setCopiedCommandId] = useState<string | null>(null)
+
+  const handleSortChange = (column: "name" | "tags") => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortBy(column)
+      setSortOrder(column === "tags" ? "desc" : "asc")
+    }
+  }
+
+  const failedRegistryNames = useMemo(() => {
+    return failedRegistryIds.map(
+      (id) => registries.find((r) => r.id === id)?.name ?? id,
+    )
+  }, [failedRegistryIds, registries])
+
+  // Most recent pushed images from real push telemetry activities
+  const recentPushedImages = useMemo<RecentPushedItem[]>(() => {
+    const items: RecentPushedItem[] = []
+    const seen = new Set<string>()
+
+    // Process genuine push events from activity telemetry
+    const pushActivities = activities.filter((a) => a.type === "push")
+    for (const act of pushActivities) {
+      const tag = act.tag || "latest"
+      const key = `${act.repository}:${tag}`
+      if (seen.has(key)) continue
+      seen.add(key)
+
+      const reg =
+        registries.find(
+          (r) => r.name === act.registry || r.id === act.registry,
+        ) ?? registries[0]
+
+      const regHost = reg ? registryHostFromUrl(reg.url) : undefined
+      const pullCmd = generatePullCommand({
+        registry: regHost,
+        repository: act.repository,
+        tag,
+      })
+
+      items.push({
+        id: act.id,
+        repository: act.repository,
+        tag,
+        registryName: reg?.name ?? act.registry,
+        user: act.user,
+        timestamp: act.timestamp,
+        pullCommand: pullCmd,
+        href: reg?.id
+          ? `/repos/${reg.id}/${act.repository}?tag=${encodeURIComponent(tag)}`
+          : "/repos",
+      })
+
+      if (items.length >= 5) break
+    }
+
+    return items
+  }, [activities, registries])
+
+  // Top 10 repositories sorted by selected criteria (filtered by tab and search)
+  const topRepositories = useMemo(() => {
+    const matched = repositories.filter((repo) => {
+      const matchesTab = activeTab === "all" || repo.registryId === activeTab
+      const matchesSearch =
+        !tableSearch ||
+        repo.name.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        repo.fullName.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        (repo.namespace && repo.namespace.toLowerCase().includes(tableSearch.toLowerCase()))
+      return matchesTab && matchesSearch
+    })
+
+    return [...matched]
+      .sort((a, b) => {
+        if (sortBy === "name") {
+          const cmp = a.fullName.localeCompare(b.fullName)
+          return sortOrder === "asc" ? cmp : -cmp
+        }
+        const tagDiff = (b.tagCount ?? 0) - (a.tagCount ?? 0)
+        if (tagDiff !== 0) return sortOrder === "asc" ? -tagDiff : tagDiff
+        return a.fullName.localeCompare(b.fullName)
+      })
+      .slice(0, 10)
+  }, [repositories, activeTab, tableSearch, sortBy, sortOrder])
+
+  const handleCopyCommand = (cmd: string, id: string) => {
+    if (!cmd) return
+    void copyToClipboard(cmd, "Pull command copied to clipboard")
+    setCopiedCommandId(id)
+    setTimeout(() => {
+      setCopiedCommandId((curr) => (curr === id ? null : curr))
+    }, 2000)
+  }
+
+  // Empty dashboard: Single stage CTA tile
+  if (!isLoadingRegistries && !isRegistryError && registries.length === 0) {
     return (
-      <section className="mx-auto flex max-w-6xl flex-col gap-4">
-        <div className="flex flex-col gap-4 pb-2">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="max-w-2xl text-sm leading-5 text-muted-foreground">
-              Connect a registry to start tracking repositories and tag volume.
-            </p>
+      <section className="mx-auto flex max-w-5xl flex-col items-center justify-center py-12">
+        <div className="w-full max-w-2xl rounded-panel bg-card p-8 sm:p-12 text-center shadow-panel border border-panel-border">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-control bg-primary/10 text-primary mb-5">
+            <DatabaseIcon className="size-7" aria-hidden />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" asChild>
+
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl text-foreground">
+            {"Connect container registry"}
+          </h1>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            {"Add a Docker Registry V2 or Docker Hub endpoint to index repositories, image manifests, and layer telemetry."}
+          </p>
+
+          <div className="mt-8 flex justify-center gap-3">
+            <Button size="lg" className="rounded-control px-6 font-medium" asChild>
               <Link href="/registries/new">
-                <PlusIcon data-icon="inline-start" />
-                Add Registry
+                <PlusIcon className="mr-1.5 size-4" />
+                {"Add registry"}
               </Link>
             </Button>
           </div>
         </div>
-
-        <EmptyState
-          icon={<DatabaseIcon className="size-5" />}
-          title="No registry telemetry yet"
-          description="Add your first registry to turn this screen into a live operations dashboard."
-          action={
-            <Button asChild>
-              <Link href="/registries/new">
-                <PlusIcon data-icon="inline-start" />
-                Add Registry
-              </Link>
-            </Button>
-          }
-          className="rounded-lg border-border/70 bg-card/80 p-14"
-        />
       </section>
     )
   }
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-col gap-4 pb-2">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Monitor connected registries, repository counts, and tag volume.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" asChild>
-              <Link href="/registries/new">
-                <PlusIcon data-icon="inline-start" />
-                Add Registry
-              </Link>
-            </Button>
-            <Button size="sm" variant="outline" asChild>
-              <Link href="/repos">
-                Browse repositories
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
-            </Button>
-          </div>
+    <section className="mx-auto w-full max-w-[1200px] pb-12 pt-2">
+      {/* Page Header (Doorlog style: Title, Subtitle, and Top Right Action Buttons) */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/70 pb-5">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            {"Repository overview"}
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+            {"Real-time container catalog and tag telemetry across connected registry endpoints."}
+          </p>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <CompactMetric
-            label="Registries"
-            value={isLoadingRegistries ? null : String(registries.length)}
-            note={`${providerCount} providers`}
-            icon={<DatabaseIcon className="size-4 text-muted-foreground" />}
-          />
-          <CompactMetric
-            label="Repositories"
-            value={isLoadingRegistries || isLoadingRepos ? null : String(totalRepositories)}
-            note="Loaded from connected registries"
-            icon={<FolderIcon className="size-4 text-muted-foreground" />}
-          />
-          <CompactMetric
-            label="Tags"
-            value={isLoadingRegistries || isLoadingRepos ? null : String(totalTags)}
-            note="Known tag count"
-            icon={<TagIcon className="size-4 text-muted-foreground" />}
+        <Button size="sm" className="h-9 rounded-control gap-1.5 px-4 font-medium self-start sm:self-auto" asChild>
+          <Link href="/registries/new">
+            <PlusIcon className="size-3.5" />
+            <span>{"Add registry"}</span>
+          </Link>
+        </Button>
+      </header>
+
+      {/* Error / Incomplete Data Banner */}
+      {(isRegistryError || failedRegistryIds.length > 0) && (
+        <div
+          role="alert"
+          className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-control border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-xs text-foreground"
+        >
+          <p>
+            {failedRegistryNames.length > 0
+              ? `Failed to reach endpoints: ${failedRegistryNames.join(", ")}. Telemetry may be partial.`
+              : "Some registry endpoints could not be reached. Telemetry may be partial."}
+          </p>
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={retry}>
+            Try again
+          </Button>
+        </div>
+      )}
+      {hasIncompleteData && !isRegistryError && failedRegistryIds.length === 0 && (
+        <p role="status" className="mt-5 rounded-control border border-warning/30 bg-warning/10 px-4 py-2.5 text-xs text-foreground">
+          Some repositories are not included. Totals and rankings reflect the loaded results only.
+        </p>
+      )}
+
+      {/* Top 4-card KPI Stat Strip */}
+      <DashboardKpis
+        registryCount={registries.length}
+        totalRepositories={totalRepositories}
+        totalTags={totalTags}
+        providerCount={providerCount}
+        isLoadingRegistries={isLoadingRegistries}
+        isLoadingRepos={isLoadingRepos}
+        hasIncompleteData={hasIncompleteData || isRegistryError}
+        hasUnknownTagCounts={hasUnknownTagCounts}
+      />
+
+      {/* Main Two-Column Layout (Doorlog Asymmetric Split: ~70% Left, ~30% Right) */}
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12 items-stretch">
+        {/* LEFT COLUMN: Top 10 Repositories by Tag Volume (~70% width) */}
+        <div className="lg:col-span-8 flex flex-col">
+          <DashboardRepoInventory
+            repositories={repositories}
+            topRepositories={topRepositories}
+            registriesWithStats={registriesWithStats}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tableSearch={tableSearch}
+            onSearchChange={setTableSearch}
+            isLoadingRegistries={isLoadingRegistries}
+            isLoadingRepos={isLoadingRepos}
+            totalTags={totalTags}
+            hasIncompleteTagCounts={hasUnknownTagCounts || hasIncompleteData || isRegistryError}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
           />
         </div>
-      </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <DashboardPanel
-          title="Registry Inventory"
-          description="Repository and tag totals by registry."
-        >
-          {isLoadingRegistries ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <RegistryDensitySkeleton key={index} />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {registriesWithStats.map((registry) => {
-                const repoWidth = Math.max(8, Math.round((registry.repoCount / maxRegistryRepos) * 100))
-                const tagWidth = Math.max(8, Math.round((registry.tagCount / maxRegistryTags) * 100))
+        {/* RIGHT COLUMN: Inspector & Distribution Widgets (~30% width) */}
+        <div className="lg:col-span-4 flex flex-col gap-5">
+          <DashboardRegistryDistribution
+            registriesWithStats={registriesWithStats}
+            totalRepositories={totalRepositories}
+            isLoadingRegistries={isLoadingRegistries}
+            failedRegistryNames={failedRegistryNames}
+          />
 
-                return (
-                  <Link
-                    key={registry.id}
-                    href={`/repos?registry=${registry.id}`}
-                    className="group block rounded-lg border border-border/70 bg-background/70 px-4 py-3 transition-colors hover:bg-background"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-sm font-semibold tracking-tight">{registry.name}</p>
-                            {registry.isDefault ? (
-                              <Badge className="h-5 border-primary/10 bg-primary/10 px-2 text-[11px] text-primary shadow-none hover:bg-primary/10">
-                                Default
-                              </Badge>
-                            ) : null}
-                            <RegistryPill label={registry.provider === "dockerhub" ? "Docker Hub" : "Registry V2"} />
-                          </div>
-                          <p className="truncate font-mono text-[13px] text-muted-foreground">{registry.url}</p>
-                        </div>
-
-                        <div className="flex shrink-0 flex-wrap gap-2">
-                          <RegistryPill label={`${registry.repoCount} repos`} />
-                          <RegistryPill label={`${registry.tagCount} tags`} />
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <ComparisonMetric
-                          label="Repos"
-                          value={registry.repoCount}
-                          width={repoWidth}
-                        />
-                        <ComparisonMetric
-                          label="Tags"
-                          value={registry.tagCount}
-                          width={tagWidth}
-                        />
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </DashboardPanel>
-
-        <DashboardPanel
-          title="Top Repositories"
-          description="Highest known tag counts across connected registries."
-        >
-          {isLoadingRegistries || isLoadingRepos ? (
-            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <RepositoryRankSkeleton key={index} />
-              ))}
-            </div>
-          ) : chartData.length === 0 ? (
-            <EmptyState
-              icon={<FolderIcon className="size-5" />}
-              title="No repository data yet"
-              description="Repository ranking will appear once tags have been indexed."
-              className="rounded-[20px] border-border/70 bg-background/72"
-            />
-          ) : (
-            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
-              {chartData.map((repo, index) => {
-                const registry = registriesWithStats.find((item) => item.id === repo.registryId)
-                const intensity = Math.max(12, Math.round((repo.tagCount / maxRepoTags) * 100))
-                const rankTone = getRankTone(index)
-
-                return (
-                  <Link
-                    key={`${repo.registryId}-${repo.name}`}
-                    href={`/repos/${repo.registryId}/${repo.name}`}
-                    className="group block rounded-lg border border-border/70 bg-background/70 px-4 py-3 transition-colors hover:bg-background"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`flex size-8 shrink-0 items-center justify-center rounded-md border text-xs font-semibold ${rankTone}`}>
-                        {String(index + 1).padStart(2, "0")}
-                      </div>
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="space-y-1">
-                          <p className="truncate text-sm font-semibold tracking-tight">{repo.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {registry?.name ?? repo.registryId}
-                          </p>
-                        </div>
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            <span>Tag volume</span>
-                            <span>{repo.tagCount}</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-secondary/80">
-                            <div
-                              className="h-1.5 rounded-full bg-primary transition-all duration-500"
-                              style={{ width: `${intensity}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </DashboardPanel>
+          <DashboardRecentPushes
+            recentPushedImages={recentPushedImages}
+            isMounted={isMounted}
+            copiedCommandId={copiedCommandId}
+            onCopyCommand={handleCopyCommand}
+          />
+        </div>
       </div>
     </section>
-  )
-}
-
-function DashboardPanel({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description: string
-  children: ReactNode
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80">
-      <div className="px-5 pt-5">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
-      <div className="px-5 py-5">{children}</div>
-    </div>
-  )
-}
-
-function CompactMetric({
-  label,
-  value,
-  note,
-  icon,
-}: {
-  label: string
-  value: string | null
-  note: string
-  icon: ReactNode
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80 px-3.5 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-          {label}
-        </p>
-        {icon}
-      </div>
-      <div className="mt-2 space-y-1">
-        {value === null ? (
-          <Skeleton className="h-6 w-16" />
-        ) : (
-          <p className="font-mono text-base font-semibold tracking-tight text-foreground">{value}</p>
-        )}
-        <p className="truncate text-xs text-muted-foreground">{note}</p>
-      </div>
-    </div>
-  )
-}
-
-function ComparisonMetric({
-  label,
-  value,
-  width,
-}: {
-  label: string
-  value: number
-  width: number
-}) {
-  return (
-    <div className="space-y-2 rounded-md border border-border/70 bg-card/70 px-3 py-3">
-      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        <span>{label}</span>
-        <span className="font-mono text-foreground/80">{value}</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-secondary/80">
-        <div
-          className="h-1.5 rounded-full bg-primary transition-all duration-500"
-          style={{ width: `${width}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function RegistryPill({ label }: { label: string }) {
-  return (
-    <span className="inline-flex h-6 items-center rounded-md border border-border/70 bg-background px-2 text-[11px] font-medium text-foreground/72">
-      {label}
-    </span>
-  )
-}
-
-function getRankTone(index: number) {
-  if (index === 0) {
-    return "border-primary/30 bg-primary/10 text-primary"
-  }
-
-  if (index === 1) {
-    return "border-foreground/15 bg-foreground/5 text-foreground/80"
-  }
-
-  if (index === 2) {
-    return "border-foreground/15 bg-foreground/5 text-foreground/80"
-  }
-
-  return "border-border/70 bg-card text-muted-foreground"
-}
-
-function RegistryDensitySkeleton() {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-20 rounded-md" />
-            </div>
-            <Skeleton className="h-[13px] w-56 max-w-full" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-16 rounded-md" />
-            <Skeleton className="h-6 w-14 rounded-md" />
-          </div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-2 rounded-md border border-border/70 bg-card/70 px-3 py-3">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-3 w-6" />
-            </div>
-            <Skeleton className="h-1.5 w-full rounded-full" />
-          </div>
-          <div className="space-y-2 rounded-md border border-border/70 bg-card/70 px-3 py-3">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-8" />
-            </div>
-            <Skeleton className="h-1.5 w-full rounded-full" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function RepositoryRankSkeleton() {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex items-center gap-3">
-        <Skeleton className="size-8 rounded-md" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-3 w-24" />
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-3 w-6" />
-            </div>
-            <Skeleton className="h-1.5 w-full rounded-full" />
-          </div>
-        </div>
-      </div>
-    </div>
   )
 }

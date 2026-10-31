@@ -73,12 +73,12 @@ export function useRepositories(
   })
 }
 
-export function useSearchRepositories(registryId: string, query: string) {
+export function useSearchRepositories(registryId: string, query: string, page = 1, perPage = 100) {
   return useQuery({
-    queryKey: queryKeys.repositories.search(registryId, query),
+    queryKey: queryKeys.repositories.search(registryId, query, page, perPage),
     enabled: Boolean(registryId && query.trim().length > 0),
     staleTime: STALE_TIME_REPOSITORIES,
-    queryFn: () => fetchRepositories(registryId, { search: query, page: 1, perPage: 100 }),
+    queryFn: () => fetchRepositories(registryId, { search: query, page, perPage }),
   })
 }
 

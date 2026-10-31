@@ -40,13 +40,14 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json(response, { status: 422 })
   }
 
-  const { page, perPage, search, namespace } = queryResult.data
+  const { page, perPage, namespace } = queryResult.data
+  const search = queryResult.data.search?.trim()
 
   const provider = createProvider(registry)
 
   try {
     const result = search && provider.capabilities().canSearch
-      ? await provider.searchRepositories(search)
+      ? await provider.searchRepositories(search, { page, perPage })
       : await provider.listRepositories({ page, perPage, namespace })
 
     const items: Repository[] = search

@@ -259,6 +259,24 @@ describe("useSearchRepositories", () => {
     const calledUrl = String((fetchSpy as ReturnType<typeof vi.fn>).mock.calls[0][0])
     expect(calledUrl).toContain("search=web")
   })
+
+  it("fetches the requested search page separately", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true, data: [] }),
+    }) as typeof fetch
+    globalThis.fetch = fetchSpy
+    const queryClient = makeQueryClient()
+    const { rerender } = renderHook(
+      ({ page }) => useSearchRepositories(REGISTRY_ID, "web", page),
+      { initialProps: { page: 1 }, wrapper: makeWrapper(queryClient) },
+    )
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1))
+    rerender({ page: 2 })
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2))
+    expect(String((fetchSpy as ReturnType<typeof vi.fn>).mock.calls[1][0])).toContain("page=2")
+  })
 })
 
 // ── useDeleteRepository ───────────────────────────────────────────────────────

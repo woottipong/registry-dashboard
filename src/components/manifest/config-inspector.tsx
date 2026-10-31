@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDownIcon, ChevronRightIcon, ClipboardIcon } from "lucide-react"
-import { toast } from "sonner"
+import { copyToClipboard } from "@/lib/clipboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ImageConfig } from "@/types/manifest"
@@ -17,9 +17,10 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="rounded-lg border border-border/70 bg-card/70">
+    <div className="overflow-hidden rounded-control bg-secondary/20">
       <button
         type="button"
+        aria-expanded={open}
         className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-muted/40"
         onClick={() => setOpen((prev) => !prev)}
       >
@@ -31,7 +32,7 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
         {title}
       </button>
 
-      {open ? <div className="border-t px-4 py-3">{children}</div> : null}
+      {open ? <div className="px-4 pb-4 pt-1">{children}</div> : null}
     </div>
   )
 }
@@ -42,8 +43,7 @@ interface CopyableValueProps {
 
 function CopyableValue({ value }: CopyableValueProps) {
   function copy() {
-    void navigator.clipboard.writeText(value)
-    toast.success("Copied to clipboard")
+    void copyToClipboard(value, "Copied to clipboard")
   }
 
   return (
@@ -52,7 +52,7 @@ function CopyableValue({ value }: CopyableValueProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="size-5 shrink-0 opacity-0 group-hover:opacity-100"
+        className="size-6 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
         onClick={copy}
       >
         <ClipboardIcon className="size-3" />

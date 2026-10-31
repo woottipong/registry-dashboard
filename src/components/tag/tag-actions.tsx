@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { CopyIcon, EyeIcon, Trash2Icon } from "lucide-react"
-import { toast } from "sonner"
+import { copyToClipboard } from "@/lib/clipboard"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { generatePullCommand, registryHostFromUrl } from "@/lib/format"
@@ -33,8 +33,7 @@ export function TagActions({
       repository: repoName,
       tag: tag.name,
     })
-    void navigator.clipboard.writeText(cmd)
-    toast.success("Pull command copied to clipboard")
+    void copyToClipboard(cmd, "Pull command copied to clipboard")
   }
 
   return (
@@ -42,7 +41,7 @@ export function TagActions({
       <div className="flex items-center gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8" onClick={copyPullCommand}>
+            <Button variant="ghost" size="icon" className="size-11 sm:size-8" onClick={copyPullCommand}>
               <CopyIcon className="size-3.5" />
               <span className="sr-only">Copy pull command</span>
             </Button>
@@ -55,7 +54,7 @@ export function TagActions({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8"
+              className="size-11 sm:size-8"
               onClick={() =>
                 router.push(`/repos/${registryId}/${repoName}?tag=${encodeURIComponent(tag.name)}`)
               }
@@ -73,7 +72,7 @@ export function TagActions({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 text-destructive hover:text-destructive"
+                className="size-11 text-destructive hover:text-destructive sm:size-8"
                 onClick={() => onDeleteClick(tag)}
               >
                 <Trash2Icon className="size-3.5" />

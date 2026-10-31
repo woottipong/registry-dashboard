@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
 import { GenericProvider } from "@/lib/providers/generic-provider"
-import { UnsupportedError } from "@/lib/providers/types"
 import type { RegistryConnection } from "@/types/registry"
 
 const CONNECTION: RegistryConnection = {
@@ -51,6 +50,7 @@ describe("GenericProvider", () => {
 
   afterEach(() => {
     global.fetch = originalFetch
+    GenericProvider.clearCaches()
   })
 
   it("has type 'generic'", () => {
@@ -58,11 +58,11 @@ describe("GenericProvider", () => {
   })
 
   describe("capabilities()", () => {
-    it("reports canDelete and canListCatalog as true", () => {
+    it("reports canDelete, canListCatalog, and canSearch as true", () => {
       const caps = new GenericProvider(CONNECTION).capabilities()
       expect(caps.canDelete).toBe(true)
       expect(caps.canListCatalog).toBe(true)
-      expect(caps.canSearch).toBe(false)
+      expect(caps.canSearch).toBe(true)
     })
   })
 
@@ -331,6 +331,41 @@ describe("GenericProvider", () => {
       expect(result.items).toHaveLength(1)
       expect(result.items[0].name).toBe("v3")
     })
+
+    it("filters tag names by search before paginating", async () => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const u = String(url)
+
+        if (u.includes("/v2/nginx/tags/list")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ name: "nginx", tags: ["alpine-1", "alpine-2", "debian-1"] })),
+          })
+        }
+
+        const tagName = u.split("/").pop() ?? "v1"
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ "Docker-Content-Digest": `sha256:${tagName}` }),
+          text: () => Promise.resolve(JSON.stringify({
+            schemaVersion: 2,
+            mediaType: "application/vnd.docker.distribution.manifest.v2+json",
+            config: { mediaType: "application/vnd.docker.container.image.v1+json", size: 100, digest: "sha256:cfg" },
+            layers: [{ mediaType: "application/vnd.docker.image.rootfs.diff.tar.gzip", size: 200, digest: "sha256:l1" }],
+          })),
+        })
+      }) as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      const result = await provider.listTags("nginx", { search: "alpine", page: 1, perPage: 10 })
+
+      expect(result.total).toBe(2)
+      expect(result.items).toHaveLength(2)
+      expect(result.items.map((t) => t.name)).toEqual(["alpine-1", "alpine-2"])
+    })
   })
 
   describe("getManifest()", () => {
@@ -481,10 +516,146 @@ describe("GenericProvider", () => {
   })
 
   describe("searchRepositories()", () => {
-    it("throws UnsupportedError", async () => {
+    it("searches catalog and returns matching repositories", async () => {
+      global.fetch = mockFetchCatalogAndTags(["backend/auth", "frontend/web", "nginx"], ["latest"])
+
       const provider = new GenericProvider(CONNECTION)
-      await expect(provider.searchRepositories("nginx")).rejects.toThrow(UnsupportedError)
+      const result = await provider.searchRepositories("nginx")
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0].name).toBe("nginx")
     })
+  })
+
+  it("keeps catalog entries when a tag count request fails", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      const catalog = String(url).includes("_catalog")
+      return Promise.resolve({
+        ok: catalog, status: catalog ? 200 : 404, statusText: catalog ? "OK" : "Not Found", headers: new Headers(),
+        text: () => Promise.resolve(JSON.stringify(catalog ? { repositories: ["app/web"] } : {})),
+      })
+    }) as typeof fetch
+    const result = await new GenericProvider(CONNECTION).listRepositories()
+    expect(result.items).toEqual([{ name: "web", fullName: "app/web", namespace: "app" }])
+  })
+
+  it("returns later pages of search results", async () => {
+    const names = Array.from({ length: 65 }, (_, i) => `app/repo-${i}`)
+    global.fetch = mockFetchCatalogAndTags(names)
+    const result = await new GenericProvider(CONNECTION).searchRepositories("repo", { page: 2, perPage: 50 })
+    expect(result.total).toBe(65)
+    expect(result.page).toBe(2)
+    expect(result.items.map((item) => item.fullName)).toEqual(names.slice(50))
+  })
+
+  it("isolates cached catalogs after a connection URL or password change", async () => {
+    const first = { ...CONNECTION, authType: "basic" as const, credentials: { username: "u", password: "old" } }
+    global.fetch = mockFetchCatalogAndTags(["old/repo"])
+    expect(await new GenericProvider(first).listNamespaces()).toEqual([{ name: "old", repositoryCount: 1 }])
+    global.fetch = mockFetchCatalogAndTags(["new/repo"])
+    expect(await new GenericProvider({ ...first, url: "https://new.example" }).listNamespaces()).toEqual([{ name: "new", repositoryCount: 1 }])
+    global.fetch = mockFetchCatalogAndTags(["third/repo"])
+    expect(await new GenericProvider({ ...first, credentials: { username: "u", password: "new" } }).listNamespaces()).toEqual([{ name: "third", repositoryCount: 1 }])
+  })
+
+  it("resolves mutable tag digests again across requests", async () => {
+    let digest = "sha256:old"
+    global.fetch = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
+      const body = String(url).includes("tags/list")
+        ? { name: "repo", tags: ["latest"] }
+        : { mediaType: "application/vnd.docker.distribution.manifest.v2+json", config: { size: 1 }, layers: [] }
+      return Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers(options?.method === "HEAD" ? { "Docker-Content-Digest": digest } : {}),
+        text: () => Promise.resolve(JSON.stringify(body)),
+      })
+    }) as typeof fetch
+    expect((await new GenericProvider(CONNECTION).listTags("repo")).items[0].digest).toBe("sha256:old")
+    digest = "sha256:new"
+    expect((await new GenericProvider(CONNECTION).listTags("repo")).items[0].digest).toBe("sha256:new")
+  })
+
+  it("follows upstream tag-list pagination", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      const second = String(url).includes("last=latest")
+      const isTags = String(url).includes("tags/list")
+      return Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers(isTags && !second ? { link: '</v2/repo/tags/list?last=latest>; type="application/json"; rel=next' } : {}),
+        text: () => Promise.resolve(JSON.stringify(isTags
+          ? { name: "repo", tags: [second ? "stable" : "latest"] }
+          : { mediaType: "application/vnd.docker.distribution.manifest.v2+json", digest: "sha256:shared", config: { size: 1 }, layers: [] })),
+      })
+    }) as typeof fetch
+    const result = await new GenericProvider(CONNECTION).listTags("repo")
+    expect(result.items.map((tag) => tag.name)).toEqual(["latest", "stable"])
+  })
+
+  it("counts all tags when the registry supplies a query-relative next link", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      const value = String(url)
+      const catalog = value.includes("_catalog")
+      const second = value.includes("last=latest")
+      return Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers(!catalog && !second ? { link: '<?last=latest>; rel=next' } : {}),
+        text: () => Promise.resolve(JSON.stringify(catalog ? { repositories: ["repo"] } : { name: "repo", tags: [second ? "stable" : "latest"] })),
+      })
+    }) as typeof fetch
+    const result = await new GenericProvider(CONNECTION).listRepositories()
+    expect(result.items[0].tagCount).toBe(2)
+  })
+
+  it("accepts commas inside quoted pagination parameters", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      const second = String(url).includes("last=latest")
+      return Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers(!second ? { link: '</v2/repo/tags/list?last=latest>; rel="next"; title="page, next"' } : {}),
+        text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: [second ? "stable" : "latest"] })),
+      })
+    }) as typeof fetch
+    const result = await new GenericProvider(CONNECTION).listTags("repo")
+    expect(result.total).toBe(2)
+  })
+
+  it("uses the actual relation when another quoted parameter contains rel text", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      const second = String(url).includes("last=latest")
+      return Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers(!second ? { link: '</v2/repo/tags/list?last=latest>; title="page; rel=prev"; rel=next' } : {}),
+        text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: [second ? "stable" : "latest"] })),
+      })
+    }) as typeof fetch
+    const result = await new GenericProvider(CONNECTION).listTags("repo")
+    expect(result.total).toBe(2)
+  })
+
+  it("fails closed when a quoted relation contains an escape", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true, status: 200,
+      headers: new Headers({ link: '</v2/repo/tags/list?last=latest>; rel="ne\\xt"' }),
+      text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: ["latest"] })),
+    }) as typeof fetch
+    await expect(new GenericProvider(CONNECTION).listTags("repo")).rejects.toThrow(/pagination link/)
+  })
+
+  it("rejects duplicate tag names across upstream pages", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => Promise.resolve({
+      ok: true, status: 200,
+      headers: new Headers(String(url).includes("last=") ? {} : { link: '</v2/repo/tags/list?last=latest>; rel=next' }),
+      text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: ["latest"] })),
+    })) as typeof fetch
+    await expect(new GenericProvider(CONNECTION).listTags("repo")).rejects.toThrow(/duplicate names/)
+  })
+
+  it("fails closed when the upstream tag pagination repeats a page", async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => Promise.resolve({
+      ok: true, status: 200,
+      headers: new Headers({ link: '</v2/repo/tags/list?last=latest>; rel="next"' }),
+      text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: [String(url).includes("last=") ? "stable" : "latest"] })),
+    })) as typeof fetch
+    await expect(new GenericProvider(CONNECTION).listTags("repo")).rejects.toThrow(/pagination did not complete/)
   })
 
   describe("deleteManifest()", () => {
@@ -504,6 +675,172 @@ describe("GenericProvider", () => {
       const call = fetchSpy.mock.calls[0]
       expect((call[0] as string)).toContain("sha256:abc123")
       expect(call[1].method).toBe("DELETE")
+    })
+  })
+
+  describe("shared process caches", () => {
+    it("shares catalog names and tag counts across separate GenericProvider instances", async () => {
+      const fetchSpy = vi.fn().mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web", "app/api"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "repo", tags: ["v1", "v2"] })),
+        })
+      })
+      global.fetch = fetchSpy as typeof fetch
+
+      const provider1 = new GenericProvider(CONNECTION)
+      const ns1 = await provider1.listNamespaces()
+      expect(ns1).toHaveLength(1)
+      expect(ns1[0].name).toBe("app")
+
+      // Second instance for same connection URL should hit catalog cache
+      const provider2 = new GenericProvider(CONNECTION)
+      const repos = await provider2.listRepositories({ namespace: "app" })
+      expect(repos.items).toHaveLength(2)
+
+      // Only 1 _catalog request should have been made across both instances
+      const catalogCalls = fetchSpy.mock.calls.filter((call) => String(call[0]).includes("_catalog"))
+      expect(catalogCalls).toHaveLength(1)
+    })
+
+    it("invalidates catalog and tag count cache on deleteManifest", async () => {
+      const fetchSpy = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
+        const urlStr = String(url)
+        if (options?.method === "DELETE") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(""),
+          })
+        }
+        if (urlStr.includes("_catalog")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        })
+      })
+      global.fetch = fetchSpy as typeof fetch
+
+      const provider = new GenericProvider(CONNECTION)
+      await provider.listRepositories({ namespace: "app" })
+      expect(fetchSpy.mock.calls.filter((c) => String(c[0]).includes("_catalog"))).toHaveLength(1)
+
+      // Deleting a manifest invalidates catalog cache
+      await provider.deleteManifest("app/web", "sha256:123")
+
+      // Next listRepositories should re-fetch _catalog
+      await provider.listRepositories({ namespace: "app" })
+      expect(fetchSpy.mock.calls.filter((c) => String(c[0]).includes("_catalog"))).toHaveLength(2)
+    })
+
+    it("isolates catalog cache across connections with different credentials or IDs", async () => {
+      let catalogCallCount = 0
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          catalogCallCount += 1
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        })
+      }) as typeof fetch
+
+      const connUserA: RegistryConnection = {
+        ...CONNECTION,
+        id: "conn-a",
+        credentials: { username: "userA", password: "pwd" },
+      }
+      const connUserB: RegistryConnection = {
+        ...CONNECTION,
+        id: "conn-b",
+        credentials: { username: "userB", password: "pwd" },
+      }
+
+      const providerA = new GenericProvider(connUserA)
+      await providerA.listNamespaces()
+      expect(catalogCallCount).toBe(1)
+
+      // Connection B with different credentials/ID should not hit Connection A's cache
+      const providerB = new GenericProvider(connUserB)
+      await providerB.listNamespaces()
+      expect(catalogCallCount).toBe(2)
+    })
+
+    it("deduplicates concurrent in-flight catalog requests", async () => {
+      let catalogCallCount = 0
+      global.fetch = vi.fn().mockImplementation(async (url: string) => {
+        const urlStr = String(url)
+        if (urlStr.includes("_catalog")) {
+          catalogCallCount += 1
+          // Add a tiny delay to simulate network latency
+          await new Promise((resolve) => setTimeout(resolve, 20))
+          return {
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            text: () => Promise.resolve(JSON.stringify({ repositories: ["app/web"] })),
+          }
+        }
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          text: () => Promise.resolve(JSON.stringify({ name: "app/web", tags: ["v1"] })),
+        }
+      }) as typeof fetch
+
+      const provider1 = new GenericProvider(CONNECTION)
+      const provider2 = new GenericProvider(CONNECTION)
+
+      // Invoke listNamespaces simultaneously while cache is cold
+      const [res1, res2] = await Promise.all([
+        provider1.listNamespaces(),
+        provider2.listNamespaces(),
+      ])
+
+      expect(res1).toHaveLength(1)
+      expect(res2).toHaveLength(1)
+      // Only 1 catalog call should have been made due to in-flight deduplication
+      expect(catalogCallCount).toBe(1)
     })
   })
 })

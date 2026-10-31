@@ -10,7 +10,6 @@ import { useCommandPalette } from "@/hooks/use-command-palette"
  * - G then R      → Go to /registries
  * - G then D      → Go to / (dashboard)
  * - G then P      → Go to /repos
- * - G then S      → Go to /settings
  *
  * Note: ⌘K / Ctrl+K is already handled inside use-command-palette.
  * This hook adds the "G then *" chord shortcuts.
@@ -68,10 +67,6 @@ export function useKeyboardShortcuts() {
             e.preventDefault()
             router.push("/repos")
             break
-          case "s":
-            e.preventDefault()
-            router.push("/settings")
-            break
         }
       }
     }
@@ -82,4 +77,6 @@ export function useKeyboardShortcuts() {
       if (gTimerRef.current) clearTimeout(gTimerRef.current)
     }
   }, [router, openPalette])
+
+  return openPalette
 }

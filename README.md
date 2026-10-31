@@ -1,133 +1,129 @@
-# Registry Dashboard
+# Registry dashboard
 
-A modern, self-hosted web dashboard for browsing and managing Docker container images across multiple registries. Currently implements Docker Hub and generic Docker Registry V2 flows, with additional providers planned.
+Self-hosted web dashboard for browsing and managing container images across Docker Registry V2 compatible registries and Docker Hub.
 
-## ✨ Features
+## Overview
 
-- **🎨 Modern UI**: Beautiful, responsive interface with smooth animations and hover effects
-- **🔍 Advanced Search**: Real-time search with keyboard shortcuts and search hints
-- **📊 Interactive Dashboard**: Live statistics and registry status monitoring
-- **🌙 Dark/Light Theme**: Automatic theme support with CSS custom properties
-- **📱 Mobile Responsive**: Optimized for desktop and mobile devices
-- **⚡ Fast & Lightweight**: Built with Next.js 16 and optimized for performance
-- **🔒 Secure**: Encrypted credential storage and secure API design
-- **🛡️ Hardened BFF**: Registry access stays behind server-side routes with session auth, CSRF checks, rate limiting, and runtime response validation
+Registry dashboard connects to private or public Docker registries through a secure Backend-for-Frontend (BFF) proxy. It provides repository navigation, tag inspection, digest verification, and layer size breakdowns while keeping registry credentials server-side.
 
-## Tech Stack
+- **Multi-registry support**: Manage multiple Docker Registry V2 endpoints and Docker Hub in one dashboard.
+- **Namespace-first browsing**: Browse repositories grouped by namespace, with support for root-level images.
+- **Tag and manifest inspection**: View image tags, digest hashes, layer sizes, architecture details, and pull commands.
+- **Global search and command palette**: Keyboard navigation and quick search via `⌘K` or `Ctrl+K`.
+- **Activity telemetry**: Track recent manifest inspects, pull commands, and registry distribution statistics.
+- **Atomic file persistence**: Registry configurations and activity logs persist safely on disk with atomic writes and automatic backup recovery.
+- **Security controls**: Encrypted credentials at rest (AES-256), session authentication, CSRF validation, and rate-limited destructive operations.
 
-- **Next.js 16** (App Router) + TypeScript 5
-- **Tailwind CSS 4** + shadcn/ui
-- **TanStack Query v5** (server state) + **Zustand v5** (client state)
-- **Zod v4** (validation) + **Lucide React** (icons)
-- **Bun** (package manager & runtime)
+## Tech stack
 
-## Quick Start
+- **Framework**: Next.js 16 (App Router) with React 19 and TypeScript in strict mode
+- **Styling**: Tailwind CSS v4 with Carbon Dark color system and Radix UI primitives
+- **State management**: TanStack Query v5 for server state and caching, Zustand v5 for client UI state
+- **Session management**: iron-session with encrypted HTTP-only session cookies
+- **Runtime and package manager**: Bun inside Linux container environments
+- **Testing**: Vitest with Testing Library for unit and integration tests, Playwright for end-to-end tests
+
+## Architecture
+
+### Backend-for-Frontend proxy pattern
+
+The browser communicates exclusively with `/api/v1/*` Next.js route handlers. It never queries Docker Registry or Docker Hub APIs directly.
+
+```text
+Browser -> Next.js API (/api/v1/*) -> Registry provider -> Docker Registry / Hub APIs
+```
+
+Benefits:
+- Registry tokens, passwords, and private network URLs remain server-side.
+- Eliminates browser Cross-Origin Resource Sharing (CORS) constraints.
+- Centralizes rate limiting, CSRF validation, session authentication, and error formatting.
+
+### Provider pattern
+
+Registry adapters live in `src/lib/providers/` and implement the `RegistryProvider` interface:
+- `GenericProvider`: Interacts with standard Docker Registry V2 endpoints.
+- `DockerHubProvider`: Combines Docker Hub API v2 for search and catalog exploration with Docker Registry V2 for manifest retrieval.
+- Both providers share an in-memory catalog cache with automatic 401 token invalidation and refresh logic.
+
+### Atomic file persistence
+
+Data is stored in JSON files under `DATA_DIR` (`/app/data` by default) using `AtomicJsonStore<T>` (`src/lib/atomic-file-store.ts`):
+- Writes write to a temporary file with a unique UUID (`.tmp.<uuid>`) and sync to disk before an atomic POSIX rename replaces the target file.
+- Automatic `.bak` snapshot backups allow self-healing recovery if the primary JSON file becomes corrupted.
+
+## Supported registries
+
+| Registry | Browse | Search | Delete tags | Rate limit tracking | Status |
+|---|---|---|---|---|---|
+| Docker Registry V2 | Yes | Not supported | Yes | Not supported | Implemented |
+| Docker Hub | Yes | Yes | Not supported | Yes (PAT supported) | Implemented |
+| GitHub Container Registry (GHCR) | Planned | Not supported | Planned | Not supported | Planned |
+| AWS ECR | Planned | Not supported | Planned | Not supported | Planned |
+| Harbor | Planned | Not supported | Planned | Not supported | Planned |
+
+## Quick start for development
+
+Run the development stack with hot reloading and an isolated local Docker registry:
 
 ```bash
-# Copy environment config, then edit secrets locally
+# 1. Create development environment file
 cp .env.example .env.local
 
-# Start the Docker dev stack
+# 2. Start containers
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-Open the UI using the `UI_PORT` value from your env. The default Docker dev compose port is `9002`.
+Access points:
+- **Dashboard UI**: `http://localhost:9002` (default credentials: `admin` / `admin123`)
+- **Local test registry**: `http://localhost:9001`
 
-## Commands
+Dependencies and build caches live inside Docker volumes (`node_modules_dev`, `next_cache_dev`). Do not run `bun install` or tests on the host machine.
 
-Run project commands inside the Docker dev container. See [AGENTS.md](./AGENTS.md) for the canonical workflow.
+## Development commands
+
+Execute all commands inside the running UI container (`registry-dashboard-ui-dev`):
 
 ```bash
+# Typecheck
 docker compose -f docker-compose.dev.yml exec ui bun run typecheck
-docker compose -f docker-compose.dev.yml exec ui bun run lint
-docker compose -f docker-compose.dev.yml exec ui bun run test
-docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
-docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
-```
-
-## Development
-
-### Testing
-
-```bash
-# Unit tests
-docker compose -f docker-compose.dev.yml exec ui bun run test
-docker compose -f docker-compose.dev.yml exec ui bun run test:watch
-docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
-
-# E2E tests
-docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 
 # Linting
 docker compose -f docker-compose.dev.yml exec ui bun run lint
 docker compose -f docker-compose.dev.yml exec ui bun run lint:fix
+
+# Tests
+docker compose -f docker-compose.dev.yml exec ui bun run test
+docker compose -f docker-compose.dev.yml exec ui bun run test:coverage
+docker compose -f docker-compose.dev.yml exec ui bun run test:e2e
 ```
 
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes and ensure tests pass
-4. Run linting: `docker compose -f docker-compose.dev.yml exec ui bun run lint:fix`
-5. Run type checks: `docker compose -f docker-compose.dev.yml exec ui bun run typecheck`
-6. Commit your changes: `git commit -m 'Add some feature'`
-7. Push to the branch: `git push origin feature/your-feature`
-8. Submit a pull request
-
-### Architecture Notes
-
-- **API Design**: BFF (Backend for Frontend) pattern - browser never calls registry APIs directly
-- **State Management**: Server state with TanStack Query, client state with Zustand
-- **Security**: Credentials encrypted at rest, secure API routes with validation, internal-target registry URL blocking, and generic client-facing errors
-- **Performance**: Optimized with React Server Components, streaming, and caching
-
-### Development (hot-reload, no build step)
+## Production deployment
 
 ```bash
-# Copy env and start — source code is mounted, edits reload instantly
-cp .env.example .env.local
-docker compose -f docker-compose.dev.yml up
-```
+# 1. Generate a strong encryption secret
+SESSION_SECRET=$(openssl rand -base64 32)
 
-- UI at `http://localhost:3000`, local registry at `http://localhost:5001`
-- Source code is bind-mounted → Next.js hot-reload works inside the container
-- Data is persisted to a named Docker volume (`ui-data-dev`)
-
-### Production
-
-```bash
-# 1. Generate a strong secret
-openssl rand -base64 32
-
-# 2. Create your env file
+# 2. Configure production environment
 cp .env.example .env
-# Edit .env — set SESSION_SECRET to the value above
+# Set SESSION_SECRET and a secure APP_PASSWORD (minimum 8 characters) in .env
 
-# 3. Start the stack (builds the UI image on first run)
+# 3. Start the production service
 docker compose up -d
-
-# View logs
-docker compose logs -f ui
 ```
 
-- UI at `http://localhost:3000` (override with `UI_PORT=8080`)
-- Local registry at `http://localhost:5001` (override with `REGISTRY_PORT=5001`)
-- Registry configs are persisted in the `ui-data` Docker named volume
+The production interface runs on `http://localhost:3000` (configurable via `UI_PORT`). Persistent configs and encrypted credentials remain in the `ui-data` Docker volume.
 
-#### Data Persistence
+### Backup and restore
 
-Registry connection configs (including credentials) are stored in:
+```bash
+# Backup persistent data
+docker cp registry-dashboard-ui:/app/data ./backup
 
-| Context | Path |
-|---|---|
-| Local dev (`bun dev`) | `./data/registries.json` |
-| Docker (any) | `/app/data/registries.json` (inside `ui-data` volume) |
+# Restore persistent data
+docker cp ./backup registry-dashboard-ui:/app/data
+```
 
-To **back up** your config: `docker cp registry-dashboard-ui:/app/data ./backup`
-
-To **restore**: `docker cp ./backup/data registry-dashboard-ui:/app/data`
-
-#### Reverse Proxy (Nginx example)
+### Reverse proxy example
 
 ```nginx
 server {
@@ -144,51 +140,72 @@ server {
 }
 ```
 
-## Environment Variables
+## API route reference
 
-Copy `.env.example` to `.env.local` (dev) or `.env` (Docker) and configure:
+All application API endpoints return a standardized `ApiResponse<T>` JSON envelope:
 
-| Variable | Description | Required |
-|---|---|---|
-| `SESSION_SECRET` | Encryption key for credentials — generate with `openssl rand -base64 32` | **Yes** |
-| `DATA_DIR` | Path where `registries.json` is stored. Default: `./data` (dev) / `/app/data` (Docker) | No |
-| `UI_PORT` | Host port for the UI (Docker only). Default: `3000` | No |
-| `REGISTRY_PORT` | Host port for the local registry (Docker only). Default: `5001` | No |
-| `DEFAULT_REGISTRY_URL` | Pre-configured registry URL on first run | No |
-| `DEFAULT_REGISTRY_NAME` | Display name for default registry | No |
-| `DEFAULT_REGISTRY_AUTH_TYPE` | `none` \| `basic` \| `bearer` | No |
+```ts
+// Success
+{ success: true, data: T, error: null }
 
-## Security Notes
-
-- Registry connections are validated before being saved and reject loopback, link-local, and private-network targets by default.
-- Registry credentials are stored encrypted at rest in `DATA_DIR`.
-- All registry traffic flows through Next.js API routes rather than the browser.
-- Destructive operations are protected by session auth, CSRF checks, and delete rate limiting.
-- External provider payloads are runtime-validated before being trusted by the app.
-
-## Supported Registries
-
-| Registry | Browse | Search | Delete | Rate Limit | Status |
-|---|---|---|---|---|---|
-| Docker Registry V2 | ✅ | — | ✅ | — | **Implemented** |
-| Docker Hub | ✅ | ✅ | — | ✅ tracked | **Implemented** <br/>*Personal Access Tokens supported* |
-| GHCR | planned | — | planned | — | *Planned* |
-| ECR | planned | — | planned | — | *Planned* |
-| Harbor | planned | — | planned | — | *Planned* |
-
-## Project Structure
-
-```
-src/
-├── app/              # Next.js App Router (pages + API routes)
-│   └── api/v1/       # BFF proxy — never call registry from browser
-├── components/       # UI components (layout, registry, repository, tag, manifest)
-├── lib/              # Registry client + providers (GenericProvider, DockerHubProvider)
-├── hooks/            # TanStack Query hooks
-├── stores/           # Zustand stores (persisted)
-└── types/            # TypeScript type definitions
+// Error
+{ success: false, data: null, error: { code: string, message: string, details?: unknown } }
 ```
 
-## Repo Guidance
+### Authentication and health
 
-- [AGENTS.md](./AGENTS.md): canonical project guide for architecture, route shapes, implementation conventions, agent workflow, verification, and security guardrails
+- `POST /api/auth/login`: Authenticate user session
+- `POST /api/auth/logout`: Invalidate session cookie
+- `GET /api/auth/me`: Get current session details
+- `GET /api/health`: Service health check
+
+### Registries
+
+- `GET /api/v1/registries`: List configured registries
+- `POST /api/v1/registries`: Add a new registry
+- `GET /api/v1/registries/[id]`: Get registry configuration
+- `PUT /api/v1/registries/[id]`: Update registry configuration
+- `DELETE /api/v1/registries/[id]`: Delete registry configuration
+- `POST /api/v1/registries/[id]/ping`: Test connection and credentials
+
+### Catalog and images
+
+- `GET /api/v1/registries/[id]/namespaces`: List available namespaces
+- `GET /api/v1/registries/[id]/repositories`: List repositories for a namespace
+- `GET /api/v1/registries/[id]/repositories/[...name]`: Get repository metadata or tag list
+- `DELETE /api/v1/registries/[id]/repositories/[...name]`: Delete repository
+- `GET /api/v1/registries/[id]/tags/[...name]`: List tags for a repository
+- `GET /api/v1/registries/[id]/manifests/[...path]`: Retrieve image manifest
+- `DELETE /api/v1/registries/[id]/manifests/[...path]`: Delete tag or manifest
+- `GET /api/v1/registries/[id]/blobs/[...path]`: Proxy image layer blob
+
+### Telemetry
+
+- `GET /api/v1/activities`: List recent dashboard activities
+
+## Environment variables
+
+| Variable | Description | Required | Default |
+|---|---|---|---|
+| `SESSION_SECRET` | Secret key (minimum 32 characters) for cookies and AES-256 credential encryption | Yes | None |
+| `APP_USERNAME` | Login username | No | `admin` |
+| `APP_PASSWORD` | Login password (minimum 8 characters in production) | Yes (Production) | `admin123` (Development) |
+| `UI_PORT` | Host port for the dashboard | No | `9002` (Dev) / `3000` (Prod) |
+| `REGISTRY_PORT` | Host port for local test registry | No | `9001` (Dev only) |
+| `DATA_DIR` | Directory storing JSON database files | No | `/app/data` |
+| `DEFAULT_REGISTRY_URL` | Pre-configured registry URL on initial boot | No | None |
+| `DEFAULT_REGISTRY_NAME` | Display name for default registry | No | None |
+| `DEFAULT_REGISTRY_AUTH_TYPE` | Default registry auth type (`none`, `basic`, `bearer`) | No | `none` |
+| `DEFAULT_REGISTRY_USERNAME` | Username for default registry basic auth | No | None |
+| `DEFAULT_REGISTRY_PASSWORD` | Password for default registry basic auth | No | None |
+| `NEXT_PUBLIC_APP_NAME` | Application display name in UI header | No | `Registry Dashboard` |
+| `NEXT_PUBLIC_APP_URL` | Public application URL | No | `http://localhost:3000` |
+
+## Project documentation
+
+- [`AGENTS.md`](./AGENTS.md): Architecture contracts, coding standards, and verification guidelines
+- [`PRODUCT.md`](./PRODUCT.md): UI styling, brand commitments, and UX principles
+- [`GLOSSARY.md`](./GLOSSARY.md): Domain vocabulary and terminology rules
+- [`doc/DESIGN.md`](./doc/DESIGN.md): Design tokens, Carbon Dark layout dimensions, and component rules
+- [`docs/adr/`](./docs/adr/): Architecture Decision Records
+- [`docs/agents/`](./docs/agents/): Local issue tracking and contributor workflows

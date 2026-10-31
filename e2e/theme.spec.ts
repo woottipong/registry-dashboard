@@ -1,20 +1,11 @@
 import { test, expect } from "@playwright/test"
 
-test.describe("Theme toggle", () => {
-  test("settings page theme buttons are present", async ({ page }) => {
-    await page.goto("/settings")
-
-    await expect(page.getByRole("button", { name: /Dark/i })).toBeVisible()
-    await expect(page.getByRole("button", { name: /Light/i })).toBeVisible()
-    await expect(page.getByRole("button", { name: /System/i })).toBeVisible()
-  })
-
-  test("can switch to light theme", async ({ page }) => {
-    await page.goto("/settings")
-
-    await page.getByRole("button", { name: /Light/i }).click()
-
-    // html element should have class 'light' applied (next-themes)
-    await expect(page.locator("html")).toHaveAttribute("class", /light/)
-  })
+test("uses dark appearance even with an old light preference", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" })
+  await page.addInitScript(() => localStorage.setItem("theme", "light"))
+  await page.goto("/login")
+  await expect(page.locator("html")).toHaveCSS("color-scheme", "dark")
+  await expect(page.getByRole("switch", { name: /theme|mode/i })).toHaveCount(0)
+  await page.reload()
+  await expect(page.locator("html")).toHaveCSS("color-scheme", "dark")
 })

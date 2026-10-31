@@ -11,9 +11,9 @@ interface ConnectionStatusProps {
 }
 
 const stateStyle: Record<ConnectionState, string> = {
-  connected: "bg-emerald-500",
-  checking: "bg-amber-400 animate-pulse",
-  error: "bg-rose-500",
+  connected: "bg-success",
+  checking: "bg-warning animate-pulse",
+  error: "bg-destructive",
 }
 
 export function ConnectionStatus({ state, latencyMs, compact = false }: ConnectionStatusProps) {
@@ -27,7 +27,7 @@ export function ConnectionStatus({ state, latencyMs, compact = false }: Connecti
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 text-foreground/85",
+        "inline-flex items-center gap-2 rounded-full bg-secondary/50 text-foreground/85",
         compact ? "h-6 px-2" : "px-2.5 py-1",
       )}>
         <span className={cn("inline-flex size-2 rounded-full", stateStyle[state])} aria-hidden />

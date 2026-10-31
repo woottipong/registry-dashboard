@@ -5,23 +5,22 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ChevronLeftIcon,
-  ChevronRightIcon,
   FolderIcon,
   PlusIcon,
   SearchIcon,
 } from "lucide-react"
 import { EmptyState as AppEmptyState } from "@/components/empty-state"
+import { NamespaceList, NamespaceSkeleton, RepoSkeleton } from "@/components/repository/namespace-list"
 import { RepoTable } from "@/components/repository/repo-table"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useNamespaces } from "@/hooks/use-namespaces"
 import { useRegistries } from "@/hooks/use-registries"
-import { useRepositories } from "@/hooks/use-repositories"
-import type { Namespace, RegistryConnection } from "@/types/registry"
+import { useRepositories, useSearchRepositories } from "@/hooks/use-repositories"
+import { cn } from "@/lib/utils"
+import type { RegistryConnection } from "@/types/registry"
 
 type SortOption =
   | "name-asc"
@@ -44,6 +43,7 @@ export function RepositoriesClient({
 
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("tags-desc")
+  const [searchPageState, setSearchPageState] = useState({ registry: "", query: "", page: 1 })
   const debouncedSearch = useDebounce(search)
 
   const registriesQuery = useRegistries({ initialData: initialRegistries })
@@ -60,6 +60,7 @@ export function RepositoriesClient({
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value)
+    setSearchPageState({ registry: "", query: "", page: 1 })
   }, [])
 
   const handleRegistryChange = useCallback(
@@ -72,6 +73,7 @@ export function RepositoriesClient({
       }
       params.delete("namespace")
       setSearch("")
+      setSearchPageState({ registry: "", query: "", page: 1 })
       router.push(`${pathname}?${params.toString()}`)
     },
     [pathname, router, searchParams],
@@ -81,6 +83,7 @@ export function RepositoriesClient({
     (namespace: string) => {
       const params = new URLSearchParams(searchParams.toString())
       params.set("namespace", namespace === "" ? "_root" : namespace)
+      setSearch("")
       router.push(`${pathname}?${params.toString()}`)
     },
     [pathname, router, searchParams],
@@ -100,20 +103,40 @@ export function RepositoriesClient({
     namespace: selectedNamespace !== null ? selectedNamespaceValue : undefined,
   })
 
-  const namespaceList = namespacesQuery.data ?? []
+  const namespaceList = useMemo(() => namespacesQuery.data ?? [], [namespacesQuery.data])
 
-  const filteredRepos = useMemo(() => {
+  const filteredNamespaces = useMemo(() => {
+    if (!debouncedSearch.trim()) return namespaceList
+    const term = debouncedSearch.trim().toLowerCase()
+    return namespaceList.filter((ns) =>
+      ns.name.toLowerCase().includes(term) || (ns.name === "" && "(root)".includes(term)),
+    )
+  }, [debouncedSearch, namespaceList])
+
+  const searchPage = searchPageState.registry === selectedRegistry && searchPageState.query === debouncedSearch
+    ? searchPageState.page : 1
+  const searchReposQuery = useSearchRepositories(
+    selectedNamespace === null ? selectedRegistry : "",
+    debouncedSearch,
+    searchPage,
+  )
+  const searchTotalPages = searchReposQuery.data?.meta?.totalPages ?? 1
+
+  const activeRepos = useMemo(() => {
+    if (selectedNamespace === null) {
+      return searchReposQuery.data?.items ?? []
+    }
     const repos = repositoriesQuery.data?.items ?? []
     if (!debouncedSearch.trim()) return repos
-    const term = debouncedSearch.toLowerCase()
+    const term = debouncedSearch.trim().toLowerCase()
     return repos.filter(
       (repo) =>
         repo.name.toLowerCase().includes(term) || repo.fullName.toLowerCase().includes(term),
     )
-  }, [debouncedSearch, repositoriesQuery.data])
+  }, [selectedNamespace, searchReposQuery.data, repositoriesQuery.data, debouncedSearch])
 
   const sortedRepos = useMemo(() => {
-    const repos = [...filteredRepos]
+    const repos = [...activeRepos]
     switch (sortBy) {
       case "name-asc":
         return repos.sort((a, b) => a.name.localeCompare(b.name))
@@ -126,152 +149,316 @@ export function RepositoriesClient({
       default:
         return repos
     }
-  }, [filteredRepos, sortBy])
+  }, [activeRepos, sortBy])
+
+  // Contextual metrics for stat cards
+  const totalRepositoriesCount = useMemo(() => {
+    if (repositoriesQuery.data?.items?.length) {
+      return repositoriesQuery.data.items.length
+    }
+    return namespaceList.reduce((sum, ns) => sum + ns.repositoryCount, 0)
+  }, [repositoriesQuery.data, namespaceList])
 
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-4">
+    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 pt-2 pb-10">
       {!selectedRegistry ? (
         <NoRegistryState />
       ) : (
         <>
-          <div className="flex flex-col gap-4 pb-2">
-            {selectedNamespace !== null ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleBackToNamespaces} className="w-fit">
-                  <ChevronLeftIcon data-icon="inline-start" />
-                  Namespaces
-                </Button>
-                <Badge variant="outline" className="font-mono">
-                  {selectedNamespaceValue || "(root)"}
-                </Badge>
-              </div>
-            ) : null}
+          {/* Header */}
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                {selectedNamespace !== null ? (
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono text-primary">
+                      {selectedNamespaceValue ? `${selectedNamespaceValue}/` : "_root"}
+                    </span>
+                  </span>
+                ) : (
+                  "Repositories"
+                )}
+              </h1>
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                {selectedNamespace !== null
+                  ? `Browsing repositories inside "${selectedNamespaceValue || "_root"}" namespace.`
+                  : "Browse container image repositories across namespaces and connected registries."}
+              </p>
+            </div>
 
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  {selectedNamespace !== null
-                    ? selectedNamespaceValue
-                      ? `${selectedNamespaceValue}/`
-                      : "(root)"
-                    : "Repositories"}
-                </h1>
-                <p className="max-w-2xl text-sm text-muted-foreground">
-                  {selectedNamespace !== null
-                    ? "Browse repositories in the selected namespace."
-                    : "Choose a registry and namespace to browse repositories."}
-                </p>
-              </div>
+            <Button size="sm" className="h-9 rounded-control gap-1.5 px-4 font-medium self-start sm:self-auto" asChild>
+              <Link href="/registries/new">
+                <PlusIcon className="size-3.5" />
+                <span>{"Add registry"}</span>
+              </Link>
+            </Button>
+          </header>
 
-              {selectedNamespace === null ? (
-                <div className="flex flex-wrap gap-2">
-                  {registries.map((registry) => (
-                    <Button
-                      key={registry.id}
-                      variant={selectedRegistry === registry.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleRegistryChange(registry.id)}
-                      className="max-w-full"
+          {/* MAIN CONTENT AREA */}
+          {selectedNamespace === null ? (
+            /* VIEW 1: NAMESPACE INDEX */
+            <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden">
+              {/* Header Toolbar */}
+              <div className="flex flex-col gap-3 border-b border-border/70 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+                {/* Registry Filter Tabs */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                  <span className="text-xs font-semibold text-foreground mr-1 hidden sm:inline">
+                    Registry:
+                  </span>
+                  {registries.map((reg) => (
+                    <button
+                      key={reg.id}
+                      type="button"
+                      onClick={() => handleRegistryChange(reg.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-control px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer",
+                        selectedRegistry === reg.id
+                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      )}
                     >
-                      <span className="truncate">{registry.name}</span>
-                    </Button>
+                      <span className="truncate max-w-[140px]">{reg.name}</span>
+                      {reg.id === selectedRegistry && totalRepositoriesCount > 0 && (
+                        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-xs font-mono">
+                          {totalRepositoriesCount}
+                        </span>
+                      )}
+                    </button>
                   ))}
                 </div>
-              ) : null}
-            </div>
 
-            <div className="flex flex-wrap gap-2">
-              {selectedRegistryData ? <SummaryPill label={selectedRegistryData.name} /> : null}
-              <SummaryPill
-                label={
-                  selectedNamespace === null
-                    ? `${namespaceList.length} ${namespaceList.length === 1 ? "namespace" : "namespaces"}`
-                    : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"}`
-                }
-              />
-            </div>
-          </div>
-
-          {selectedNamespace === null ? (
-            <Panel
-              title="Namespace Index"
-              description={
-                selectedRegistryData
-                  ? `Available namespaces in ${selectedRegistryData.name}`
-                  : "Available namespaces"
-              }
-            >
-              {namespacesQuery.isLoading ? (
-                <NamespaceSkeleton />
-              ) : namespacesQuery.isError ? (
-                <ErrorState onRetry={() => namespacesQuery.refetch()} />
-              ) : !namespaceList.length ? (
-                <EmptyState message="No repositories found in this registry." />
-              ) : (
-                <NamespaceList namespaces={namespaceList} onSelect={handleNamespaceSelect} />
-              )}
-            </Panel>
-          ) : (
-            <div className="rounded-lg border border-border/70 bg-card/80">
-              <div className="space-y-4 px-5 pt-5">
-                <div className="space-y-1">
-                  <h2 className="text-base font-semibold tracking-tight">Repository Inventory</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {sortedRepos.length} {sortedRepos.length === 1 ? "repository" : "repositories"} in {selectedNamespaceValue || "root"}
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                  <div className="relative flex-1">
-                    <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                {/* Quick Search & Count Pill */}
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-control bg-secondary/80 border border-border/60 px-2 py-0.5 text-xs font-mono text-muted-foreground whitespace-nowrap">
+                    {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"} available
+                  </span>
+                  <div className="relative w-full sm:w-60">
+                    <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
                     <Input
                       value={search}
                       onChange={handleSearchChange}
-                      className="pl-9"
-                      placeholder={`Search in ${selectedNamespaceValue || "root"}`}
+                      className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-7 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary h-8"
+                      placeholder="Search repositories or filter namespaces…"
+                      aria-label="Search repositories or namespaces"
+                    />
+                    {search ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                        aria-label="Clear search"
+                      >
+                        ✕
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 sm:p-5">
+                {debouncedSearch.trim() ? (
+                  <div className="space-y-6">
+                    {/* Matching Repositories */}
+                    {searchReposQuery.isLoading ? (
+                      <RepoSkeleton />
+                    ) : searchReposQuery.isError ? (
+                      <ErrorState onRetry={() => searchReposQuery.refetch()} />
+                    ) : activeRepos.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                          <div>
+                            <h2 className="text-xs font-semibold text-foreground">Matching Repositories</h2>
+                            <p className="text-xs text-muted-foreground">Showing matches on this page of registry search results</p>
+                          </div>
+                          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                            <SelectTrigger className="w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories on this page">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-control">
+                              <SelectItem value="tags-desc" className="text-xs">Most tags</SelectItem>
+                              <SelectItem value="name-asc" className="text-xs">Name A-Z</SelectItem>
+                              <SelectItem value="name-desc" className="text-xs">Name Z-A</SelectItem>
+                              <SelectItem value="tags-asc" className="text-xs">Fewest tags</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
+                      </div>
+                    ) : null}
+
+                    {!searchReposQuery.isLoading && !searchReposQuery.isError && searchTotalPages > 1 ? (
+                      <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                        <Button variant="outline" size="sm" disabled={searchPage <= 1} onClick={() => setSearchPageState({ registry: selectedRegistry, query: debouncedSearch, page: searchPage - 1 })}>Previous</Button>
+                        <span>Page {searchPage} of {searchTotalPages}</span>
+                        <Button variant="outline" size="sm" disabled={searchPage >= searchTotalPages} onClick={() => setSearchPageState({ registry: selectedRegistry, query: debouncedSearch, page: searchPage + 1 })}>Next</Button>
+                      </div>
+                    ) : null}
+
+                    {/* Matching Namespaces */}
+                    {namespacesQuery.isLoading ? (
+                      <NamespaceSkeleton />
+                    ) : namespacesQuery.isError ? (
+                      <ErrorState onRetry={() => namespacesQuery.refetch()} />
+                    ) : filteredNamespaces.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="pb-2 border-b border-border/60">
+                          <h2 className="text-xs font-semibold text-foreground">Matching Namespaces</h2>
+                          <p className="text-xs text-muted-foreground">{filteredNamespaces.length} namespaces match your query</p>
+                        </div>
+                        <NamespaceList
+                          namespaces={filteredNamespaces}
+                          allRepositories={repositoriesQuery.data?.items ?? []}
+                          totalRepositories={totalRepositoriesCount}
+                          onSelect={handleNamespaceSelect}
+                        />
+                      </div>
+                    ) : null}
+
+                    {!searchReposQuery.isLoading && !searchReposQuery.isError && !namespacesQuery.isLoading && !namespacesQuery.isError && activeRepos.length === 0 && filteredNamespaces.length === 0 ? (
+                      <EmptyState message={searchTotalPages > 1 ? "No matches on this page. Try another page." : "No namespaces or repositories match your search."} />
+                    ) : null}
+                  </div>
+                ) : (
+                  <div>
+                    {namespacesQuery.isLoading ? (
+                      <NamespaceSkeleton />
+                    ) : namespacesQuery.isError ? (
+                      <ErrorState onRetry={() => namespacesQuery.refetch()} />
+                    ) : !namespaceList.length ? (
+                      <EmptyState message="No repositories found in this registry." />
+                    ) : (
+                      <NamespaceList
+                        namespaces={namespaceList}
+                        allRepositories={repositoriesQuery.data?.items ?? []}
+                        totalRepositories={totalRepositoriesCount}
+                        onSelect={handleNamespaceSelect}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Banner */}
+              <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2 text-xs text-muted-foreground">
+                <span className="truncate text-xs font-mono">
+                  {namespaceList.length} {namespaceList.length === 1 ? "namespace" : "namespaces"} in {selectedRegistryData?.name ?? "Registry"}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground shrink-0 hidden sm:inline">
+                  {totalRepositoriesCount} {totalRepositoriesCount === 1 ? "repository" : "repositories"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            /* VIEW 2: REPOSITORY INVENTORY INSIDE NAMESPACE */
+            <div className="rounded-panel border border-panel-border bg-card shadow-panel overflow-hidden">
+              {/* Header Toolbar */}
+              <div className="flex flex-col gap-3 border-b border-border/70 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+                {/* Breadcrumb / Back button & Title */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackToNamespaces}
+                    className="h-7 rounded-control px-2 text-xs text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                  >
+                    <ChevronLeftIcon className="size-3.5" />
+                    <span>Namespaces</span>
+                  </Button>
+                  <span className="text-muted-foreground/60 text-xs">/</span>
+                  <span className="rounded-control bg-secondary/80 border border-border/70 px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
+                    {selectedNamespaceValue ? `${selectedNamespaceValue}/` : "_root"}
+                  </span>
+                  <span className="hidden md:inline text-xs text-muted-foreground font-mono">
+                    {repositoriesQuery.isLoading
+                      ? "Loading repositories…"
+                      : repositoriesQuery.isError
+                        ? "Repository count unavailable"
+                        : `(${sortedRepos.length} ${sortedRepos.length === 1 ? "repo" : "repos"})`}
+                  </span>
+                </div>
+
+                {/* Inline Search & Sort */}
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full sm:w-52">
+                    <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={handleSearchChange}
+                      className="w-full rounded-control border border-border/70 bg-secondary/50 pl-7 pr-7 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary h-8"
+                      placeholder={`Search in ${selectedNamespaceValue || "root"}…`}
                       aria-label="Search repositories"
                     />
                     {search ? (
                       <button
                         type="button"
                         onClick={() => setSearch("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[24px] min-h-[24px] flex items-center justify-center text-xs font-mono text-muted-foreground hover:text-foreground p-1 cursor-pointer"
                         aria-label="Clear search"
                       >
-                        Clear
+                        ✕
                       </button>
                     ) : null}
                   </div>
 
                   <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                    <SelectTrigger className="w-full md:w-52" aria-label="Sort repositories">
+                    <SelectTrigger className="w-32 sm:w-36 rounded-control h-8 text-xs bg-secondary/50 border border-border/70" aria-label="Sort repositories">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name-asc">Name A-Z</SelectItem>
-                      <SelectItem value="name-desc">Name Z-A</SelectItem>
-                      <SelectItem value="tags-desc">Most tags</SelectItem>
-                      <SelectItem value="tags-asc">Fewest tags</SelectItem>
+                    <SelectContent className="rounded-control">
+                      <SelectItem value="tags-desc" className="text-xs">Most tags</SelectItem>
+                      <SelectItem value="name-asc" className="text-xs">Name A-Z</SelectItem>
+                      <SelectItem value="name-desc" className="text-xs">Name Z-A</SelectItem>
+                      <SelectItem value="tags-asc" className="text-xs">Fewest tags</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="pb-4">
+
+              {/* Table Body */}
+              <div>
                 {repositoriesQuery.isLoading ? (
-                  <RepoSkeleton />
+                  <div className="p-4">
+                    <RepoSkeleton />
+                  </div>
                 ) : repositoriesQuery.isError ? (
-                  <ErrorState onRetry={() => repositoriesQuery.refetch()} />
-                ) : filteredRepos.length === 0 ? (
-                  <EmptyState
-                    message={
-                      debouncedSearch
-                        ? "No repositories match your search."
-                        : "No repositories in this namespace."
-                    }
-                  />
+                  <div className="p-6">
+                    <ErrorState onRetry={() => repositoriesQuery.refetch()} />
+                  </div>
+                ) : sortedRepos.length === 0 ? (
+                  <div className="p-6">
+                    <EmptyState
+                      message={
+                        debouncedSearch
+                          ? "No repositories match your search."
+                          : "No repositories in this namespace."
+                      }
+                    />
+                  </div>
                 ) : (
                   <RepoTable registryId={selectedRegistry} repositories={sortedRepos} />
                 )}
+              </div>
+
+              {/* Footer Banner */}
+              <div className="flex items-center justify-between border-t border-border/70 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
+                <span className="truncate text-xs">
+                  {repositoriesQuery.isLoading
+                    ? "Fetching repository tags and manifests from registry…"
+                    : repositoriesQuery.isError
+                      ? "Unable to retrieve repository manifest list."
+                      : `${sortedRepos.length} ${sortedRepos.length === 1 ? "repository" : "repositories"} in ${selectedNamespaceValue || "root"}`}
+                </span>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToNamespaces}
+                  className="h-8 text-xs font-medium px-2.5 hover:text-primary transition-colors cursor-pointer shrink-0"
+                >
+                  <ChevronLeftIcon className="mr-1 size-3" />
+                  <span>All namespaces</span>
+                </Button>
               </div>
             </div>
           )}
@@ -281,171 +468,30 @@ export function RepositoriesClient({
   )
 }
 
-function Panel({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80">
-      <div className="px-5 pt-5">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
-      <div className="px-5 py-5">{children}</div>
-    </div>
-  )
-}
-
-function SummaryPill({ label }: { label: string }) {
-  return (
-    <span className="inline-flex h-6 items-center rounded-md border border-border/70 bg-card px-2 text-[11px] font-medium text-foreground/72">
-      {label}
-    </span>
-  )
-}
-
-interface NamespaceListProps {
-  namespaces: Namespace[]
-  onSelect: (namespace: string) => void
-}
-
-function NamespaceList({ namespaces, onSelect }: NamespaceListProps) {
-  const sortedNamespaces = [...namespaces].sort((a, b) => {
-    if (b.repositoryCount !== a.repositoryCount) {
-      return b.repositoryCount - a.repositoryCount
-    }
-
-    return a.name.localeCompare(b.name)
-  })
-  const maxRepos = Math.max(...sortedNamespaces.map((namespace) => namespace.repositoryCount), 1)
-
-  return (
-    <div className="space-y-3">
-      {sortedNamespaces.map((namespace) => {
-        const isRoot = namespace.name === ""
-        const label = isRoot ? "(root)" : namespace.name
-        const width = Math.max(10, Math.round((namespace.repositoryCount / maxRepos) * 100))
-
-        return (
-          <button
-            key={namespace.name || "_root"}
-            type="button"
-            onClick={() => onSelect(namespace.name)}
-            className="group flex w-full cursor-pointer flex-col gap-3 rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-left transition-colors hover:bg-background"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card text-muted-foreground">
-                  <FolderIcon className="size-4" />
-                </div>
-                <p className="truncate text-sm font-semibold tracking-tight">
-                  {label}{isRoot ? "" : "/"}
-                </p>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-3">
-                <div className="text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    Repos
-                  </p>
-                  <p className="font-mono text-sm font-semibold text-foreground/85">
-                    {namespace.repositoryCount}
-                  </p>
-                </div>
-                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </div>
-            </div>
-
-            <div className="h-1.5 rounded-full bg-secondary/80">
-              <div
-                className="h-1.5 rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${width}%` }}
-              />
-            </div>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function NamespaceSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <Skeleton className="size-9 rounded-md" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-40 max-w-full" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-6 w-16 rounded-md" />
-              <Skeleton className="size-4 rounded-sm" />
-            </div>
-          </div>
-          <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function RepoSkeleton() {
-  return (
-    <div className="overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1fr)_7rem] border-b border-border/70 px-5 py-3">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="ml-auto h-3 w-10" />
-      </div>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="flex items-center justify-between border-b border-border/60 px-5 py-3 last:border-0">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-9 rounded-md" />
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-36" />
-              <Skeleton className="h-3 w-48 max-w-[50vw]" />
-            </div>
-          </div>
-          <Skeleton className="h-6 w-20 rounded-md" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function NoRegistryState() {
   return (
     <AppEmptyState
       icon={<PlusIcon className="size-5" />}
-      title="No registry connected"
-      description="Connect a Docker registry to start browsing your container images."
+      title={"No registry connected"}
+      description={"Connect a Docker registry to start browsing your container images."}
       action={
-        <Button asChild>
-          <Link href="/registries/new">Add First Registry</Link>
+        <Button className="rounded-control shadow-xs" asChild>
+          <Link href="/registries/new">{"Add registry"}</Link>
         </Button>
       }
-      className="rounded-lg bg-card/80 p-14"
+      className="rounded-panel border border-panel-border bg-card p-12 text-center shadow-panel"
     />
   )
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="px-6 py-8">
+    <div className="py-6">
       <AppEmptyState
         icon={<SearchIcon className="size-5" />}
         title="Nothing to show"
         description={message}
-        className="rounded-lg bg-background/70"
+        className="rounded-panel border border-panel-border bg-card p-8 text-center"
       />
     </div>
   )
@@ -453,17 +499,17 @@ function EmptyState({ message }: { message: string }) {
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="px-6 py-8">
+    <div className="py-6">
       <AppEmptyState
         icon={<FolderIcon className="size-5" />}
         title="Failed to load"
         description="Unable to fetch data from the selected registry."
         action={
-          <Button variant="outline" onClick={onRetry}>
+          <Button variant="outline" className="rounded-control shadow-xs" onClick={onRetry}>
             Retry
           </Button>
         }
-        className="rounded-lg bg-background/70"
+        className="rounded-panel border border-panel-border bg-card p-8 text-center"
       />
     </div>
   )

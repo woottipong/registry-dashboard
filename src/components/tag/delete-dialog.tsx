@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useId, useState } from "react"
 import { AlertTriangleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { truncateDigest } from "@/lib/format"
 import type { Tag } from "@/types/registry"
 
@@ -22,6 +23,7 @@ interface BulkDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
   isPending?: boolean
+  checkStatus?: "loading" | "error" | "ready"
 }
 
 export function BulkDeleteDialog({
@@ -31,11 +33,21 @@ export function BulkDeleteDialog({
   onOpenChange,
   onConfirm,
   isPending = false,
+  checkStatus = "ready",
 }: BulkDeleteDialogProps) {
   const count = tags.length
+  const acknowledgmentId = useId()
+  const [acknowledgedSelection, setAcknowledgedSelection] = useState("")
+  const selectionKey = JSON.stringify([tags.map((tag) => tag.name).sort(), [...sideEffectTags].sort()])
+  const acknowledged = acknowledgedSelection === selectionKey
+
+  function handleOpenChange(value: boolean) {
+    if (!value) setAcknowledgedSelection("")
+    onOpenChange(value)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -48,8 +60,8 @@ export function BulkDeleteDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-md border bg-muted/40 px-4 py-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="rounded-panel border-0 bg-secondary/50 p-4">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">
             Tags to delete
           </p>
           <div className="max-h-40 overflow-y-auto space-y-1">
@@ -67,7 +79,7 @@ export function BulkDeleteDialog({
         </div>
 
         {sideEffectTags.length > 0 && (
-          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+          <div className="rounded-panel border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <strong>Also deletes unselected tags</strong> — these tags share a digest with your
             selection and will be removed too:{" "}
             {sideEffectTags.map((name, i) => (
@@ -79,8 +91,25 @@ export function BulkDeleteDialog({
           </div>
         )}
 
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id={acknowledgmentId}
+            checked={acknowledged}
+            onCheckedChange={(checked) => setAcknowledgedSelection(checked === true ? selectionKey : "")}
+            className="mt-0.5"
+          />
+          <label htmlFor={acknowledgmentId} className="text-xs text-foreground/90 leading-relaxed cursor-pointer select-none">
+            I understand that the selected tags{sideEffectTags.length > 0 ? " and the unselected tags listed above" : ""} will be permanently deleted.
+          </label>
+        </div>
+
+        {checkStatus !== "ready" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {checkStatus === "loading" ? "Checking all tags for shared manifests…" : "Could not verify all tags. Close and try again."}
+          </p>
+        )}
         <DialogFooter showCloseButton>
-          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
+          <Button variant="destructive" disabled={isPending || checkStatus !== "ready" || !acknowledged || count === 0} onClick={() => { setAcknowledgedSelection(""); onConfirm() }}>
             {isPending ? "Deleting…" : `Delete ${count} ${count === 1 ? "tag" : "tags"}`}
           </Button>
         </DialogFooter>
@@ -96,6 +125,7 @@ interface DeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onConfirm: (tag: Tag) => void
   isPending?: boolean
+  checkStatus?: "loading" | "error" | "ready"
 }
 
 export function DeleteDialog({
@@ -105,13 +135,15 @@ export function DeleteDialog({
   onOpenChange,
   onConfirm,
   isPending = false,
+  checkStatus = "ready",
 }: DeleteDialogProps) {
   const [confirmation, setConfirmation] = useState("")
+  const confirmationId = useId()
 
   const isConfirmed = confirmation === tag?.name
 
   function handleConfirm() {
-    if (!tag || !isConfirmed) return
+    if (!tag || !isConfirmed || isPending || checkStatus !== "ready") return
     onConfirm(tag)
     setConfirmation("")
   }
@@ -137,7 +169,7 @@ export function DeleteDialog({
 
         {tag ? (
           <div className="space-y-4">
-            <div className="rounded-md border bg-muted/40 px-4 py-3 text-sm">
+            <div className="rounded-panel border-0 bg-secondary/50 p-4 text-sm">
               <div className="font-mono font-medium">{tag.name}</div>
               {tag.digest ? (
                 <div className="mt-1 font-mono text-xs text-muted-foreground">
@@ -147,7 +179,7 @@ export function DeleteDialog({
             </div>
 
             {sharedWith.length > 0 && (
-              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+              <div className="rounded-panel border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
                 <strong>Shared digest warning</strong> — the following tags point to the same
                 manifest and will also be deleted:{" "}
                 {sharedWith.map((t) => (
@@ -161,15 +193,16 @@ export function DeleteDialog({
             )}
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">
+              <label htmlFor={confirmationId} className="text-sm text-muted-foreground">
                 Type <span className="font-mono font-medium text-foreground">{tag.name}</span> to
                 confirm
               </label>
               <Input
+                id={confirmationId}
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 placeholder={tag.name}
-                className="font-mono"
+                className="font-mono rounded-control h-10"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && isConfirmed) handleConfirm()
                 }}
@@ -178,10 +211,15 @@ export function DeleteDialog({
           </div>
         ) : null}
 
+        {checkStatus !== "ready" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {checkStatus === "loading" ? "Checking all tags for shared manifests…" : "Could not verify all tags. Close and try again."}
+          </p>
+        )}
         <DialogFooter showCloseButton>
           <Button
             variant="destructive"
-            disabled={!isConfirmed || isPending}
+            disabled={!isConfirmed || isPending || checkStatus !== "ready"}
             onClick={handleConfirm}
           >
             {isPending ? "Deleting…" : "Delete tag"}
